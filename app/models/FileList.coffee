@@ -9,6 +9,7 @@ module.exports = class FileList extends Backbone.Collection
   # we just get everything at the moment, keyed by title
   pouch: 
     fetch: 'query'
+    listen: true
     options: 
       query: 
         include_docs: true
@@ -18,6 +19,7 @@ module.exports = class FileList extends Backbone.Collection
             emit doc.title, null 
       changes: 
         include_docs: true
+        continuous: true
         filter: (doc) -> 
           # runs on the server
           doc._deleted || true

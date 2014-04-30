@@ -38,7 +38,7 @@ App =
     #files.add t1
     try 
       t1.save()
-      files.add t1
+      #files.add t1
     catch err
       console.log "save error #{err.message}"
 

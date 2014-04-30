@@ -150,6 +150,7 @@
 
     FileList.prototype.pouch = {
       fetch: 'query',
+      listen: true,
       options: {
         query: {
           include_docs: true,
@@ -161,6 +162,7 @@
         },
         changes: {
           include_docs: true,
+          continuous: true,
           filter: function(doc) {
             return doc._deleted || true;
           }
