@@ -1,0 +1,20 @@
+<%# File add or edit, takes { data: File, add: true|false } as data (title, description, ...); parent is a row %>
+<form>
+  <div class="columns large-12">
+    <label>Title
+      <input type="text" name="title" placeholder="title" value="<%= @data.title %>"/>
+    </label>
+    <label>File
+      <input type="file" name="file"/>
+    </label>
+    <div class="drop-zone">Drop file here</div>
+    <div class="file-detail">No File<!-- TODO --></div>
+    <label>Description
+      <textarea name="description" placeholder="description" ><%= @data.description %></textarea>
+    </label>
+    <input type="submit" value="<%= if @add then 'Add' else 'Save changes' %>"/>
+    <input type="reset" value="Clear"/>
+    <input type="button" value="Cancel" class="do-cancel"/>
+  </div>
+</form>
+

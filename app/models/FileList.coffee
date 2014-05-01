@@ -8,8 +8,6 @@ module.exports = class FileList extends Backbone.Collection
   # see https://github.com/jo/backbone-pouch
   # we just get everything at the moment, keyed by title
   pouch: 
-    fetch: 'query'
-    listen: true
     options: 
       query: 
         include_docs: true

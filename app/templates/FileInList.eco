@@ -1,3 +1,7 @@
 <%# File in File List, takes File as data (title, description, ...) %>
 <p><%= @title %></p>
+<ul class="button-group">
+  <li><a href="#-edit-file" class="button tiny do-edit-file">Edit</a></li>
+  <li><a href="#-delete-file" class="button tiny do-delete-file">Delete</a></li>
+</ul>
 

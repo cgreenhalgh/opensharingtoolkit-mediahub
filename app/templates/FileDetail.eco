@@ -1,0 +1,13 @@
+<%# HTML5 File detail - in FileEdit %>
+<% if @state == 'nofile': %>
+No file
+<% else if @state == 'error': %>
+Error loading file
+<% else: %>
+<% if @state == 'loading': %>
+Loading...
+<% end %>
+<%= @size %> bytes, <%= if not @type? or @type=='' then 'unknown mimetype' else @type %>
+<% end %>
+<% if @dataurl? : %>
+<a href="#-save" class="button do-save">Save</a>

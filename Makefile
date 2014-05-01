@@ -20,3 +20,6 @@ bower_copy:
 	mkdir -p public/vendor/modernizr
 	cp -puR public/bower_components/modernizr/modernizr.js public/vendor/modernizr
 
+css:
+	cd public; compass compile
+

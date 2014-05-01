@@ -38,3 +38,36 @@
 //   "foundation/components/type",
 //   "foundation/components/offcanvas",
 //   "foundation/components/visibility";
+
+$outline-color: $primary-color; //scale-color($primary-color, $lightness: -66%);
+
+.file-list {
+  @extend .row;
+}
+
+.file-in-list {
+  @extend .columns;
+  @extend .large-12;
+  @extend .medium-12;
+  @extend .small-12;
+  border: 1px solid $outline-color;
+  background-color: scale-color($outline-color, $lightness: 66%);
+}
+
+.drop-zone {
+  border: 1px dashed $outline-color;
+  text-align: center;
+  color: $outline-color;
+  padding: 0.2em;
+}
+
+.over {
+  background-color: scale-color($outline-color, $lightness: 66%);    
+}
+
+.file-detail {
+  border: 1px solid $primary-color;
+  text-align: center;
+  padding: 0.2em;
+}
+

@@ -1,5 +1,8 @@
 # FileList View
+File = require 'models/File'
 FileInListView = require 'views/FileInList'
+FileEditView = require 'views/FileEdit'
+templateFileList = require 'templates/FileList'
 
 module.exports = class FileListView extends Backbone.View
 
@@ -8,18 +11,44 @@ module.exports = class FileListView extends Backbone.View
 
   initialize: ->
     @listenTo @model, 'add', @add
+    @listenTo @model, 'remove', @remove
+
+  template: (d) =>
+    templateFileList d
 
   render: =>
-    @$el.empty()
+    console.log "render FileList with template"
+    @$el.html @template @model.attributes
     views = []
     @model.forEach @add
     @
 
   views: []
 
-  add: (file, filelist) =>
+  add: (file) =>
     console.log "FileListView add #{file.attributes._id}"
     view = new FileInListView model: file
+    # TODO add in order / filter
     @$el.append view.$el
     @views.push view
     
+  remove: (file) =>
+    console.log "FileListView remove #{file.attributes._id}"
+    for view, i in @views when view.model.id == file.id
+      console.log "remove view" 
+      view.$el.remove()
+      @views.splice i,1
+      return
+    
+  events:
+    "click .do-add-file": "addFile"
+
+  addFile: (ev) =>
+    console.log "addFile"
+    ev.preventDefault()
+    @$el.hide()
+    file = new File()
+    addView = new FileEditView model: file
+    $('body').append addView.$el
+    false
+

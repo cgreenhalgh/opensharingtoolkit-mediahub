@@ -22,10 +22,14 @@ App =
 
     Backbone.sync =  BackbonePouch.sync
       db: PouchDB('http://127.0.0.1:5984/mydb')
+      fetch: 'query'
+      listen: true
+
     Backbone.Model.prototype.idAttribute = '_id'
 
     files = new FileList()
     filesView = new FileListView model:files
+    filesView.render()
     $('body').append filesView.el
 
     #files.reset files.to_json 

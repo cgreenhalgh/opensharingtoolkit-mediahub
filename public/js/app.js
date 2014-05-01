@@ -83,13 +83,16 @@
       var err, files, filesView, router, t1;
       console.log("App starting...");
       Backbone.sync = BackbonePouch.sync({
-        db: PouchDB('http://127.0.0.1:5984/mydb')
+        db: PouchDB('http://127.0.0.1:5984/mydb'),
+        fetch: 'query',
+        listen: true
       });
       Backbone.Model.prototype.idAttribute = '_id';
       files = new FileList();
       filesView = new FileListView({
         model: files
       });
+      filesView.render();
       $('body').append(filesView.el);
       files.fetch();
       t1 = new File({
@@ -123,7 +126,7 @@
     }
 
     File.prototype.defaults = {
-      title: 'Unnamed file',
+      title: '',
       description: ''
     };
 
@@ -149,8 +152,6 @@
     FileList.prototype.model = File;
 
     FileList.prototype.pouch = {
-      fetch: 'query',
-      listen: true,
       options: {
         query: {
           include_docs: true,
@@ -180,7 +181,133 @@
   })(Backbone.Collection);
 
 }).call(this);
-}, "templates/FileInList": function(exports, require, module) {module.exports = function(__obj) {
+}, "templates/FileDetail": function(exports, require, module) {module.exports = function(__obj) {
+  if (!__obj) __obj = {};
+  var __out = [], __capture = function(callback) {
+    var out = __out, result;
+    __out = [];
+    callback.call(this);
+    result = __out.join('');
+    __out = out;
+    return __safe(result);
+  }, __sanitize = function(value) {
+    if (value && value.ecoSafe) {
+      return value;
+    } else if (typeof value !== 'undefined' && value != null) {
+      return __escape(value);
+    } else {
+      return '';
+    }
+  }, __safe, __objSafe = __obj.safe, __escape = __obj.escape;
+  __safe = __obj.safe = function(value) {
+    if (value && value.ecoSafe) {
+      return value;
+    } else {
+      if (!(typeof value !== 'undefined' && value != null)) value = '';
+      var result = new String(value);
+      result.ecoSafe = true;
+      return result;
+    }
+  };
+  if (!__escape) {
+    __escape = __obj.escape = function(value) {
+      return ('' + value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    };
+  }
+  (function() {
+    (function() {
+      __out.push('\n');
+    
+      if (this.state === 'nofile') {
+        __out.push('\nNo file\n');
+      } else if (this.state === 'error') {
+        __out.push('\nError loading file\n');
+      } else {
+        __out.push('\n');
+        if (this.state === 'loading') {
+          __out.push('\nLoading...\n');
+        }
+        __out.push('\n');
+        __out.push(__sanitize(this.size));
+        __out.push(' bytes, ');
+        __out.push(__sanitize((this.type == null) || this.type === '' ? 'unknown mimetype' : this.type));
+        __out.push('\n');
+      }
+    
+      __out.push('\n');
+    
+      if (this.dataurl != null) {
+        __out.push('\n<a href="#-save" class="button do-save">Save</a>\n');
+      }
+    
+    }).call(this);
+    
+  }).call(__obj);
+  __obj.safe = __objSafe, __obj.escape = __escape;
+  return __out.join('');
+}}, "templates/FileEdit": function(exports, require, module) {module.exports = function(__obj) {
+  if (!__obj) __obj = {};
+  var __out = [], __capture = function(callback) {
+    var out = __out, result;
+    __out = [];
+    callback.call(this);
+    result = __out.join('');
+    __out = out;
+    return __safe(result);
+  }, __sanitize = function(value) {
+    if (value && value.ecoSafe) {
+      return value;
+    } else if (typeof value !== 'undefined' && value != null) {
+      return __escape(value);
+    } else {
+      return '';
+    }
+  }, __safe, __objSafe = __obj.safe, __escape = __obj.escape;
+  __safe = __obj.safe = function(value) {
+    if (value && value.ecoSafe) {
+      return value;
+    } else {
+      if (!(typeof value !== 'undefined' && value != null)) value = '';
+      var result = new String(value);
+      result.ecoSafe = true;
+      return result;
+    }
+  };
+  if (!__escape) {
+    __escape = __obj.escape = function(value) {
+      return ('' + value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    };
+  }
+  (function() {
+    (function() {
+      __out.push('\n<form>\n  <div class="columns large-12">\n    <label>Title\n      <input type="text" name="title" placeholder="title" value="');
+    
+      __out.push(__sanitize(this.data.title));
+    
+      __out.push('"/>\n    </label>\n    <label>File\n      <input type="file" name="file"/>\n    </label>\n    <div class="drop-zone">Drop file here</div>\n    <div class="file-detail">No File<!-- TODO --></div>\n    <label>Description\n      <textarea name="description" placeholder="description" >');
+    
+      __out.push(__sanitize(this.data.description));
+    
+      __out.push('</textarea>\n    </label>\n    <input type="submit" value="');
+    
+      __out.push(__sanitize(this.add ? 'Add' : 'Save changes'));
+    
+      __out.push('"/>\n    <input type="reset" value="Clear"/>\n    <input type="button" value="Cancel" class="do-cancel"/>\n  </div>\n</form>\n\n');
+    
+    }).call(this);
+    
+  }).call(__obj);
+  __obj.safe = __objSafe, __obj.escape = __escape;
+  return __out.join('');
+}}, "templates/FileInList": function(exports, require, module) {module.exports = function(__obj) {
   if (!__obj) __obj = {};
   var __out = [], __capture = function(callback) {
     var out = __out, result;
@@ -223,25 +350,316 @@
     
       __out.push(__sanitize(this.title));
     
-      __out.push('</p>\n\n');
+      __out.push('</p>\n<ul class="button-group">\n  <li><a href="#-edit-file" class="button tiny do-edit-file">Edit</a></li>\n  <li><a href="#-delete-file" class="button tiny do-delete-file">Delete</a></li>\n</ul>\n\n');
     
     }).call(this);
     
   }).call(__obj);
   __obj.safe = __objSafe, __obj.escape = __escape;
   return __out.join('');
-}}, "views/FileInList": function(exports, require, module) {(function() {
-  var FileInListView, templateFileInList,
+}}, "templates/FileList": function(exports, require, module) {module.exports = function(__obj) {
+  if (!__obj) __obj = {};
+  var __out = [], __capture = function(callback) {
+    var out = __out, result;
+    __out = [];
+    callback.call(this);
+    result = __out.join('');
+    __out = out;
+    return __safe(result);
+  }, __sanitize = function(value) {
+    if (value && value.ecoSafe) {
+      return value;
+    } else if (typeof value !== 'undefined' && value != null) {
+      return __escape(value);
+    } else {
+      return '';
+    }
+  }, __safe, __objSafe = __obj.safe, __escape = __obj.escape;
+  __safe = __obj.safe = function(value) {
+    if (value && value.ecoSafe) {
+      return value;
+    } else {
+      if (!(typeof value !== 'undefined' && value != null)) value = '';
+      var result = new String(value);
+      result.ecoSafe = true;
+      return result;
+    }
+  };
+  if (!__escape) {
+    __escape = __obj.escape = function(value) {
+      return ('' + value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    };
+  }
+  (function() {
+    (function() {
+      __out.push('\n<div class="row">\n  <div class="column large-12 small-12">\n    <a href="#-add-file" class="button do-add-file">Add...</a>\n  </div>\n</div>\n\n');
+    
+    }).call(this);
+    
+  }).call(__obj);
+  __obj.safe = __objSafe, __obj.escape = __escape;
+  return __out.join('');
+}}, "views/FileEdit": function(exports, require, module) {(function() {
+  var FileEditView, templateFileDetail, templateFileEdit,
+    __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
+    __hasProp = {}.hasOwnProperty,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+  templateFileEdit = require('templates/FileEdit');
+
+  templateFileDetail = require('templates/FileDetail');
+
+  module.exports = FileEditView = (function(_super) {
+    __extends(FileEditView, _super);
+
+    function FileEditView() {
+      this.save = __bind(this.save, this);
+      this.renderFileDetails = __bind(this.renderFileDetails, this);
+      this.handleFileSelect = __bind(this.handleFileSelect, this);
+      this.handleDrop = __bind(this.handleDrop, this);
+      this.close = __bind(this.close, this);
+      this.submit = __bind(this.submit, this);
+      this.render = __bind(this.render, this);
+      this.template = __bind(this.template, this);
+      return FileEditView.__super__.constructor.apply(this, arguments);
+    }
+
+    FileEditView.prototype.tagName = 'div';
+
+    FileEditView.prototype.className = 'row file-edit';
+
+    FileEditView.prototype.newfile = null;
+
+    FileEditView.prototype.newfileReader = null;
+
+    FileEditView.prototype.initialize = function() {
+      return this.render();
+    };
+
+    FileEditView.prototype.template = function(d) {
+      return templateFileEdit(d);
+    };
+
+    FileEditView.prototype.render = function() {
+      var f;
+      console.log("render FileEdit " + this.model.attributes._id + ": " + this.model.attributes.title);
+      this.$el.html(this.template({
+        data: this.model.attributes,
+        add: true
+      }));
+      this.renderFileDetails();
+      f = function() {
+        return $('input[name="title"]', this.$el).focus();
+      };
+      setTimeout(f, 0);
+      return this;
+    };
+
+    FileEditView.prototype.events = {
+      "submit": "submit",
+      "click .do-cancel": "close",
+      "dragover .drop-zone": "handleDragOver",
+      "drop .drop-zone": "handleDrop",
+      "dragenter .drop-zone": "handleDragEnter",
+      "dragleave .drop-zone": "handleDragLeave",
+      "dragend .drop-zone": "handleDragLeave",
+      'change input[name="file"]': "handleFileSelect",
+      "click .do-save": "save"
+    };
+
+    FileEditView.prototype.submit = function(ev) {
+      var description, file, title;
+      console.log("submit...");
+      ev.preventDefault();
+      title = $('input[name="title"]', this.$el).val();
+      file = $('input[name="file"]', this.$el).val();
+      description = $(':input[name="description"]', this.$el).val();
+      console.log("title=" + title + ", file=" + file + ", description=" + description);
+      this.model.set('title', title);
+      this.model.set('description', description);
+      if ((this.newfile != null) && (this.newfileDataurl != null)) {
+        this.model.set('fileSize', this.newfile.size);
+        this.model.set('fileType', this.newfile.type);
+        if (this.newfile.lastModified != null) {
+          this.model.set('fileLastModified', this.newfile.lastModified);
+        } else {
+          this.model.unset('fileLastModified');
+        }
+        this.model.set('fileDataurl', this.newfileDataurl);
+      }
+      this.model.save();
+      return this.close();
+    };
+
+    FileEditView.prototype.close = function() {
+      this.remove();
+      if (this.newfileReader != null) {
+        console.log("abort old file reader");
+        this.newfileReader.abort();
+        this.newfileReader = null;
+      }
+      return $('.file-list').show();
+    };
+
+    FileEditView.prototype.handleDragEnter = function(ev) {
+      console.log("dragenter");
+      return $(ev.target).addClass('over');
+    };
+
+    FileEditView.prototype.handleDragLeave = function(ev) {
+      console.log("dragleave");
+      return $(ev.target).removeClass('over');
+    };
+
+    FileEditView.prototype.handleDragOver = function(ev) {
+      console.log("dragover");
+      ev.stopPropagation();
+      ev.preventDefault();
+      ev.originalEvent.dataTransfer.dropEffect = 'copy';
+      return false;
+    };
+
+    FileEditView.prototype.handleDrop = function(ev) {
+      var files;
+      console.log("drop");
+      this.handleDragLeave(ev);
+      ev.stopPropagation();
+      ev.preventDefault();
+      files = ev.originalEvent.dataTransfer.files;
+      this.listFiles(files);
+      return false;
+    };
+
+    FileEditView.prototype.handleFileSelect = function(ev) {
+      var files;
+      console.log("fileSelect");
+      files = ev.target.files;
+      return this.listFiles(files);
+    };
+
+    FileEditView.prototype.listFiles = function(files) {
+      var file, self;
+      if (files.length > 0) {
+        file = files[0];
+        this.newfile = file;
+        this.newfileDataurl = null;
+        console.log("file " + file.name + " - " + file.type);
+        if ((file.name != null) && $('input[name="title"]', this.$el).val() === '') {
+          $('input[name="title"]', this.$el).val(file.name);
+        }
+        if (this.newfileReader != null) {
+          console.log("abort old file reader");
+          this.newfileReader.abort();
+        }
+        this.newfileReader = new FileReader();
+        self = this;
+        this.newfileReader.onload = (function(_this) {
+          return function(ev) {
+            console.log("Read " + ev.target.result.length + " char dataurl");
+            _this.newfileDataurl = ev.target.result;
+            _this.newfileReader = null;
+            _this.renderFileDetails();
+            return $('input[type=submit]', _this.$el).removeClass('disabled');
+          };
+        })(this);
+        this.newfileReader.onerror = (function(_this) {
+          return function(ev) {
+            console.log("Read file error");
+            _this.newfileReader = null;
+            _this.newfile = null;
+            _this.renderFileDetails();
+            return $('input[type=submit]', _this.$el).removeClass('disabled');
+          };
+        })(this);
+        $('input[type=submit]', this.$el).addClass('disabled');
+        this.newfileReader.readAsDataURL(file);
+        return this.renderFileDetails();
+      }
+    };
+
+    FileEditView.prototype.renderFileDetails = function() {
+      var data;
+      if ((this.newfileDataurl != null) && (this.newfile != null)) {
+        data = {
+          'state': 'loaded',
+          'type': this.newfile.type,
+          'size': this.newfile.size,
+          'dataurl': this.newfileDataurl
+        };
+      } else if (this.newfile != null) {
+        data = {
+          'state': 'error'
+        };
+      } else if (this.model.has('fileDataurl')) {
+        data = {
+          'state': 'unchanged',
+          'type': this.model.get('fileType'),
+          'size': this.model.get('fileSize'),
+          'dataurl': this.model.get('fileDataurl')
+        };
+      } else {
+        data = {
+          'state': 'nofile'
+        };
+      }
+      return $('.file-detail', this.$el).html(templateFileDetail(data));
+    };
+
+    FileEditView.prototype.save = function(ev) {
+      ev.preventDefault();
+      if (this.newfileDataurl != null) {
+        return this(saveDataurl(this.newfileDataurl));
+      } else if (this.model.has('fileDataurl')) {
+        return this.saveDataurl(this.model.get('fileDataurl'));
+      }
+    };
+
+    FileEditView.prototype.saveDataurl = function(dataurl) {
+      var array, bix, blob, contentType, i, len, parts, raw, _i, _ref;
+      bix = dataurl.indexOf(';base64,');
+      if (bix < 0) {
+        console.log("cannot save non-base64 dataurl");
+        return;
+      }
+      raw = window.atob(dataurl.substring(bix + 8));
+      len = raw.length;
+      array = new Uint8Array(len);
+      for (i = _i = 0, _ref = len - 1; 0 <= _ref ? _i <= _ref : _i >= _ref; i = 0 <= _ref ? ++_i : --_i) {
+        array[i] = raw.charCodeAt(i);
+      }
+      parts = dataurl.substring(0, bix).split(/[:;]/);
+      contentType = parts[1];
+      blob = new Blob(array, {
+        type: contentType
+      });
+      return saveAs(blob, this.title);
+    };
+
+    return FileEditView;
+
+  })(Backbone.View);
+
+}).call(this);
+}, "views/FileInList": function(exports, require, module) {(function() {
+  var FileEditView, FileInListView, templateFileInList,
     __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
   templateFileInList = require('templates/FileInList');
 
+  FileEditView = require('views/FileEdit');
+
   module.exports = FileInListView = (function(_super) {
     __extends(FileInListView, _super);
 
     function FileInListView() {
+      this["delete"] = __bind(this["delete"], this);
+      this.edit = __bind(this.edit, this);
       this.render = __bind(this.render, this);
       this.template = __bind(this.template, this);
       return FileInListView.__super__.constructor.apply(this, arguments);
@@ -266,25 +684,58 @@
       return this;
     };
 
+    FileInListView.prototype.events = {
+      "click .do-edit-file": "edit",
+      "click .do-delete-file": "delete"
+    };
+
+    FileInListView.prototype.edit = function(ev) {
+      var editView;
+      console.log("edit " + this.model.attributes._id);
+      ev.preventDefault();
+      $('.file-list').hide();
+      editView = new FileEditView({
+        model: this.model
+      });
+      $('body').append(editView.$el);
+      return false;
+    };
+
+    FileInListView.prototype["delete"] = function(ev) {
+      console.log("delete " + this.model.attributes._id);
+      ev.preventDefault();
+      this.model.destroy();
+      return false;
+    };
+
     return FileInListView;
 
   })(Backbone.View);
 
 }).call(this);
 }, "views/FileList": function(exports, require, module) {(function() {
-  var FileInListView, FileListView,
+  var File, FileEditView, FileInListView, FileListView, templateFileList,
     __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
+  File = require('models/File');
+
   FileInListView = require('views/FileInList');
+
+  FileEditView = require('views/FileEdit');
+
+  templateFileList = require('templates/FileList');
 
   module.exports = FileListView = (function(_super) {
     __extends(FileListView, _super);
 
     function FileListView() {
+      this.addFile = __bind(this.addFile, this);
+      this.remove = __bind(this.remove, this);
       this.add = __bind(this.add, this);
       this.render = __bind(this.render, this);
+      this.template = __bind(this.template, this);
       return FileListView.__super__.constructor.apply(this, arguments);
     }
 
@@ -293,12 +744,18 @@
     FileListView.prototype.className = 'file-list';
 
     FileListView.prototype.initialize = function() {
-      return this.listenTo(this.model, 'add', this.add);
+      this.listenTo(this.model, 'add', this.add);
+      return this.listenTo(this.model, 'remove', this.remove);
+    };
+
+    FileListView.prototype.template = function(d) {
+      return templateFileList(d);
     };
 
     FileListView.prototype.render = function() {
       var views;
-      this.$el.empty();
+      console.log("render FileList with template");
+      this.$el.html(this.template(this.model.attributes));
       views = [];
       this.model.forEach(this.add);
       return this;
@@ -306,7 +763,7 @@
 
     FileListView.prototype.views = [];
 
-    FileListView.prototype.add = function(file, filelist) {
+    FileListView.prototype.add = function(file) {
       var view;
       console.log("FileListView add " + file.attributes._id);
       view = new FileInListView({
@@ -314,6 +771,39 @@
       });
       this.$el.append(view.$el);
       return this.views.push(view);
+    };
+
+    FileListView.prototype.remove = function(file) {
+      var i, view, _i, _len, _ref;
+      console.log("FileListView remove " + file.attributes._id);
+      _ref = this.views;
+      for (i = _i = 0, _len = _ref.length; _i < _len; i = ++_i) {
+        view = _ref[i];
+        if (!(view.model.id === file.id)) {
+          continue;
+        }
+        console.log("remove view");
+        view.$el.remove();
+        this.views.splice(i, 1);
+        return;
+      }
+    };
+
+    FileListView.prototype.events = {
+      "click .do-add-file": "addFile"
+    };
+
+    FileListView.prototype.addFile = function(ev) {
+      var addView, file;
+      console.log("addFile");
+      ev.preventDefault();
+      this.$el.hide();
+      file = new File();
+      addView = new FileEditView({
+        model: file
+      });
+      $('body').append(addView.$el);
+      return false;
     };
 
     return FileListView;

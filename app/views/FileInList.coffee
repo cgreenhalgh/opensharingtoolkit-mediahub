@@ -1,5 +1,6 @@
 # FileInList View
 templateFileInList = require 'templates/FileInList'
+FileEditView = require 'views/FileEdit'
 
 module.exports = class FileInListView extends Backbone.View
 
@@ -19,4 +20,22 @@ module.exports = class FileInListView extends Backbone.View
     @$el.html @template @model.attributes
     @
 
+  events:
+    "click .do-edit-file": "edit"
+    "click .do-delete-file": "delete"
+
+  edit: (ev) =>
+    console.log "edit #{@model.attributes._id}"
+    ev.preventDefault()
+    $('.file-list').hide()
+    editView = new FileEditView model: @model
+    $('body').append editView.$el
+    false
+
+  delete: (ev) =>
+    console.log "delete #{@model.attributes._id}"
+    ev.preventDefault()
+    # TODO modal check
+    @model.destroy()
+    false
 
