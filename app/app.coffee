@@ -26,6 +26,7 @@ App =
       listen: true
 
     Backbone.Model.prototype.idAttribute = '_id'
+    _.extend Backbone.Model.prototype, BackbonePouch.attachments()
 
     files = new FileList()
     filesView = new FileListView model:files
@@ -34,17 +35,6 @@ App =
 
     #files.reset files.to_json 
     files.fetch()
-
-    # test item
-    t1 = new File 
-      _id: '1234'
-      title: 'test file'
-    #files.add t1
-    try 
-      t1.save()
-      #files.add t1
-    catch err
-      console.log "save error #{err.message}"
 
     # in-app virtual pages
     router = new Router

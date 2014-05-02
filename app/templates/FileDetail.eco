@@ -6,8 +6,13 @@ Error loading file
 <% else: %>
 <% if @state == 'loading': %>
 Loading...
+<% else if @state == 'unchanged': %>
+<a href="#-save" class="button do-save">Save</a>
+<% else if @state == 'loaded': %>
+<a href="#-save" class="button do-save">Save (new)</a>
+<% else: %>
+(<%= @state %>)
 <% end %>
 <%= @size %> bytes, <%= if not @type? or @type=='' then 'unknown mimetype' else @type %>
 <% end %>
-<% if @dataurl? : %>
-<a href="#-save" class="button do-save">Save</a>
+

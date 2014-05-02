@@ -4,10 +4,16 @@ templateFileDetail = require 'templates/FileDetail'
 
 module.exports = class FileEditView extends Backbone.View
 
+  constructor:(options)->
+    @add = options.add ?= false
+    super(options)
+
   tagName: 'div'
   className: 'row file-edit'
   newfile: null
-  newfileReader: null
+  fileState: 'unchanged'
+  cancelled: false
+  created: false
 
   initialize: ->
     #@listenTo @model, 'change', @render
@@ -20,7 +26,7 @@ module.exports = class FileEditView extends Backbone.View
   render: =>
     console.log "render FileEdit #{@model.attributes._id}: #{ @model.attributes.title }"
     # TODO edit?
-    @$el.html @template { data: @model.attributes, add: true }
+    @$el.html @template { data: @model.attributes, add: @add }
     # TODO file info
     @renderFileDetails()
     f = () -> $('input[name="title"]', @$el).focus()
@@ -29,7 +35,7 @@ module.exports = class FileEditView extends Backbone.View
 
   events:
     "submit": "submit"
-    "click .do-cancel": "close"
+    "click .do-cancel": "cancel"
     "dragover .drop-zone": "handleDragOver"
     "drop .drop-zone": "handleDrop"
     "dragenter .drop-zone": "handleDragEnter"
@@ -51,25 +57,20 @@ module.exports = class FileEditView extends Backbone.View
     #  id = window.PouchDB.uuid()
     #  console.log "new id #{id}"
     #  @model.set '_id', id
-    if @newfile? and @newfileDataurl?
-      @model.set 'fileSize', @newfile.size
-      @model.set 'fileType', @newfile.type
-      if @newfile.lastModified?
-        @model.set 'fileLastModified', @newfile.lastModified
-      else
-        @model.unset 'fileLastModified'
-      @model.set 'fileDataurl', @newfileDataurl
-      #attachments = @model.get '_attachments'
 
     @model.save()
     @close()
 
+  cancel: =>
+    console.log "cancel"
+    @cancelled = true
+    if @created and @model.id?
+      console.log "try destroy on cancel for #{@model.id}"
+      @model.destroy()
+    @close()
+
   close: =>
     @remove()
-    if @newfileReader?
-      console.log "abort old file reader"
-      @newfileReader.abort()
-      @newfileReader = null
     $('.file-list').show()
 
   handleDragEnter: (ev)->
@@ -108,74 +109,68 @@ module.exports = class FileEditView extends Backbone.View
   listFiles: (files) ->
     if files.length > 0
       file = files[0]
-      @newfile = file
-      @newfileDataurl = null
       console.log "file #{file.name} - #{file.type}"
+      @newfile = file
+      # a HTML5 File is a Blob
+      blob = file.slice()
       # default title
       if file.name? and $('input[name="title"]', @$el).val()==''
         $('input[name="title"]', @$el).val file.name
-      if @newfileReader?
-        console.log "abort old file reader"
-        @newfileReader.abort()
-      @newfileReader = new FileReader()
-      self = this
-      @newfileReader.onload = (ev)=>
-        console.log "Read #{ev.target.result.length} char dataurl"
-        @newfileDataurl = ev.target.result
-        @newfileReader = null
-        @renderFileDetails()
-        $('input[type=submit]',@$el).removeClass 'disabled'
-      @newfileReader.onerror = (ev)=>
-        console.log "Read file error"
-        @newfileReader = null
-        @newfile = null
-        @renderFileDetails()
-        $('input[type=submit]',@$el).removeClass 'disabled'
-      $('input[type=submit]',@$el).addClass 'disabled'
-      @newfileReader.readAsDataURL file
+      @fileState = 'loading'
+      if @add
+        @created = true
+      @model.attach blob,"bytes", (err,result)=>
+        if @cancelled
+          console.log "attach on cancelled #{@model.id}"
+          @model.destroy()
+          return
+        if err?
+          console.log "Error attaching file #{file.name}: #{res}"
+          @fileState = 'error'
+          @renderFileDetails()
+        else
+          console.log "Attached file #{file.name} to #{@model.id}: #{JSON.stringify result}"
+          @fileState = 'loaded'
+          @model.set 'fileSize', file.size
+          @model.set 'fileType', file.type
+          if file.lastModified?
+            @model.set 'fileLastModified', file.lastModified
+          else
+            @model.unset 'fileLastModified'
+          # Fails with precondition failure - presumably _rev not updated yet?!
+          @model.attributes._rev = result.rev
+          @model.save()
+          @renderFileDetails()
+
       @renderFileDetails()
 
   renderFileDetails: =>
-    if @newfileDataurl? and @newfile?
-      data = 
-        'state': 'loaded'
-        'type': @newfile.type
-        'size': @newfile.size
-        'dataurl': @newfileDataurl
-    else if @newfile?
-      data = 
-        'state': 'error'
-    else if @model.has 'fileDataurl' 
-      data = 
-        'state': 'unchanged'
-        'type': @model.get 'fileType'
-        'size': @model.get 'fileSize'
-        'dataurl': @model.get 'fileDataurl'
-    else
+    console.log "renderFileDetails, #{@fileState} _rev=#{@model.get '_rev'}"
+    atts = @model.attachments()
+    hasBytes = atts.indexOf("bytes")>=0
+    
+    if not hasBytes and @fileState=='unchanged'
       data = 
         'state': 'nofile'
+    else if @fileState=='loading'
+      data = 
+        'state': @fileState
+        'type': @newfile.type
+        'size': @newfile.size
+    else 
+      data = 
+        'state': @fileState
+        'type': @model.get 'fileType'
+        'size': @model.get 'fileSize'
     $('.file-detail', @$el).html templateFileDetail data
 
   save: (ev) =>
     ev.preventDefault()
-    if @newfileDataurl?
-      @	saveDataurl @newfileDataurl
-    else if @model.has 'fileDataurl'
-      @saveDataurl @model.get 'fileDataurl'
-
-  saveDataurl: (dataurl) ->
-    bix = dataurl.indexOf ';base64,'
-    if bix<0
-      console.log "cannot save non-base64 dataurl"
-      return
-    raw = window.atob dataurl.substring bix+8
-    len = raw.length
-    array = new Uint8Array len
-    for i in [0..len-1]
-      array[i] = raw.charCodeAt i
-    parts = dataurl.substring(0,bix).split /[:;]/
-    contentType = parts[1]
-        
-    blob = new Blob array, {type: contentType}
-    saveAs blob, @title
+    console.log "Save #{@model.id}"
+    @model.attachment "bytes",(error,blob)=>
+      if error?
+        console.log "Error getting file attachment: #{error}"
+      else
+        console.log "Got file attachment for #{@model.id}"
+        saveAs blob, @model.get 'title'
 

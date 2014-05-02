@@ -80,7 +80,7 @@
 
   App = {
     init: function() {
-      var err, files, filesView, router, t1;
+      var files, filesView, router;
       console.log("App starting...");
       Backbone.sync = BackbonePouch.sync({
         db: PouchDB('http://127.0.0.1:5984/mydb'),
@@ -88,6 +88,7 @@
         listen: true
       });
       Backbone.Model.prototype.idAttribute = '_id';
+      _.extend(Backbone.Model.prototype, BackbonePouch.attachments());
       files = new FileList();
       filesView = new FileListView({
         model: files
@@ -95,16 +96,6 @@
       filesView.render();
       $('body').append(filesView.el);
       files.fetch();
-      t1 = new File({
-        _id: '1234',
-        title: 'test file'
-      });
-      try {
-        t1.save();
-      } catch (_error) {
-        err = _error;
-        console.log("save error " + err.message);
-      }
       router = new Router;
       return Backbone.history.start();
     }
@@ -230,6 +221,14 @@
         __out.push('\n');
         if (this.state === 'loading') {
           __out.push('\nLoading...\n');
+        } else if (this.state === 'unchanged') {
+          __out.push('\n<a href="#-save" class="button do-save">Save</a>\n');
+        } else if (this.state === 'loaded') {
+          __out.push('\n<a href="#-save" class="button do-save">Save (new)</a>\n');
+        } else {
+          __out.push('\n(');
+          __out.push(__sanitize(this.state));
+          __out.push(')\n');
         }
         __out.push('\n');
         __out.push(__sanitize(this.size));
@@ -238,11 +237,7 @@
         __out.push('\n');
       }
     
-      __out.push('\n');
-    
-      if (this.dataurl != null) {
-        __out.push('\n<a href="#-save" class="button do-save">Save</a>\n');
-      }
+      __out.push('\n\n');
     
     }).call(this);
     
@@ -416,16 +411,18 @@
   module.exports = FileEditView = (function(_super) {
     __extends(FileEditView, _super);
 
-    function FileEditView() {
+    function FileEditView(options) {
       this.save = __bind(this.save, this);
       this.renderFileDetails = __bind(this.renderFileDetails, this);
       this.handleFileSelect = __bind(this.handleFileSelect, this);
       this.handleDrop = __bind(this.handleDrop, this);
       this.close = __bind(this.close, this);
+      this.cancel = __bind(this.cancel, this);
       this.submit = __bind(this.submit, this);
       this.render = __bind(this.render, this);
       this.template = __bind(this.template, this);
-      return FileEditView.__super__.constructor.apply(this, arguments);
+      this.add = options.add != null ? options.add : options.add = false;
+      FileEditView.__super__.constructor.call(this, options);
     }
 
     FileEditView.prototype.tagName = 'div';
@@ -434,7 +431,11 @@
 
     FileEditView.prototype.newfile = null;
 
-    FileEditView.prototype.newfileReader = null;
+    FileEditView.prototype.fileState = 'unchanged';
+
+    FileEditView.prototype.cancelled = false;
+
+    FileEditView.prototype.created = false;
 
     FileEditView.prototype.initialize = function() {
       return this.render();
@@ -449,7 +450,7 @@
       console.log("render FileEdit " + this.model.attributes._id + ": " + this.model.attributes.title);
       this.$el.html(this.template({
         data: this.model.attributes,
-        add: true
+        add: this.add
       }));
       this.renderFileDetails();
       f = function() {
@@ -461,7 +462,7 @@
 
     FileEditView.prototype.events = {
       "submit": "submit",
-      "click .do-cancel": "close",
+      "click .do-cancel": "cancel",
       "dragover .drop-zone": "handleDragOver",
       "drop .drop-zone": "handleDrop",
       "dragenter .drop-zone": "handleDragEnter",
@@ -481,27 +482,22 @@
       console.log("title=" + title + ", file=" + file + ", description=" + description);
       this.model.set('title', title);
       this.model.set('description', description);
-      if ((this.newfile != null) && (this.newfileDataurl != null)) {
-        this.model.set('fileSize', this.newfile.size);
-        this.model.set('fileType', this.newfile.type);
-        if (this.newfile.lastModified != null) {
-          this.model.set('fileLastModified', this.newfile.lastModified);
-        } else {
-          this.model.unset('fileLastModified');
-        }
-        this.model.set('fileDataurl', this.newfileDataurl);
-      }
       this.model.save();
+      return this.close();
+    };
+
+    FileEditView.prototype.cancel = function() {
+      console.log("cancel");
+      this.cancelled = true;
+      if (this.created && (this.model.id != null)) {
+        console.log("try destroy on cancel for " + this.model.id);
+        this.model.destroy();
+      }
       return this.close();
     };
 
     FileEditView.prototype.close = function() {
       this.remove();
-      if (this.newfileReader != null) {
-        console.log("abort old file reader");
-        this.newfileReader.abort();
-        this.newfileReader = null;
-      }
       return $('.file-list').show();
     };
 
@@ -542,68 +538,70 @@
     };
 
     FileEditView.prototype.listFiles = function(files) {
-      var file, self;
+      var blob, file;
       if (files.length > 0) {
         file = files[0];
-        this.newfile = file;
-        this.newfileDataurl = null;
         console.log("file " + file.name + " - " + file.type);
+        this.newfile = file;
+        blob = file.slice();
         if ((file.name != null) && $('input[name="title"]', this.$el).val() === '') {
           $('input[name="title"]', this.$el).val(file.name);
         }
-        if (this.newfileReader != null) {
-          console.log("abort old file reader");
-          this.newfileReader.abort();
+        this.fileState = 'loading';
+        if (this.add) {
+          this.created = true;
         }
-        this.newfileReader = new FileReader();
-        self = this;
-        this.newfileReader.onload = (function(_this) {
-          return function(ev) {
-            console.log("Read " + ev.target.result.length + " char dataurl");
-            _this.newfileDataurl = ev.target.result;
-            _this.newfileReader = null;
-            _this.renderFileDetails();
-            return $('input[type=submit]', _this.$el).removeClass('disabled');
+        this.model.attach(blob, "bytes", (function(_this) {
+          return function(err, result) {
+            if (_this.cancelled) {
+              console.log("attach on cancelled " + _this.model.id);
+              _this.model.destroy();
+              return;
+            }
+            if (err != null) {
+              console.log("Error attaching file " + file.name + ": " + res);
+              _this.fileState = 'error';
+              return _this.renderFileDetails();
+            } else {
+              console.log("Attached file " + file.name + " to " + _this.model.id + ": " + (JSON.stringify(result)));
+              _this.fileState = 'loaded';
+              _this.model.set('fileSize', file.size);
+              _this.model.set('fileType', file.type);
+              if (file.lastModified != null) {
+                _this.model.set('fileLastModified', file.lastModified);
+              } else {
+                _this.model.unset('fileLastModified');
+              }
+              _this.model.attributes._rev = result.rev;
+              _this.model.save();
+              return _this.renderFileDetails();
+            }
           };
-        })(this);
-        this.newfileReader.onerror = (function(_this) {
-          return function(ev) {
-            console.log("Read file error");
-            _this.newfileReader = null;
-            _this.newfile = null;
-            _this.renderFileDetails();
-            return $('input[type=submit]', _this.$el).removeClass('disabled');
-          };
-        })(this);
-        $('input[type=submit]', this.$el).addClass('disabled');
-        this.newfileReader.readAsDataURL(file);
+        })(this));
         return this.renderFileDetails();
       }
     };
 
     FileEditView.prototype.renderFileDetails = function() {
-      var data;
-      if ((this.newfileDataurl != null) && (this.newfile != null)) {
+      var atts, data, hasBytes;
+      console.log("renderFileDetails, " + this.fileState + " _rev=" + (this.model.get('_rev')));
+      atts = this.model.attachments();
+      hasBytes = atts.indexOf("bytes") >= 0;
+      if (!hasBytes && this.fileState === 'unchanged') {
         data = {
-          'state': 'loaded',
+          'state': 'nofile'
+        };
+      } else if (this.fileState === 'loading') {
+        data = {
+          'state': this.fileState,
           'type': this.newfile.type,
-          'size': this.newfile.size,
-          'dataurl': this.newfileDataurl
-        };
-      } else if (this.newfile != null) {
-        data = {
-          'state': 'error'
-        };
-      } else if (this.model.has('fileDataurl')) {
-        data = {
-          'state': 'unchanged',
-          'type': this.model.get('fileType'),
-          'size': this.model.get('fileSize'),
-          'dataurl': this.model.get('fileDataurl')
+          'size': this.newfile.size
         };
       } else {
         data = {
-          'state': 'nofile'
+          'state': this.fileState,
+          'type': this.model.get('fileType'),
+          'size': this.model.get('fileSize')
         };
       }
       return $('.file-detail', this.$el).html(templateFileDetail(data));
@@ -611,32 +609,17 @@
 
     FileEditView.prototype.save = function(ev) {
       ev.preventDefault();
-      if (this.newfileDataurl != null) {
-        return this(saveDataurl(this.newfileDataurl));
-      } else if (this.model.has('fileDataurl')) {
-        return this.saveDataurl(this.model.get('fileDataurl'));
-      }
-    };
-
-    FileEditView.prototype.saveDataurl = function(dataurl) {
-      var array, bix, blob, contentType, i, len, parts, raw, _i, _ref;
-      bix = dataurl.indexOf(';base64,');
-      if (bix < 0) {
-        console.log("cannot save non-base64 dataurl");
-        return;
-      }
-      raw = window.atob(dataurl.substring(bix + 8));
-      len = raw.length;
-      array = new Uint8Array(len);
-      for (i = _i = 0, _ref = len - 1; 0 <= _ref ? _i <= _ref : _i >= _ref; i = 0 <= _ref ? ++_i : --_i) {
-        array[i] = raw.charCodeAt(i);
-      }
-      parts = dataurl.substring(0, bix).split(/[:;]/);
-      contentType = parts[1];
-      blob = new Blob(array, {
-        type: contentType
-      });
-      return saveAs(blob, this.title);
+      console.log("Save " + this.model.id);
+      return this.model.attachment("bytes", (function(_this) {
+        return function(error, blob) {
+          if (error != null) {
+            return console.log("Error getting file attachment: " + error);
+          } else {
+            console.log("Got file attachment for " + _this.model.id);
+            return saveAs(blob, _this.model.get('title'));
+          }
+        };
+      })(this));
     };
 
     return FileEditView;
@@ -798,9 +781,13 @@
       console.log("addFile");
       ev.preventDefault();
       this.$el.hide();
-      file = new File();
+      file = new File({
+        _id: uuid()
+      });
+      console.log("new id " + file.id);
       addView = new FileEditView({
-        model: file
+        model: file,
+        add: true
       });
       $('body').append(addView.$el);
       return false;
