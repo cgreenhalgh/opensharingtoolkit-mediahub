@@ -451,7 +451,7 @@
   }
   (function() {
     (function() {
-      __out.push('\n<h3 class="clearfix">');
+      __out.push('\n<h4 class="clearfix">');
     
       __out.push(__sanitize(this.title));
     

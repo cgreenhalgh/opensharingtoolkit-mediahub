@@ -57,6 +57,9 @@ $outline-color: $primary-color; //scale-color($primary-color, $lightness: -66%);
      @extend .button;
      @extend .tiny;
      margin-bottom: 0;
+  };
+  h3, h4 {
+    margin-bottom: 0.2rem;
   }
 }
 
