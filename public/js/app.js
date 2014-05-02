@@ -119,7 +119,7 @@
     return currentModel = null;
   });
 
-  $('#deleteModalHolder').on('click .do-delete', function(ev) {
+  $('#deleteModalHolder').on('click', '.do-delete', function(ev) {
     console.log("do-delete " + currentModel.id);
     if (currentModel != null) {
       currentModel.destroy();
@@ -127,7 +127,7 @@
     return $('#deleteModalHolder').foundation('reveal', 'close');
   });
 
-  $('#deleteModalHolder').on('click .do-close', function(ev) {
+  $('#deleteModalHolder').on('click', '.do-close', function(ev) {
     console.log("deleteModalHolder do-close");
     currentModel = null;
     return $('#deleteModalHolder').foundation('reveal', 'close');
