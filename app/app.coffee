@@ -24,6 +24,8 @@ App =
       db: PouchDB('http://127.0.0.1:5984/mydb')
       fetch: 'query'
       listen: true
+      error: (err)->
+        console.log "ERROR (sync): #{err}"
 
     Backbone.Model.prototype.idAttribute = '_id'
     _.extend Backbone.Model.prototype, BackbonePouch.attachments()

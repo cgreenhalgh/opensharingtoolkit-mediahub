@@ -1,6 +1,7 @@
 # FileInList View
 templateFileInList = require 'templates/FileInList'
 FileEditView = require 'views/FileEdit'
+fileDeleter = require 'fileDeleter'
 
 module.exports = class FileInListView extends Backbone.View
 
@@ -23,6 +24,7 @@ module.exports = class FileInListView extends Backbone.View
   events:
     "click .do-edit-file": "edit"
     "click .do-delete-file": "delete"
+    "click .do-save": "save"
 
   edit: (ev) =>
     console.log "edit #{@model.attributes._id}"
@@ -33,9 +35,9 @@ module.exports = class FileInListView extends Backbone.View
     false
 
   delete: (ev) =>
-    console.log "delete #{@model.attributes._id}"
+    fileDeleter.delete @model
     ev.preventDefault()
-    # TODO modal check
-    @model.destroy()
     false
 
+  save: (ev) =>
+    @model.download ev

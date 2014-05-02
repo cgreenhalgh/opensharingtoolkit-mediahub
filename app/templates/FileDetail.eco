@@ -4,15 +4,15 @@ No file
 <% else if @state == 'error': %>
 Error loading file
 <% else: %>
+<%= @size %> bytes, <%= if not @type? or @type=='' then 'unknown mimetype' else @type %>
 <% if @state == 'loading': %>
 Loading...
 <% else if @state == 'unchanged': %>
-<a href="#-save" class="button do-save">Save</a>
+<a href="#-save" class="button tiny do-save">Save</a>
 <% else if @state == 'loaded': %>
-<a href="#-save" class="button do-save">Save (new)</a>
+<a href="#-save" class="button tiny do-save">Save (new)</a>
 <% else: %>
 (<%= @state %>)
 <% end %>
-<%= @size %> bytes, <%= if not @type? or @type=='' then 'unknown mimetype' else @type %>
 <% end %>
 

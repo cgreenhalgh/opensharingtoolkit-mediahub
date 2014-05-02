@@ -52,6 +52,12 @@ $outline-color: $primary-color; //scale-color($primary-color, $lightness: -66%);
   @extend .small-12;
   border: 1px solid $outline-color;
   background-color: scale-color($outline-color, $lightness: 66%);
+
+  .action-button {
+     @extend .button;
+     @extend .tiny;
+     margin-bottom: 0;
+  }
 }
 
 .drop-zone {

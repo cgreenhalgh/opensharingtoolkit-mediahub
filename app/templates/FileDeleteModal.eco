@@ -1,0 +1,9 @@
+<%# confirm delete file %>
+<%# <div id="deleteModal" class="reveal-modal" data-reveal> %>
+  <h2>Permanently delete this file?</h2>
+  <p>Do you want to permanently delete <%= @title %>?</p>
+  <a class="close-reveal-modal">&#215;</a>
+  <a class="button do-delete">Yes</a>
+  <a class="button do-close">No</a>
+<%# </div> %>
+

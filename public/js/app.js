@@ -85,7 +85,10 @@
       Backbone.sync = BackbonePouch.sync({
         db: PouchDB('http://127.0.0.1:5984/mydb'),
         fetch: 'query',
-        listen: true
+        listen: true,
+        error: function(err) {
+          return console.log("ERROR (sync): " + err);
+        }
       });
       Backbone.Model.prototype.idAttribute = '_id';
       _.extend(Backbone.Model.prototype, BackbonePouch.attachments());
@@ -104,8 +107,43 @@
   module.exports = App;
 
 }).call(this);
+}, "fileDeleter": function(exports, require, module) {(function() {
+  var currentModel, templateFileDeleteModal;
+
+  templateFileDeleteModal = require('templates/FileDeleteModal');
+
+  currentModel = null;
+
+  $('#deleteModalHolder').on('closed', '[data-reveal]', function() {
+    console.log("deleteModalHolder closed");
+    return currentModel = null;
+  });
+
+  $('#deleteModalHolder').on('click .do-delete', function(ev) {
+    console.log("do-delete " + currentModel.id);
+    if (currentModel != null) {
+      currentModel.destroy();
+    }
+    return $('#deleteModalHolder').foundation('reveal', 'close');
+  });
+
+  $('#deleteModalHolder').on('click .do-close', function(ev) {
+    console.log("deleteModalHolder do-close");
+    currentModel = null;
+    return $('#deleteModalHolder').foundation('reveal', 'close');
+  });
+
+  module.exports["delete"] = function(model) {
+    console.log("delete " + model.attributes._id);
+    currentModel = model;
+    $('#deleteModalHolder').html(templateFileDeleteModal(model.attributes));
+    return $('#deleteModalHolder').foundation('reveal', 'open');
+  };
+
+}).call(this);
 }, "models/File": function(exports, require, module) {(function() {
   var File,
+    __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
@@ -113,12 +151,30 @@
     __extends(File, _super);
 
     function File() {
+      this.download = __bind(this.download, this);
       return File.__super__.constructor.apply(this, arguments);
     }
 
     File.prototype.defaults = {
       title: '',
       description: ''
+    };
+
+    File.prototype.download = function(ev) {
+      if (ev != null) {
+        ev.preventDefault();
+      }
+      console.log("Save " + this.id);
+      return this.attachment("bytes", (function(_this) {
+        return function(error, blob) {
+          if (error != null) {
+            return console.log("Error getting file attachment: " + error);
+          } else {
+            console.log("Got file attachment for " + _this.id);
+            return saveAs(blob, _this.get('title'));
+          }
+        };
+      })(this));
     };
 
     return File;
@@ -172,7 +228,61 @@
   })(Backbone.Collection);
 
 }).call(this);
-}, "templates/FileDetail": function(exports, require, module) {module.exports = function(__obj) {
+}, "templates/FileDeleteModal": function(exports, require, module) {module.exports = function(__obj) {
+  if (!__obj) __obj = {};
+  var __out = [], __capture = function(callback) {
+    var out = __out, result;
+    __out = [];
+    callback.call(this);
+    result = __out.join('');
+    __out = out;
+    return __safe(result);
+  }, __sanitize = function(value) {
+    if (value && value.ecoSafe) {
+      return value;
+    } else if (typeof value !== 'undefined' && value != null) {
+      return __escape(value);
+    } else {
+      return '';
+    }
+  }, __safe, __objSafe = __obj.safe, __escape = __obj.escape;
+  __safe = __obj.safe = function(value) {
+    if (value && value.ecoSafe) {
+      return value;
+    } else {
+      if (!(typeof value !== 'undefined' && value != null)) value = '';
+      var result = new String(value);
+      result.ecoSafe = true;
+      return result;
+    }
+  };
+  if (!__escape) {
+    __escape = __obj.escape = function(value) {
+      return ('' + value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    };
+  }
+  (function() {
+    (function() {
+      __out.push('\n');
+    
+      __out.push('\n  <h2>Permanently delete this file?</h2>\n  <p>Do you want to permanently delete ');
+    
+      __out.push(__sanitize(this.title));
+    
+      __out.push('?</p>\n  <a class="close-reveal-modal">&#215;</a>\n  <a class="button do-delete">Yes</a>\n  <a class="button do-close">No</a>\n');
+    
+      __out.push('\n\n');
+    
+    }).call(this);
+    
+  }).call(__obj);
+  __obj.safe = __objSafe, __obj.escape = __escape;
+  return __out.join('');
+}}, "templates/FileDetail": function(exports, require, module) {module.exports = function(__obj) {
   if (!__obj) __obj = {};
   var __out = [], __capture = function(callback) {
     var out = __out, result;
@@ -219,21 +329,21 @@
         __out.push('\nError loading file\n');
       } else {
         __out.push('\n');
+        __out.push(__sanitize(this.size));
+        __out.push(' bytes, ');
+        __out.push(__sanitize((this.type == null) || this.type === '' ? 'unknown mimetype' : this.type));
+        __out.push('\n');
         if (this.state === 'loading') {
           __out.push('\nLoading...\n');
         } else if (this.state === 'unchanged') {
-          __out.push('\n<a href="#-save" class="button do-save">Save</a>\n');
+          __out.push('\n<a href="#-save" class="button tiny do-save">Save</a>\n');
         } else if (this.state === 'loaded') {
-          __out.push('\n<a href="#-save" class="button do-save">Save (new)</a>\n');
+          __out.push('\n<a href="#-save" class="button tiny do-save">Save (new)</a>\n');
         } else {
           __out.push('\n(');
           __out.push(__sanitize(this.state));
           __out.push(')\n');
         }
-        __out.push('\n');
-        __out.push(__sanitize(this.size));
-        __out.push(' bytes, ');
-        __out.push(__sanitize((this.type == null) || this.type === '' ? 'unknown mimetype' : this.type));
         __out.push('\n');
       }
     
@@ -287,7 +397,7 @@
     
       __out.push(__sanitize(this.data.title));
     
-      __out.push('"/>\n    </label>\n    <label>File\n      <input type="file" name="file"/>\n    </label>\n    <div class="drop-zone">Drop file here</div>\n    <div class="file-detail">No File<!-- TODO --></div>\n    <label>Description\n      <textarea name="description" placeholder="description" >');
+      __out.push('"/>\n    </label>\n    <label>File (note: replacing a file is immediate - no undo!)\n      <input type="file" name="file"/>\n    </label>\n    <div class="drop-zone">Drop file here</div>\n    <div class="file-detail">No File<!-- TODO --></div>\n    <label>Description\n      <textarea name="description" placeholder="description" >');
     
       __out.push(__sanitize(this.data.description));
     
@@ -341,11 +451,17 @@
   }
   (function() {
     (function() {
-      __out.push('\n<p>');
+      __out.push('\n<h3 class="clearfix">');
     
       __out.push(__sanitize(this.title));
     
-      __out.push('</p>\n<ul class="button-group">\n  <li><a href="#-edit-file" class="button tiny do-edit-file">Edit</a></li>\n  <li><a href="#-delete-file" class="button tiny do-delete-file">Delete</a></li>\n</ul>\n\n');
+      __out.push('\n  <a href="#-delete-file" class="action-button do-delete-file right">Delete</a>\n  <a href="#-edit-file" class="action-button do-edit-file right">Edit</a>\n');
+    
+      if (this.hasFile) {
+        __out.push('\n  <a href="#-save" class="action-button do-save right">Save</a>\n');
+      }
+    
+      __out.push('\n</h3>\n');
     
     }).call(this);
     
@@ -473,7 +589,7 @@
     };
 
     FileEditView.prototype.submit = function(ev) {
-      var description, file, title;
+      var atts, description, file, title;
       console.log("submit...");
       ev.preventDefault();
       title = $('input[name="title"]', this.$el).val();
@@ -482,6 +598,8 @@
       console.log("title=" + title + ", file=" + file + ", description=" + description);
       this.model.set('title', title);
       this.model.set('description', description);
+      atts = this.model.attachments();
+      this.model.set('hasFile', atts.indexOf("bytes") >= 0);
       this.model.save();
       return this.close();
     };
@@ -551,20 +669,23 @@
         if (this.add) {
           this.created = true;
         }
+        $('input[type=submit]', this.$el).attr('disabled', 'disabled');
         this.model.attach(blob, "bytes", (function(_this) {
           return function(err, result) {
+            $('input[type=submit]', _this.$el).removeAttr('disabled');
             if (_this.cancelled) {
               console.log("attach on cancelled " + _this.model.id);
               _this.model.destroy();
               return;
             }
             if (err != null) {
-              console.log("Error attaching file " + file.name + ": " + res);
+              console.log("Error attaching file " + file.name + ": " + err);
               _this.fileState = 'error';
               return _this.renderFileDetails();
             } else {
               console.log("Attached file " + file.name + " to " + _this.model.id + ": " + (JSON.stringify(result)));
               _this.fileState = 'loaded';
+              _this.model.set('hasFile', true);
               _this.model.set('fileSize', file.size);
               _this.model.set('fileType', file.type);
               if (file.lastModified != null) {
@@ -572,7 +693,6 @@
               } else {
                 _this.model.unset('fileLastModified');
               }
-              _this.model.attributes._rev = result.rev;
               _this.model.save();
               return _this.renderFileDetails();
             }
@@ -583,10 +703,9 @@
     };
 
     FileEditView.prototype.renderFileDetails = function() {
-      var atts, data, hasBytes;
+      var data, hasBytes;
       console.log("renderFileDetails, " + this.fileState + " _rev=" + (this.model.get('_rev')));
-      atts = this.model.attachments();
-      hasBytes = atts.indexOf("bytes") >= 0;
+      hasBytes = (this.model.get('hasFile')) || false;
       if (!hasBytes && this.fileState === 'unchanged') {
         data = {
           'state': 'nofile'
@@ -608,18 +727,7 @@
     };
 
     FileEditView.prototype.save = function(ev) {
-      ev.preventDefault();
-      console.log("Save " + this.model.id);
-      return this.model.attachment("bytes", (function(_this) {
-        return function(error, blob) {
-          if (error != null) {
-            return console.log("Error getting file attachment: " + error);
-          } else {
-            console.log("Got file attachment for " + _this.model.id);
-            return saveAs(blob, _this.model.get('title'));
-          }
-        };
-      })(this));
+      return this.model.download(ev);
     };
 
     return FileEditView;
@@ -628,7 +736,7 @@
 
 }).call(this);
 }, "views/FileInList": function(exports, require, module) {(function() {
-  var FileEditView, FileInListView, templateFileInList,
+  var FileEditView, FileInListView, fileDeleter, templateFileInList,
     __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -637,10 +745,13 @@
 
   FileEditView = require('views/FileEdit');
 
+  fileDeleter = require('fileDeleter');
+
   module.exports = FileInListView = (function(_super) {
     __extends(FileInListView, _super);
 
     function FileInListView() {
+      this.save = __bind(this.save, this);
       this["delete"] = __bind(this["delete"], this);
       this.edit = __bind(this.edit, this);
       this.render = __bind(this.render, this);
@@ -669,7 +780,8 @@
 
     FileInListView.prototype.events = {
       "click .do-edit-file": "edit",
-      "click .do-delete-file": "delete"
+      "click .do-delete-file": "delete",
+      "click .do-save": "save"
     };
 
     FileInListView.prototype.edit = function(ev) {
@@ -685,10 +797,13 @@
     };
 
     FileInListView.prototype["delete"] = function(ev) {
-      console.log("delete " + this.model.attributes._id);
+      fileDeleter["delete"](this.model);
       ev.preventDefault();
-      this.model.destroy();
       return false;
+    };
+
+    FileInListView.prototype.save = function(ev) {
+      return this.model.download(ev);
     };
 
     return FileInListView;

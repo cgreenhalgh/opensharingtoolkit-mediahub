@@ -1,7 +1,8 @@
 <%# File in File List, takes File as data (title, description, ...) %>
-<p><%= @title %></p>
-<ul class="button-group">
-  <li><a href="#-edit-file" class="button tiny do-edit-file">Edit</a></li>
-  <li><a href="#-delete-file" class="button tiny do-delete-file">Delete</a></li>
-</ul>
-
+<h3 class="clearfix"><%= @title %>
+  <a href="#-delete-file" class="action-button do-delete-file right">Delete</a>
+  <a href="#-edit-file" class="action-button do-edit-file right">Edit</a>
+<% if @hasFile: %>
+  <a href="#-save" class="action-button do-save right">Save</a>
+<% end %>
+</h3>

@@ -53,11 +53,10 @@ module.exports = class FileEditView extends Backbone.View
     console.log "title=#{title}, file=#{file}, description=#{description}"
     @model.set 'title', title
     @model.set 'description', description
-    #if not @model.has '_id' or @model.get('id') == ''
-    #  id = window.PouchDB.uuid()
-    #  console.log "new id #{id}"
-    #  @model.set '_id', id
-
+    # check/fix hasFile
+    atts = @model.attachments()
+    @model.set 'hasFile', atts.indexOf("bytes")>=0
+    
     @model.save()
     @close()
 
@@ -119,18 +118,21 @@ module.exports = class FileEditView extends Backbone.View
       @fileState = 'loading'
       if @add
         @created = true
+      $('input[type=submit]',@$el).attr('disabled','disabled')
       @model.attach blob,"bytes", (err,result)=>
+        $('input[type=submit]',@$el).removeAttr('disabled')
         if @cancelled
           console.log "attach on cancelled #{@model.id}"
           @model.destroy()
           return
         if err?
-          console.log "Error attaching file #{file.name}: #{res}"
+          console.log "Error attaching file #{file.name}: #{err}"
           @fileState = 'error'
           @renderFileDetails()
         else
           console.log "Attached file #{file.name} to #{@model.id}: #{JSON.stringify result}"
           @fileState = 'loaded'
+          @model.set 'hasFile',true
           @model.set 'fileSize', file.size
           @model.set 'fileType', file.type
           if file.lastModified?
@@ -138,7 +140,7 @@ module.exports = class FileEditView extends Backbone.View
           else
             @model.unset 'fileLastModified'
           # Fails with precondition failure - presumably _rev not updated yet?!
-          @model.attributes._rev = result.rev
+          #@model.attributes._rev = result.rev
           @model.save()
           @renderFileDetails()
 
@@ -146,8 +148,7 @@ module.exports = class FileEditView extends Backbone.View
 
   renderFileDetails: =>
     console.log "renderFileDetails, #{@fileState} _rev=#{@model.get '_rev'}"
-    atts = @model.attachments()
-    hasBytes = atts.indexOf("bytes")>=0
+    hasBytes = (@model.get 'hasFile') || false
     
     if not hasBytes and @fileState=='unchanged'
       data = 
@@ -165,12 +166,5 @@ module.exports = class FileEditView extends Backbone.View
     $('.file-detail', @$el).html templateFileDetail data
 
   save: (ev) =>
-    ev.preventDefault()
-    console.log "Save #{@model.id}"
-    @model.attachment "bytes",(error,blob)=>
-      if error?
-        console.log "Error getting file attachment: #{error}"
-      else
-        console.log "Got file attachment for #{@model.id}"
-        saveAs blob, @model.get 'title'
+    @model.download ev
 

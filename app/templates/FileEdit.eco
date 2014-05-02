@@ -4,7 +4,7 @@
     <label>Title
       <input type="text" name="title" placeholder="title" value="<%= @data.title %>"/>
     </label>
-    <label>File
+    <label>File (note: replacing a file is immediate - no undo!)
       <input type="file" name="file"/>
     </label>
     <div class="drop-zone">Drop file here</div>
