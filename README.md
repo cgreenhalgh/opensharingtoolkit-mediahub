@@ -47,12 +47,39 @@ and add a section (change origins according to app serving arrangements):
 [cors]
 credentials = true
 origins = http://127.0.0.1:9294
+methods = GET, PUT, POST, HEAD, DELETE
+headers = accept, authorization, content-type, origin
 ```
+Set up some basic authentication - first an administrator: 
+Edit (as root) `/etc/couchdb/local.ini` and after `[couch_httpd_auth]` add
+```
+require_valid_user = true
+```
+and after `[httpd]` add/uncomment
+```
+WWW-Authenticate = Basic realm="administrator"
+```
+and at the end of the file add (use your own password :-)
+```
+[admins]
+admin = ADMINPASSWORD
+```
+
 Then kick the server:
 ```
 sudo service couchdb restart
 ```
-
+Now we'll two more generic users, a reader and a writer (although the difference in the latter two will have to be defined by us).
+```
+curl -HContent-Type:application/json -X PUT http://admin:ADMINPASSWORD@127.0.0.1:5984/_users/org.couchdb.user:hubreader --data-binary '{"_id":"org.couchdb.user:hubreader","type":"user","name":"hubreader","password":"HUBREADERPASSWORD","roles":["hubreader"]}'
+curl -HContent-Type:application/json -X PUT http://admin:ADMINPASSWORD@127.0.0.1:5984/_users/org.couchdb.user:hubwriter --data-binary '{"_id":"org.couchdb.user:hubreader","type":"user","name":"hubwriter","password":"HUBWRITERPASSWORD","roles":["hubwriter"]}'
+```
+Create the database and add the `hubreader` and `hubwriter` as admins (!! doesn't work as members, failing with 401 on `_temp_view?include_docs=true`):
+```
+curl -X PUT http://admin:ADMINPASSWORD@127.0.0.1:5984/mydb
+curl -X PUT http://admin:ADMINPASSWORD@127.0.0.1:5984/mydb/_security --data-binary '{"admins":{"names":["admin"],"roles":["hubreader","hubwriter"]},"members":{"names":[],"roles":[]}}'
+```
+You can check out how things are going with futon, [http://127.0.0.1:5984/_utils](http://127.0.0.1:5984/_utils)
 
 Runs as server on port 9294 by default:
 ```
