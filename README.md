@@ -76,8 +76,8 @@ curl -HContent-Type:application/json -X PUT http://admin:ADMINPASSWORD@127.0.0.1
 ```
 Create the database and add the `hubreader` and `hubwriter` as admins (!! doesn't work as members, failing with 401 on `_temp_view?include_docs=true`):
 ```
-curl -X PUT http://admin:ADMINPASSWORD@127.0.0.1:5984/mydb
-curl -X PUT http://admin:ADMINPASSWORD@127.0.0.1:5984/mydb/_security --data-binary '{"admins":{"names":["admin"],"roles":["hubreader","hubwriter"]},"members":{"names":[],"roles":[]}}'
+curl -X PUT http://admin:ADMINPASSWORD@127.0.0.1:5984/mediahub
+curl -X PUT http://admin:ADMINPASSWORD@127.0.0.1:5984/mediahub/_security --data-binary '{"admins":{"names":["admin"],"roles":["hubwriter"]},"members":{"names":[],"roles":["hubreader"]}}'
 ```
 You can check out how things are going with futon, [http://127.0.0.1:5984/_utils](http://127.0.0.1:5984/_utils)
 

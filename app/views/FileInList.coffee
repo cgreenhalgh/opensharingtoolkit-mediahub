@@ -2,6 +2,7 @@
 templateFileInList = require 'templates/FileInList'
 FileEditView = require 'views/FileEdit'
 fileDeleter = require 'fileDeleter'
+offline = require 'offline'
 
 module.exports = class FileInListView extends Backbone.View
 
@@ -25,6 +26,7 @@ module.exports = class FileInListView extends Backbone.View
     "click .do-edit-file": "edit"
     "click .do-delete-file": "delete"
     "click .do-save": "save"
+    "click .do-testapp": "testapp"
 
   edit: (ev) =>
     console.log "edit #{@model.attributes._id}"
@@ -41,3 +43,8 @@ module.exports = class FileInListView extends Backbone.View
 
   save: (ev) =>
     @model.download ev
+
+  testapp: (ev) =>
+    # offline test...
+    offline.testFile @model
+

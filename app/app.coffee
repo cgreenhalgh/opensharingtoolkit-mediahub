@@ -3,6 +3,7 @@
 File = require 'models/File'
 FileList = require 'models/FileList'
 FileListView = require 'views/FileList'
+db = require 'mydb'
 
 config = window.mediahubconfig
 
@@ -24,8 +25,6 @@ App =
     # backbonetest - based on 
     # http://adamjspooner.github.io/coffeescript-meet-backbonejs/05/docs/script.html
 
-    # backbone-pouch - see 
-    db = new PouchDB(config.dburl)
     # this does produce an error callback, but I don't seem to get anything from BackbonePouch
     #db.info (err, info) ->
     #  if err?

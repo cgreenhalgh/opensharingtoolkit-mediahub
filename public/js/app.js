@@ -49,7 +49,7 @@
   }
   return this.require.define;
 }).call(this)({"app": function(exports, require, module) {(function() {
-  var App, File, FileList, FileListView, Router, config,
+  var App, File, FileList, FileListView, Router, config, db,
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
@@ -58,6 +58,8 @@
   FileList = require('models/FileList');
 
   FileListView = require('views/FileList');
+
+  db = require('mydb');
 
   config = window.mediahubconfig;
 
@@ -86,16 +88,8 @@
 
   App = {
     init: function() {
-      var db, files, filesView, router;
+      var files, filesView, router;
       console.log("App starting...");
-      db = new PouchDB(config.dburl);
-      db.info(function(err, info) {
-        if (err != null) {
-          return console.log("database error " + err);
-        } else {
-          return console.log("database info " + info);
-        }
-      });
       Backbone.sync = BackbonePouch.sync({
         db: db,
         error: function(err) {
@@ -259,6 +253,55 @@
     return FileList;
 
   })(Backbone.Collection);
+
+}).call(this);
+}, "mydb": function(exports, require, module) {(function() {
+  var config;
+
+  config = window.mediahubconfig;
+
+  module.exports = new PouchDB(config.dburl);
+
+}).call(this);
+}, "offline": function(exports, require, module) {(function() {
+  var config, db;
+
+  db = require('mydb');
+
+  config = window.mediahubconfig;
+
+  module.exports.testFile = function(file) {
+    var clientid;
+    console.log("Offline test with file " + file.id);
+    clientid = window.clientid;
+    if (clientid.indexOf('client:') !== 0) {
+      clientid = 'client:' + clientid;
+    }
+    return db.get(clientid, function(err, client) {
+      if (err != null) {
+        console.log("error getting client " + err + " - new?");
+        client = {
+          _id: clientid
+        };
+      } else {
+        console.log("got client " + client._id + " " + client._rev);
+      }
+      client.files = [];
+      client.files.push({
+        url: config.dburl + "/" + file.id + "/bytes",
+        type: file.get('fileType'),
+        title: file.get('title')
+      });
+      return db.put(client, function(err, response) {
+        if (err != null) {
+          return console.log("error setting client " + err);
+        } else {
+          console.log("set client " + clientid);
+          return window.open(config.dburl + "/_design/app/_show/index/" + clientid);
+        }
+      });
+    });
+  };
 
 }).call(this);
 }, "templates/FileDeleteModal": function(exports, require, module) {module.exports = function(__obj) {
@@ -491,7 +534,7 @@
       __out.push('\n  <a href="#-delete-file" class="action-button do-delete-file right">Delete</a>\n  <a href="#-edit-file" class="action-button do-edit-file right">Edit</a>\n');
     
       if (this.hasFile) {
-        __out.push('\n  <a href="#-save" class="action-button do-save right">Save</a>\n');
+        __out.push('\n  <a href="#-save" class="action-button do-save right">Save</a>\n  <a href="#-testapp" class="action-button do-testapp right">Test Offline</a>\n');
       }
     
       __out.push('\n</h3>\n');
@@ -694,7 +737,7 @@
         file = files[0];
         console.log("file " + file.name + " - " + file.type);
         this.newfile = file;
-        blob = file.slice();
+        blob = file.slice(0, file.size, file.type);
         if ((file.name != null) && $('input[name="title"]', this.$el).val() === '') {
           $('input[name="title"]', this.$el).val(file.name);
         }
@@ -703,7 +746,7 @@
           this.created = true;
         }
         $('input[type=submit]', this.$el).attr('disabled', 'disabled');
-        this.model.attach(blob, "bytes", (function(_this) {
+        this.model.attach(blob, "bytes", file.type, (function(_this) {
           return function(err, result) {
             $('input[type=submit]', _this.$el).removeAttr('disabled');
             if (_this.cancelled) {
@@ -769,7 +812,7 @@
 
 }).call(this);
 }, "views/FileInList": function(exports, require, module) {(function() {
-  var FileEditView, FileInListView, fileDeleter, templateFileInList,
+  var FileEditView, FileInListView, fileDeleter, offline, templateFileInList,
     __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -780,10 +823,13 @@
 
   fileDeleter = require('fileDeleter');
 
+  offline = require('offline');
+
   module.exports = FileInListView = (function(_super) {
     __extends(FileInListView, _super);
 
     function FileInListView() {
+      this.testapp = __bind(this.testapp, this);
       this.save = __bind(this.save, this);
       this["delete"] = __bind(this["delete"], this);
       this.edit = __bind(this.edit, this);
@@ -814,7 +860,8 @@
     FileInListView.prototype.events = {
       "click .do-edit-file": "edit",
       "click .do-delete-file": "delete",
-      "click .do-save": "save"
+      "click .do-save": "save",
+      "click .do-testapp": "testapp"
     };
 
     FileInListView.prototype.edit = function(ev) {
@@ -837,6 +884,10 @@
 
     FileInListView.prototype.save = function(ev) {
       return this.model.download(ev);
+    };
+
+    FileInListView.prototype.testapp = function(ev) {
+      return offline.testFile(this.model);
     };
 
     return FileInListView;

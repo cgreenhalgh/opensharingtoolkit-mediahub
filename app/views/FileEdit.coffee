@@ -111,7 +111,7 @@ module.exports = class FileEditView extends Backbone.View
       console.log "file #{file.name} - #{file.type}"
       @newfile = file
       # a HTML5 File is a Blob
-      blob = file.slice()
+      blob = file.slice(0, file.size, file.type)
       # default title
       if file.name? and $('input[name="title"]', @$el).val()==''
         $('input[name="title"]', @$el).val file.name
@@ -119,7 +119,7 @@ module.exports = class FileEditView extends Backbone.View
       if @add
         @created = true
       $('input[type=submit]',@$el).attr('disabled','disabled')
-      @model.attach blob,"bytes", (err,result)=>
+      @model.attach blob,"bytes", file.type, (err,result)=>
         $('input[type=submit]',@$el).removeAttr('disabled')
         if @cancelled
           console.log "attach on cancelled #{@model.id}"

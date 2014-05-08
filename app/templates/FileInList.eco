@@ -4,5 +4,6 @@
   <a href="#-edit-file" class="action-button do-edit-file right">Edit</a>
 <% if @hasFile: %>
   <a href="#-save" class="action-button do-save right">Save</a>
+  <a href="#-testapp" class="action-button do-testapp right">Test Offline</a>
 <% end %>
 </h3>
