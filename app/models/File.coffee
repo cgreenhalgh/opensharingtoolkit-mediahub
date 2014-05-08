@@ -3,6 +3,7 @@ module.exports = class File extends Backbone.Model
   defaults:
     title: ''
     description: ''
+    type: 'file'
 
   download: (ev) =>
     if ev?

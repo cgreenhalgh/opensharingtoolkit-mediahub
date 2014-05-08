@@ -48,8 +48,9 @@ module.exports = class FileListView extends Backbone.View
     ev.preventDefault()
     @$el.hide()
     # work-around backbone-pouchdb attach presumes Math.uuid
-    file = new File _id: uuid()
+    file = new File _id: 'file:'+uuid()
     console.log "new id #{file.id}"
+    @model.add file
     addView = new FileEditView {model: file, add: true}
     $('body').append addView.$el
     false

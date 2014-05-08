@@ -80,16 +80,31 @@
 
   })(Backbone.Router);
 
+  $(document).ajaxError(function(event, jqxhr, settings, exception) {
+    return console.log("ajaxError " + exception);
+  });
+
   App = {
     init: function() {
-      var files, filesView, router;
+      var db, files, filesView, router;
       console.log("App starting...");
+      db = new PouchDB(config.dburl);
+      db.info(function(err, info) {
+        if (err != null) {
+          return console.log("database error " + err);
+        } else {
+          return console.log("database info " + info);
+        }
+      });
       Backbone.sync = BackbonePouch.sync({
-        db: PouchDB(config.dburl),
-        fetch: 'query',
-        listen: true,
+        db: db,
         error: function(err) {
           return console.log("ERROR (sync): " + err);
+        },
+        options: {
+          error: function(err) {
+            return console.log("ERROR (sync/options): " + err);
+          }
         }
       });
       Backbone.Model.prototype.idAttribute = '_id';
@@ -159,7 +174,8 @@
 
     File.prototype.defaults = {
       title: '',
-      description: ''
+      description: '',
+      type: 'file'
     };
 
     File.prototype.download = function(ev) {
@@ -201,12 +217,27 @@
     FileList.prototype.model = File;
 
     FileList.prototype.pouch = {
+      fetch: 'allDocs',
+      error: function(err) {
+        return console.log("ERROR(FileList) (sync): " + err);
+      },
       options: {
+        error: function(err) {
+          return console.log("ERROR(FileList/options) (sync): " + err);
+        },
+        listen: false,
+        allDocs: {
+          include_docs: true,
+          startkey: 'file:',
+          endkey: 'file;'
+        },
         query: {
           include_docs: true,
           fun: {
             map: function(doc) {
-              return emit(doc.title, null);
+              if (doc.type === 'file') {
+                return emit(doc.title, null);
+              }
             }
           }
         },
@@ -214,7 +245,7 @@
           include_docs: true,
           continuous: true,
           filter: function(doc) {
-            return doc._deleted || true;
+            return doc._deleted || doc.type === 'file';
           }
         }
       }
@@ -899,9 +930,10 @@
       ev.preventDefault();
       this.$el.hide();
       file = new File({
-        _id: uuid()
+        _id: 'file:' + uuid()
       });
       console.log("new id " + file.id);
+      this.model.add(file);
       addView = new FileEditView({
         model: file,
         add: true

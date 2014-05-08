@@ -15,6 +15,7 @@ bower_copy:
 	cp -puR public/bower_components/backbone/backbone.js public/vendor/backbone
 	mkdir -p public/vendor/pouchdb
 	cp -puR public/bower_components/pouchdb/dist public/vendor/pouchdb
+        rm public/vendor/pouchdb/dist/.gitignore
 	mkdir -p public/vendor/backbone-pouchdb
 	cp -puR public/bower_components/backbone-pouchdb/dist public/vendor/backbone-pouchdb
 	mkdir -p public/vendor/modernizr

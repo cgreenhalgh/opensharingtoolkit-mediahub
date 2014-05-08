@@ -47,5 +47,15 @@ var showManifest = function(doc, req) {
 
 ddoc.shows.manifest = showManifest.toString().replace("${@manifest}", minescape(manifest.toString()));
 
+ddoc.validate_doc_update = function (newDoc, oldDoc, userCtx) {
+  function user_is(role) {
+    return userCtx.roles.indexOf(role) >= 0;
+  }
+  if (user_is('hubwriter') && newDoc && newDoc._id && newDoc._id.indexOf('_design/')==0)
+    throw({forbidden : "Hubwriter "+userCtx.name+" cannot change design document: " + newDoc._id});
+  if (user_is('hubreader'))
+    throw({forbidden : "Hubreader "+userCtx.name+" cannot update documents: " + newDoc._id}); 
+};
+
 couchapp.loadAttachments(ddoc, path.join(__dirname, '_attachments'));
 
