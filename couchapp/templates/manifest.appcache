@@ -1,0 +1,7 @@
+CACHE MANIFEST
+# cache files
+
+# general network access
+NETWORK:
+*
+

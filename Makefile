@@ -23,3 +23,6 @@ bower_copy:
 css:
 	cd public; compass compile
 
+couchapplocal:
+	`npm bin`/couchapp push couchapp/app.js http://127.0.0.1:5984/mediahub
+
