@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
+    "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" manifest="../manifest/${@id}">
+<head>
+	<meta charset="utf-8">
+	<script src="../../jquery.min.js"></script>
+	<title>Track-in-a-box tech test 1</title>
+</head>
+<body>
+	<h1>Track-in-a-box tech test 1</h1>
+	<div id="audio">Audio...</div>
+	<p id="cacheStatus">Cache status...</p>
+	<p id="update"><a href="#">Update</a></p>
+<script type="text/javascript">
+var cache = window.applicationCache;
+var add_audio= function(src) {
+      $('#audio').empty();
+         var audio=document.createElement('audio');
+        audio.setAttribute('controls','controls');
+        if (audio.canPlayType) { /* check support */
+          var source = document.createElement('source');
+          source.setAttribute('src',src);
+          source.setAttribute('type','audio/mp3');
+          audio.appendChild(source);
+          //audio.load();
+          $('#audio').append(audio);
+          console.log("added audio");
+        }/* todo */
+};
+var check_track = function(url) {
+            //console.log( "track "+track);
+            //var url = "data:audio/ogg;base64,"+track;
+            console.log("Dataurl: "+url);
+            add_audio(url);
+ };
+var check_config = function(data) {
+      console.log( "config: "+data );
+      data = JSON.parse(data);
+      $('#audio').empty();
+      for (var i in data.files) {
+        var file = data.files[i];
+        if (file.type && file.type.indexOf('audio/')==0) {
+          console.log( "add audio file "+file.url);
+          add_audio(file.url);
+          /* android use data url...
+          $.ajax(file.url, {
+            success:check_track,
+            dataType: "text",
+            error:function(xhr,status,err) {
+              console.log("get "+data.track+" error "+xhr.status+": "+err.message);
+              // on android files from cache sometimes have status 0!!
+              if (xhr.status==0 && xhr.responseText) 
+                check_track(xhr.responseText);
+            }
+          });
+          */
+        }
+      }
+};
+var check_audio = function() {
+  $.ajax("../../../../${@id}", {
+    success: check_config,
+    dataType: "text",
+    error:function(xhr,status,err) {
+      console.log("get config error "+xhr.status+": "+err.message);
+      // on android (at least) files from cache sometimes have status 0!!
+      if (xhr.status==0 && xhr.responseText)
+        check_config(xhr.responseText);
+    }
+  });
+};
+
+var on_cache_event = function(ev) {
+  console.log( "cache state "+cache.status );
+  $("#cacheStatus").html("cache state "+cache.status);
+  if (cache.status==cache.UPDATEREADY) {
+    console.log ("Cache update...");
+    try { 
+      cache.swapCache();
+      console.log ("Swapped cache!");
+      // varies whether swapCache causes state change event! (chrome no; android yes)
+      check_audio();
+    } catch (err) {
+      console.log("cache swap error: "+err);
+    }
+  } else if (cache.status==cache.IDLE) {
+    console.log ("cache idle - check audio");
+    check_audio();
+  }
+};
+$(document).ready(function() {
+  $(cache).bind("cached checking downloading error noupdate obsolete progress updateready", on_cache_event);
+  on_cache_event();
+  console.log("cookies = "+document.cookie);
+  $('#update a').on('click', function(ev) {
+    console.log("Update!");
+    ev.preventDefault();
+    location.reload();
+    return false;
+  });
+});
+</script>
+</body>
+</html>

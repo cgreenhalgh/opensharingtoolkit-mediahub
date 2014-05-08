@@ -297,7 +297,7 @@
           return console.log("error setting client " + err);
         } else {
           console.log("set client " + clientid);
-          return window.open(config.dburl + "/_design/app/_show/index/" + clientid);
+          return window.open(config.dburl + "/_design/app/_show/trackinabox/" + clientid);
         }
       });
     });

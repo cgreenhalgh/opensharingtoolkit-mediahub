@@ -23,15 +23,19 @@ var minescape = function(s) {
 
 // Example HTML index page generator with manifest over-ride 
 // utf8 is default
-var index = fs.readFileSync(path.join(__dirname, 'templates/index.html'));
-var showIndex = function(doc, req) {
-  var index = "${@index}";
-  return {
-    headers: {"Content-type": "text/html"},
-    body: index.replace("${@id}", doc._id)
-  }
-};
-ddoc.shows.index = showIndex.toString().replace("${@index}", jsescape(index.toString()));
+function addIndex(name) {
+  var index = fs.readFileSync(path.join(__dirname, "templates/"+name+".html"));
+  var showIndex = function(doc, req) {
+    var index = "${@index}";
+    return {
+      headers: {"Content-type": "text/html"},
+      body: index.replace(/[$][{][@]id[}]/g, doc._id)
+    }
+  };
+  ddoc.shows[name] = showIndex.toString().replace("${@index}", minescape(index.toString()));
+}
+addIndex('index');
+addIndex('trackinabox');
 
 // matching manifest
 var manifest = fs.readFileSync(path.join(__dirname, 'templates/manifest.appcache'));
