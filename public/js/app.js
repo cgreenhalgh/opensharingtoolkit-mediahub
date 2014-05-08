@@ -49,7 +49,7 @@
   }
   return this.require.define;
 }).call(this)({"app": function(exports, require, module) {(function() {
-  var App, File, FileList, FileListView, Router,
+  var App, File, FileList, FileListView, Router, config,
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
@@ -58,6 +58,8 @@
   FileList = require('models/FileList');
 
   FileListView = require('views/FileList');
+
+  config = window.mediahubconfig;
 
   Router = (function(_super) {
     __extends(Router, _super);
@@ -83,7 +85,7 @@
       var files, filesView, router;
       console.log("App starting...");
       Backbone.sync = BackbonePouch.sync({
-        db: PouchDB('http://127.0.0.1:5984/mydb'),
+        db: PouchDB(config.dburl),
         fetch: 'query',
         listen: true,
         error: function(err) {

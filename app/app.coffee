@@ -4,6 +4,8 @@ File = require 'models/File'
 FileList = require 'models/FileList'
 FileListView = require 'views/FileList'
 
+config = window.mediahubconfig
+
 class Router extends Backbone.Router
   routes: 
     "" : "entries"
@@ -20,8 +22,10 @@ App =
 
     # backbone-pouch - see 
 
+    # Having problems (401 on http://127.0.0.1:5984/mydb/_temp_view?include_docs=true)
+    # when using non-admin user. 
     Backbone.sync =  BackbonePouch.sync
-      db: PouchDB('http://127.0.0.1:5984/mydb')
+      db: PouchDB(config.dburl) 
       fetch: 'query'
       listen: true
       error: (err)->
