@@ -56,6 +56,17 @@ var showManifest = function(doc, req) {
   }
 };
 
+// add index src="..." to manifest template
+var index = fs.readFileSync(path.join(__dirname, "templates/index.html"));
+manifest = manifest + "\nCACHE:\n";
+var srcpatt = /src=["][^"]*["]/g;
+var src;
+while ((src=srcpatt.exec(index))!==null) {
+  console.log("Found included file "+src);
+  src = String(src);
+  manifest = manifest + src.substring(5,src.length-1) + '\n';   
+}
+
 ddoc.shows.manifest = showManifest.toString().replace("${@manifest}", minescape(manifest.toString()));
 
 ddoc.validate_doc_update = function (newDoc, oldDoc, userCtx) {
@@ -69,4 +80,5 @@ ddoc.validate_doc_update = function (newDoc, oldDoc, userCtx) {
 };
 
 couchapp.loadAttachments(ddoc, path.join(__dirname, '_attachments'));
+couchapp.loadAttachments(ddoc, path.join(__dirname, '../public'));
 

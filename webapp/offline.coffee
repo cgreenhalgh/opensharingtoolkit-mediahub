@@ -27,5 +27,5 @@ module.exports.testFile = (file) ->
         console.log "error setting client #{err}"
       else
         console.log "set client #{clientid}"
-        window.open config.dburl+"/_design/app/_show/trackinabox/"+clientid
+        window.open config.dburl+"/_design/app/_show/index/"+clientid, '_self'
 

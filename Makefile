@@ -1,4 +1,5 @@
 # bower update
+COUCHDB=http://127.0.0.1:5984/mediahub
 
 bower_update:
 	cd public; bower update
@@ -24,6 +25,9 @@ bower_copy:
 css:
 	cd public; compass compile
 
+coffee:
+	coffee build.coffee
+
 couchapplocal:
-	`npm bin`/couchapp push couchapp/app.js http://127.0.0.1:5984/mediahub
+	`npm bin`/couchapp push couchapp/app.js ${COUCHDB}
 

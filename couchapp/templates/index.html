@@ -1,11 +1,60 @@
-<html manifest="../manifest/${@id}">
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
+    "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" manifest="../manifest/${@id}">
 <head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 	<title>Index test</title>
-        <script type="text/javascript" src="../../uuid.js"></script>
-        <script type="text/javascript" src="../../clientid.js"></script>
+	<link rel="stylesheet" href="../../stylesheets/app.css" />
+	<script src="../../vendor/modernizr/modernizr.js"></script>
 </head>
 <body>
-	<h1>Index text</h1>
+  <nav class="top-bar" data-topbar>
+    <ul class="title-area">
+      <li class="name">
+        <h1><a href="#">OfflineApp</a></h1>
+      </li>
+      <!-- Remove the class "menu-icon" to get rid of menu icon. Take out "Menu" to just have icon alone -->
+      <!-- <li class="toggle-topbar menu-icon"><a href="#"><span>Menu</span></a></li> -->
+    </ul>
+  </nav>
+    <div class="row">
+      <div class="large-12 columns">
+        <p>OfflineApp skeleton ${@id}</p>
+      </div>
+    </div>
+
+    <script src="../../vendor/jquery/dist/jquery.min.js"></script>
+    <script src="../../vendor/foundation/js/foundation.min.js"></script>
+    <script src="../../vendor/foundation/js/foundation/foundation.reveal.js"></script>
+    <script src="../../vendor/foundation/js/foundation/foundation.topbar.js"></script>
+    <script src="../../vendor/underscore/underscore.js"></script>
+    <script src="../../vendor/backbone/backbone.js"></script>
+    <script src="../../vendor/pouchdb/dist/pouchdb-nightly.js"></script>
+    <script src="../../vendor/backbone-pouchdb/dist/backbone-pouch.js"></script>
+    <script src="../../vendor/filesaver/FileSaver.js"></script>
+    <script src="../../vendor/node-uuid/uuid.js"></script>
+    <script src="../../js/config.js"></script>
+    <script src="../../js/offlineapp.js"></script>
+    <!-- served from couchdb, at least for now -->
+    <script src="../../clientid.js"></script>
+    <script type="text/javascript" charset="utf-8">
+    $(document).ready(function() 
+    {
+      /* couchdb-served clientid.js - may be different domain
+      var s = document.createElement("script");
+      s.type = "text/javascript";
+      s.src = window.mediahubconfig.dburl+"/_design/app/clientid.js";
+      $("head").append(s);
+      */
+      // general start-up
+      $(document).foundation();
+      console.log("Running app...");
+      var App = require("app");
+      App.init();
+    });
+    </script>
 </body>
 </html>
 
