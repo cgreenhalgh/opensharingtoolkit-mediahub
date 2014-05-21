@@ -1,5 +1,4 @@
 <%# appcache status view - general widget, in row (for now); data is CacheState %>
-<div class="row">
   <div class="column small-12 large-12">
     <div data-alert class="alert-box clearfix <%= @alertType %>">
       <% if @updateReady: %>
@@ -12,6 +11,5 @@
       <% end %>
     </div>
   </div>
-</div>
 
 

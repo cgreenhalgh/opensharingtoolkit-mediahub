@@ -292,6 +292,12 @@
         type: file.get('fileType'),
         title: file.get('title')
       });
+      client.items = [];
+      client.items.push({
+        id: file.id,
+        type: 'track',
+        url: config.dburl + "/" + file.id
+      });
       return db.put(client, function(err, response) {
         if (err != null) {
           return console.log("error setting client " + err);

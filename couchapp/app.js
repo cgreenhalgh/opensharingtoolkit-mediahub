@@ -50,6 +50,11 @@ var showManifest = function(doc, req) {
       manifest = manifest + "# MEDIAHUB-FILE "+doc.files[i].type+" "+doc.files[i].title+"\n"+doc.files[i].url+"\n";
     }
   } 
+  if (doc && doc.items) {
+    for (var i in doc.items) {
+      manifest = manifest + "# MEDIAHUB-ITEM "+doc.items[i].type+" "+doc.items[i].id+"\n"+doc.items[i].url+"\n";
+    }
+  } 
   return {
     headers: {"Content-type": "text/cache-manifest"},
     body: manifest

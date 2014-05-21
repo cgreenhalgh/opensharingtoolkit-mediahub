@@ -1,0 +1,8 @@
+<%# Track view - in row (for now); data is Track %>
+<div class="column small-12 large-12">
+  <h1><%= @title %></h1>
+  <p><%= @description %></p>
+  <audio controls><source type="audio/mp3" src="<%= @url %>"/></audio>
+</div>
+
+

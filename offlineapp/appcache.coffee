@@ -5,6 +5,11 @@ state = new CacheState()
 
 module.exports.state = state
 
+onUpdate = []
+
+module.exports.onUpdate = (cb)->
+  onUpdate.push cb
+
 appCache = window.applicationCache
 
 updateState = ()->
@@ -42,6 +47,11 @@ on_cache_event = (ev) ->
       appCache.swapCache()
       console.log "Swapped cache!"
       updateState()
+      for cb in onUpdate
+        try
+          cb()
+        catch err
+          console.log "error calling cache onUpdate fn: #{err.message}"
     catch err 
       console.log "cache swap error: #{err.message}"
 

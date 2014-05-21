@@ -22,6 +22,12 @@ module.exports.testFile = (file) ->
       type: file.get 'fileType'
       title: file.get 'title'
     }
+    client.items = []
+    client.items.push {
+      id: file.id
+      type: 'track'
+      url: config.dburl+"/"+file.id
+    }
     db.put client, (err,response) ->
       if err?
         console.log "error setting client #{err}"
