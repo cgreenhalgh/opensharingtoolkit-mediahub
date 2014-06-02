@@ -1,6 +1,6 @@
 CACHE MANIFEST
 # cache files
-../../stylesheets/app.css
+../../stylesheets/offline.css
 
 # general network access
 NETWORK:

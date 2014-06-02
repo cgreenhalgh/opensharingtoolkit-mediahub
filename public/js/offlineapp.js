@@ -100,7 +100,7 @@
       reviewid = 'trackreview:' + trackid + ':' + cid;
       console.log("add track " + data._id + " review " + reviewid);
       track.trackReview = new TrackReview({
-        id: reviewid,
+        _id: reviewid,
         trackid: data._id,
         clientid: clientid
       });
@@ -303,6 +303,16 @@
   on_cache_event();
 
 }).call(this);
+}, "localdb": function(exports, require, module) {(function() {
+  var db;
+
+  db = new PouchDB('offline', {
+    adapter: 'websql'
+  });
+
+  module.exports.db = db;
+
+}).call(this);
 }, "models/CacheState": function(exports, require, module) {(function() {
   var OfflineState,
     __hasProp = {}.hasOwnProperty,
@@ -352,9 +362,11 @@
 
 }).call(this);
 }, "models/TrackReview": function(exports, require, module) {(function() {
-  var TrackReview,
+  var TrackReview, localdb,
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+  localdb = require('localdb');
 
   module.exports = TrackReview = (function(_super) {
     __extends(TrackReview, _super);
@@ -368,6 +380,12 @@
       comment: '',
       editing: true
     };
+
+    TrackReview.prototype.idAttribute = '_id';
+
+    TrackReview.prototype.sync = BackbonePouch.sync({
+      db: localdb.db
+    });
 
     return TrackReview;
 
@@ -537,7 +555,67 @@
   }
   (function() {
     (function() {
-      __out.push('\nReview...\n\n\n');
+      __out.push('\n<form>\n  <div class="row">\n    <div class="columns large-12">\n      <h2>Your Review</h2>\n      <label>Rating</label>\n      <div><a href="#" class="rating rating1 ');
+    
+      __out.push(__sanitize(!this.editing ? 'disabled' : void 0));
+    
+      __out.push('">');
+    
+      __out.push(this.rating > 0 ? '&#9733;' : '&#9734;');
+    
+      __out.push('</a><!--\n        --><a href="#" class="rating rating2 ');
+    
+      __out.push(__sanitize(!this.editing ? 'disabled' : void 0));
+    
+      __out.push('">');
+    
+      __out.push(this.rating > 1 ? '&#9733;' : '&#9734;');
+    
+      __out.push('</a><!--\n        --><a href="#" class="rating rating3 ');
+    
+      __out.push(__sanitize(!this.editing ? 'disabled' : void 0));
+    
+      __out.push('">');
+    
+      __out.push(this.rating > 2 ? '&#9733;' : '&#9734;');
+    
+      __out.push('</a><!--\n        --><a href="#" class="rating rating4 ');
+    
+      __out.push(__sanitize(!this.editing ? 'disabled' : void 0));
+    
+      __out.push('">');
+    
+      __out.push(this.rating > 3 ? '&#9733;' : '&#9734;');
+    
+      __out.push('</a><!--\n        --><a href="#" class="rating rating5 ');
+    
+      __out.push(__sanitize(!this.editing ? 'disabled' : void 0));
+    
+      __out.push('">');
+    
+      __out.push(this.rating > 4 ? '&#9733;' : '&#9734;');
+    
+      __out.push('</a><div>\n      <label>Comment</label>\n      <textarea name="comment" ');
+    
+      __out.push(__sanitize(!this.editing ? 'disabled' : void 0));
+    
+      __out.push('>');
+    
+      __out.push(__sanitize(this.comment));
+    
+      __out.push('</textarea>\n      <ul class="button-group">\n        <li><a href="#" class="button do-save ');
+    
+      __out.push(__sanitize(!this.editing ? 'disabled' : void 0));
+    
+      __out.push('">Save</a></li>\n        <li><a href="#" class="button do-edit ');
+    
+      __out.push(__sanitize(this.editing ? 'disabled' : void 0));
+    
+      __out.push('">Edit</a></li>\n        <li><a href="#" class="button do-cancel ');
+    
+      __out.push(__sanitize(!this.editing ? 'disabled' : void 0));
+    
+      __out.push('">Cancel</a></li>\n      </ul> \n    </div>\n  </div>\n</form>\n\n\n\n\n');
     
     }).call(this);
     
@@ -654,6 +732,10 @@
     __extends(TrackReviewView, _super);
 
     function TrackReviewView() {
+      this.onCancel = __bind(this.onCancel, this);
+      this.onEdit = __bind(this.onEdit, this);
+      this.onSave = __bind(this.onSave, this);
+      this.onClickRating = __bind(this.onClickRating, this);
       this.render = __bind(this.render, this);
       this.template = __bind(this.template, this);
       return TrackReviewView.__super__.constructor.apply(this, arguments);
@@ -675,6 +757,77 @@
     TrackReviewView.prototype.render = function() {
       this.$el.html(this.template(this.model.attributes));
       return this;
+    };
+
+    TrackReviewView.prototype.events = {
+      'click .rating': 'onClickRating',
+      'click .do-save': 'onSave',
+      'click .do-edit': 'onEdit',
+      'click .do-cancel': 'onCancel'
+    };
+
+    TrackReviewView.prototype.onClickRating = function(ev) {
+      var rating;
+      ev.preventDefault();
+      if (!this.model.attributes.editing) {
+        return false;
+      }
+      rating = 0;
+      if ($(ev.target).hasClass('rating1')) {
+        rating = 1;
+      } else if ($(ev.target).hasClass('rating2')) {
+        rating = 2;
+      }
+      if ($(ev.target).hasClass('rating3')) {
+        rating = 3;
+      }
+      if ($(ev.target).hasClass('rating4')) {
+        rating = 4;
+      }
+      if ($(ev.target).hasClass('rating5')) {
+        rating = 5;
+      }
+      console.log("rating " + rating);
+      return this.model.set({
+        rating: rating
+      });
+    };
+
+    TrackReviewView.prototype.onSave = function(ev) {
+      var comment, err;
+      comment = $('textarea[name=comment]', this.$el).val();
+      console.log("save, comment=" + comment);
+      ev.preventDefault();
+      this.model.set({
+        comment: comment,
+        editing: false
+      });
+      try {
+        return this.model.save();
+      } catch (_error) {
+        err = _error;
+        return console.log("error saving review: " + err.message);
+      }
+    };
+
+    TrackReviewView.prototype.onEdit = function(ev) {
+      console.log('edit');
+      ev.preventDefault();
+      return this.model.set({
+        editing: true
+      });
+    };
+
+    TrackReviewView.prototype.onCancel = function(ev) {
+      var err;
+      console.log('cancel');
+      ev.preventDefault();
+      try {
+        return this.model.fetch();
+      } catch (_error) {
+        err = _error;
+        return console.log("error cancelling review edit: " + err.message);
+      }
     };
 
     return TrackReviewView;

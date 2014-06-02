@@ -31,7 +31,7 @@ checkTrack = (data) ->
     cid = if clientid.indexOf(':')>=0 then clientid.substring(clientid.indexOf(':')+1) else clientid
     reviewid = 'trackreview:'+trackid+':'+cid
     console.log "add track #{data._id} review #{reviewid}"
-    track.trackReview = new TrackReview {id:reviewid, trackid:data._id, clientid:clientid}
+    track.trackReview = new TrackReview {_id:reviewid, trackid:data._id, clientid:clientid}
     # might be in pouch from before
     try 
       track.trackReview.fetch()

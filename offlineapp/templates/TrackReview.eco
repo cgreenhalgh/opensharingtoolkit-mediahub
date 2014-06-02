@@ -1,4 +1,25 @@
 <%# TrackReview view - in colum 12 (for now); data is TrackReview %>
-Review...
+<form>
+  <div class="row">
+    <div class="columns large-12">
+      <h2>Your Review</h2>
+      <label>Rating</label>
+      <div><a href="#" class="rating rating1 <%= if not @editing then 'disabled' %>"><%- if @rating>0 then '&#9733;' else '&#9734;' %></a><!--
+        --><a href="#" class="rating rating2 <%= if not @editing then 'disabled' %>"><%- if @rating>1 then '&#9733;' else '&#9734;' %></a><!--
+        --><a href="#" class="rating rating3 <%= if not @editing then 'disabled' %>"><%- if @rating>2 then '&#9733;' else '&#9734;' %></a><!--
+        --><a href="#" class="rating rating4 <%= if not @editing then 'disabled' %>"><%- if @rating>3 then '&#9733;' else '&#9734;' %></a><!--
+        --><a href="#" class="rating rating5 <%= if not @editing then 'disabled' %>"><%- if @rating>4 then '&#9733;' else '&#9734;' %></a><div>
+      <label>Comment</label>
+      <textarea name="comment" <%= if not @editing then 'disabled' %>><%= @comment %></textarea>
+      <ul class="button-group">
+        <li><a href="#" class="button do-save <%= if not @editing then 'disabled' %>">Save</a></li>
+        <li><a href="#" class="button do-edit <%= if @editing then 'disabled' %>">Edit</a></li>
+        <li><a href="#" class="button do-cancel <%= if not @editing then 'disabled' %>">Cancel</a></li>
+      </ul> 
+    </div>
+  </div>
+</form>
+
+
 
 
