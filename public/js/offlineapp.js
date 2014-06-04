@@ -49,7 +49,7 @@
   }
   return this.require.define;
 }).call(this)({"app": function(exports, require, module) {(function() {
-  var App, CacheStateWidgetView, Router, Track, TrackReview, TrackView, appcache, checkConfig, checkTrack, clientid, dburl, itemViews, loadTrack, refresh,
+  var App, CacheStateWidgetView, Router, Track, TrackReview, TrackView, appcache, checkConfig, checkTrack, clientid, dburl, itemViews, loadTrack, localdb, refresh,
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
@@ -62,6 +62,8 @@
   TrackView = require('views/Track');
 
   TrackReview = require('models/TrackReview');
+
+  localdb = require('localdb');
 
   itemViews = [];
 
@@ -104,6 +106,9 @@
         trackid: data._id,
         clientid: clientid
       });
+      track.trackReview.sync = BackbonePouch.sync({
+        db: localdb.getdb()
+      });
       try {
         track.trackReview.fetch();
       } catch (_error) {
@@ -140,6 +145,7 @@
     console.log("config: " + data);
     try {
       data = JSON.parse(data);
+      localdb.swapdb(data);
       _ref = data.items;
       _results = [];
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
@@ -153,7 +159,7 @@
       return _results;
     } catch (_error) {
       err = _error;
-      return console.log("error parsing client config: " + err.message + ": " + data);
+      return console.log("error parsing client config: " + err.message + ": " + data + " - " + err.stack);
     }
   };
 
@@ -268,6 +274,7 @@
       updateReady: false,
       state: appCache.status
     }, newState);
+    console.log("update appcache state: " + (JSON.stringify(newState)));
     return state.set(newState);
   };
 
@@ -304,13 +311,79 @@
 
 }).call(this);
 }, "localdb": function(exports, require, module) {(function() {
-  var db;
+  var appcache, db, getArrayValue, localdb, localdbs, unsavedLocaldbs;
+
+  appcache = require('appcache');
 
   db = new PouchDB('offline', {
     adapter: 'websql'
   });
 
-  module.exports.db = db;
+  localdb = new PouchDB('local', {
+    adapter: 'websql'
+  });
+
+  module.exports.getdb = function() {
+    return db;
+  };
+
+  getArrayValue = function(value, name) {
+    var err, rval;
+    rval = [];
+    if (value) {
+      try {
+        rval = JSON.parse(value);
+      } catch (_error) {
+        err = _error;
+        console.log("Error in localStorage " + name + ": " + value + " " + err.message);
+      }
+      return rval;
+    }
+    console.log("Warning " + name + " not initialised");
+    return [];
+  };
+
+  localdbs = getArrayValue(localStorage.localdbs, 'localdbs');
+
+  unsavedLocaldbs = getArrayValue(localStorage.unsavedLocaldbs, 'unsavedLocaldbs');
+
+  appcache.state.set({
+    unsavedLocaldbs: JSON.parse(JSON.stringify(unsavedLocaldbs))
+  });
+
+  module.exports.swapdb = function(config) {
+    var dbchanges, instanceid;
+    instanceid = encodeURIComponent(config._id + ":" + config._rev);
+    console.log("swap local db to " + instanceid);
+    if (typeof dbchanges !== "undefined" && dbchanges !== null) {
+      dbchanges.cancel();
+      dbchanges = null;
+    }
+    db = new PouchDB(instanceid, {
+      adapter: 'websql'
+    });
+    if (localdbs.indexOf(instanceid) < 0) {
+      localdbs.push(instanceid);
+      localStorage.localdbs = JSON.stringify(localdbs);
+    }
+    dbchanges = db.changes({
+      include_docs: false,
+      since: 'now',
+      live: true,
+      returnDocs: false
+    });
+    return dbchanges.on('change', function(change) {
+      console.log("change to db " + instanceid + " id=" + change.id + " seq=" + change.seq + ": " + (JSON.stringify(change)));
+      if (unsavedLocaldbs.indexOf(instanceid) < 0) {
+        unsavedLocaldbs.push(instanceid);
+        console.log("db " + instanceid + " added to unsavedLocaldbs: " + (JSON.stringify(unsavedLocaldbs)));
+        localStorage.unsavedLocaldbs = JSON.stringify(unsavedLocaldbs);
+        return appcache.state.set({
+          unsavedLocaldbs: JSON.parse(JSON.stringify(unsavedLocaldbs))
+        });
+      }
+    });
+  };
 
 }).call(this);
 }, "models/CacheState": function(exports, require, module) {(function() {
@@ -330,7 +403,8 @@
       message: 'This page is not saved; you will need Internet access to view it again',
       bookmark: true,
       alertType: '',
-      updateReady: false
+      updateReady: false,
+      unsavedLocaldbs: []
     };
 
     return OfflineState;
@@ -362,11 +436,9 @@
 
 }).call(this);
 }, "models/TrackReview": function(exports, require, module) {(function() {
-  var TrackReview, localdb,
+  var TrackReview,
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
-
-  localdb = require('localdb');
 
   module.exports = TrackReview = (function(_super) {
     __extends(TrackReview, _super);
@@ -382,10 +454,6 @@
     };
 
     TrackReview.prototype.idAttribute = '_id';
-
-    TrackReview.prototype.sync = BackbonePouch.sync({
-      db: localdb.db
-    });
 
     return TrackReview;
 
@@ -449,6 +517,14 @@
     
       if (this.bookmark) {
         __out.push('\n        <br/>Bookmark this page to return it\n      ');
+      }
+    
+      __out.push('\n      ');
+    
+      if (this.unsavedLocaldbs) {
+        __out.push('\n        <br/>Unsaved changes in ');
+        __out.push(__sanitize(JSON.stringify(this.unsavedLocaldbs)));
+        __out.push('\n      ');
       }
     
       __out.push('\n    </div>\n  </div>\n\n\n');
@@ -654,6 +730,7 @@
     };
 
     CacheStateWidget.prototype.render = function() {
+      console.log("render CacheStateWidget " + this.model.attributes);
       this.$el.html(this.template(this.model.attributes));
       return this;
     };

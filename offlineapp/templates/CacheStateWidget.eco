@@ -9,6 +9,9 @@
       <% if @bookmark: %>
         <br/>Bookmark this page to return it
       <% end %>
+      <% if @unsavedLocaldbs: %>
+        <br/>Unsaved changes in <%= JSON.stringify @unsavedLocaldbs %>
+      <% end %>
     </div>
   </div>
 

@@ -36,8 +36,8 @@ updateState = ()->
       alertType: 'warning'
       message: 'State unknown ('+appCache.status+')'
   newState = _.extend {bookmark:false, alertType:'', updateReady:false, state:appCache.status}, newState 
+  console.log "update appcache state: #{JSON.stringify newState}"
   state.set newState
-
 
 on_cache_event = (ev) ->
   console.log 'AppCache status = '+appCache.status

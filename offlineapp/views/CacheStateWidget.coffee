@@ -16,6 +16,7 @@ module.exports = class CacheStateWidget extends Backbone.View
     templateCacheStateWidget d
 
   render: =>
+    console.log "render CacheStateWidget #{@model.attributes}"
     @$el.html @template @model.attributes
     @
 

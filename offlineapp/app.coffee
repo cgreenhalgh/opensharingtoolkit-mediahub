@@ -6,7 +6,7 @@ Track = require 'models/Track'
 TrackView = require 'views/Track'
 TrackReview = require 'models/TrackReview'
 
-#db = require 'mydb'
+localdb = require 'localdb'
 
 #config = window.mediahubconfig
 
@@ -32,6 +32,8 @@ checkTrack = (data) ->
     reviewid = 'trackreview:'+trackid+':'+cid
     console.log "add track #{data._id} review #{reviewid}"
     track.trackReview = new TrackReview {_id:reviewid, trackid:data._id, clientid:clientid}
+    track.trackReview.sync = BackbonePouch.sync
+      db: localdb.getdb()
     # might be in pouch from before
     try 
       track.trackReview.fetch()
@@ -59,12 +61,14 @@ checkConfig = (data) ->
   console.log  "config: "+data 
   try 
     data = JSON.parse data
+    # switch local db
+    localdb.swapdb data
     for item in data.items
       # id, url, type
       if item.type=='track'
         loadTrack item
   catch err
-    console.log "error parsing client config: #{err.message}: #{data}"
+    console.log "error parsing client config: #{err.message}: #{data} - #{err.stack}"
 
 refresh = ()->
   console.log "refresh #{dburl} #{clientid}"
