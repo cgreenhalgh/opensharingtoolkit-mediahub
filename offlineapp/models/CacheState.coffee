@@ -6,5 +6,4 @@ module.exports = class OfflineState extends Backbone.Model
     bookmark: true
     alertType: ''
     updateReady: false
-    unsavedLocaldbs: [] # local pouchdb names
 

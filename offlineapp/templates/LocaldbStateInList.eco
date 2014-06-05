@@ -1,0 +1,6 @@
+<%# LocaldbStateInList view - in colum 12 (for now); data is LocaldbState %>
+<div data-alert class="alert-box <%= if @hasLocalChanges then 'warning' else '' %>">
+  Localdb <%= @_id %> 
+  <%= if @hasLocalChanges then '(has local changes)' else '(no local changes)' %>
+</div>
+

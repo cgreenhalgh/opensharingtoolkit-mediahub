@@ -49,7 +49,7 @@
   }
   return this.require.define;
 }).call(this)({"app": function(exports, require, module) {(function() {
-  var App, CacheStateWidgetView, Router, Track, TrackReview, TrackView, appcache, checkConfig, checkTrack, clientid, dburl, itemViews, loadTrack, localdb, refresh,
+  var App, CacheStateWidgetView, LocaldbStateListView, Router, Track, TrackReview, TrackView, appcache, checkConfig, checkTrack, clientid, dburl, itemViews, loadTrack, localdb, refresh,
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
@@ -62,6 +62,8 @@
   TrackView = require('views/Track');
 
   TrackReview = require('models/TrackReview');
+
+  LocaldbStateListView = require('views/LocaldbStateList');
 
   localdb = require('localdb');
 
@@ -186,7 +188,7 @@
 
   App = {
     init: function() {
-      var appcacheWidget, router;
+      var appcacheWidget, localdbStateListView, router;
       clientid = $('meta[name="mediahub-clientid"]').attr('content');
       console.log("OfflineApp starting... clientid=" + clientid);
       dburl = location.href;
@@ -197,14 +199,22 @@
         model: appcache.state
       });
       $('body').append(appcacheWidget.el);
+      localdbStateListView = new LocaldbStateListView({
+        model: localdb.localdbStateList
+      });
+      $('body').append(localdbStateListView.el);
       Backbone.Model.prototype.idAttribute = '_id';
       _.extend(Backbone.Model.prototype, BackbonePouch.attachments());
       router = new Router;
       Backbone.history.start();
-      appcache.onUpdate(function() {
+      $('body').append('<p id="initialising">initialising</p>');
+      return localdb.init(function() {
+        $('#initialising').remove();
+        appcache.onUpdate(function() {
+          return refresh(dburl, clientid);
+        });
         return refresh(dburl, clientid);
       });
-      return refresh(dburl, clientid);
     }
   };
 
@@ -311,15 +321,21 @@
 
 }).call(this);
 }, "localdb": function(exports, require, module) {(function() {
-  var appcache, db, getArrayValue, localdb, localdbs, unsavedLocaldbs;
+  var LocaldbState, LocaldbStateList, appcache, db, localdbStateList, metadb;
 
   appcache = require('appcache');
 
-  db = new PouchDB('offline', {
+  LocaldbState = require('models/LocaldbState');
+
+  LocaldbStateList = require('models/LocaldbStateList');
+
+  metadb = new PouchDB('metadata', {
     adapter: 'websql'
   });
 
-  localdb = new PouchDB('local', {
+  module.exports.metadb = metadb;
+
+  db = new PouchDB('initial', {
     adapter: 'websql'
   });
 
@@ -327,44 +343,66 @@
     return db;
   };
 
-  getArrayValue = function(value, name) {
-    var err, rval;
-    rval = [];
-    if (value) {
-      try {
-        rval = JSON.parse(value);
-      } catch (_error) {
-        err = _error;
-        console.log("Error in localStorage " + name + ": " + value + " " + err.message);
-      }
-      return rval;
-    }
-    console.log("Warning " + name + " not initialised");
-    return [];
-  };
-
-  localdbs = getArrayValue(localStorage.localdbs, 'localdbs');
-
-  unsavedLocaldbs = getArrayValue(localStorage.unsavedLocaldbs, 'unsavedLocaldbs');
-
-  appcache.state.set({
-    unsavedLocaldbs: JSON.parse(JSON.stringify(unsavedLocaldbs))
+  LocaldbState.prototype.sync = BackbonePouch.sync({
+    db: metadb
   });
 
+  localdbStateList = new LocaldbStateList();
+
+  localdbStateList.sync = BackbonePouch.sync({
+    db: metadb
+  });
+
+  module.exports.init = function(cb) {
+    var call;
+    call = function() {
+      var err;
+      try {
+        return cb();
+      } catch (_error) {
+        err = _error;
+        return console.log("Error calling localdb.init callback: " + err.message + " " + err.stack);
+      }
+    };
+    return localdbStateList.fetch({
+      success: function(collection, response, options) {
+        console.log("LocaldbState fetched - calling back");
+        return call();
+      },
+      error: function(collection, response, options) {
+        console.log("LocaldbState fetch failed! - " + response);
+        return call();
+      }
+    });
+  };
+
+  module.exports.localdbStateList = localdbStateList;
+
   module.exports.swapdb = function(config) {
-    var dbchanges, instanceid;
-    instanceid = encodeURIComponent(config._id + ":" + config._rev);
+    var dbchanges, dbname, err, instanceid, localdbState;
+    instanceid = config._id + ":" + config._rev;
+    dbname = encodeURIComponent(instanceid);
     console.log("swap local db to " + instanceid);
     if (typeof dbchanges !== "undefined" && dbchanges !== null) {
       dbchanges.cancel();
       dbchanges = null;
     }
-    db = new PouchDB(instanceid, {
+    db = new PouchDB(dbname, {
       adapter: 'websql'
     });
-    if (localdbs.indexOf(instanceid) < 0) {
-      localdbs.push(instanceid);
-      localStorage.localdbs = JSON.stringify(localdbs);
+    localdbState = localdbStateList.get(instanceid);
+    if (localdbState == null) {
+      console.log("Create LocaldbState " + instanceid);
+      localdbState = new LocaldbState({
+        _id: instanceid
+      });
+      try {
+        localdbState.save();
+      } catch (_error) {
+        err = _error;
+        console.log("error saving LocaldbState " + instanceid + ": " + err.message);
+      }
+      localdbStateList.add(localdbState);
     }
     dbchanges = db.changes({
       include_docs: false,
@@ -374,13 +412,16 @@
     });
     return dbchanges.on('change', function(change) {
       console.log("change to db " + instanceid + " id=" + change.id + " seq=" + change.seq + ": " + (JSON.stringify(change)));
-      if (unsavedLocaldbs.indexOf(instanceid) < 0) {
-        unsavedLocaldbs.push(instanceid);
-        console.log("db " + instanceid + " added to unsavedLocaldbs: " + (JSON.stringify(unsavedLocaldbs)));
-        localStorage.unsavedLocaldbs = JSON.stringify(unsavedLocaldbs);
-        return appcache.state.set({
-          unsavedLocaldbs: JSON.parse(JSON.stringify(unsavedLocaldbs))
+      if (localdbState.get('hasLocalChanges') === false) {
+        localdbState.set({
+          hasLocalChanges: true
         });
+        console.log("db " + instanceid + " set hasLocalChanges");
+        try {
+          return localdbState.save();
+        } catch (_error) {
+          return console.log("error saving LocaldbState " + instanceid + ": " + err.message);
+        }
       }
     });
   };
@@ -403,13 +444,73 @@
       message: 'This page is not saved; you will need Internet access to view it again',
       bookmark: true,
       alertType: '',
-      updateReady: false,
-      unsavedLocaldbs: []
+      updateReady: false
     };
 
     return OfflineState;
 
   })(Backbone.Model);
+
+}).call(this);
+}, "models/LocaldbState": function(exports, require, module) {(function() {
+  var LocaldbState,
+    __hasProp = {}.hasOwnProperty,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+  module.exports = LocaldbState = (function(_super) {
+    __extends(LocaldbState, _super);
+
+    function LocaldbState() {
+      return LocaldbState.__super__.constructor.apply(this, arguments);
+    }
+
+    LocaldbState.prototype.defaults = {
+      hasLocalChanges: false,
+      type: 'LocaldbState',
+      isCurrent: false
+    };
+
+    LocaldbState.prototype.idAttribute = '_id';
+
+    return LocaldbState;
+
+  })(Backbone.Model);
+
+}).call(this);
+}, "models/LocaldbStateList": function(exports, require, module) {(function() {
+  var LocaldbState, LocaldbStateList,
+    __hasProp = {}.hasOwnProperty,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+  LocaldbState = require('models/LocaldbState');
+
+  module.exports = LocaldbStateList = (function(_super) {
+    __extends(LocaldbStateList, _super);
+
+    function LocaldbStateList() {
+      return LocaldbStateList.__super__.constructor.apply(this, arguments);
+    }
+
+    LocaldbStateList.prototype.model = LocaldbState;
+
+    LocaldbStateList.prototype.pouch = {
+      fetch: 'allDocs',
+      options: {
+        listen: false,
+        allDocs: {
+          include_docs: true
+        }
+      }
+    };
+
+    LocaldbStateList.prototype.parse = function(result) {
+      console.log("parse " + (JSON.stringify(result)));
+      return _.pluck(result.rows, 'doc');
+    };
+
+    return LocaldbStateList;
+
+  })(Backbone.Collection);
 
 }).call(this);
 }, "models/Track": function(exports, require, module) {(function() {
@@ -528,6 +629,64 @@
       }
     
       __out.push('\n    </div>\n  </div>\n\n\n');
+    
+    }).call(this);
+    
+  }).call(__obj);
+  __obj.safe = __objSafe, __obj.escape = __escape;
+  return __out.join('');
+}}, "templates/LocaldbStateInList": function(exports, require, module) {module.exports = function(__obj) {
+  if (!__obj) __obj = {};
+  var __out = [], __capture = function(callback) {
+    var out = __out, result;
+    __out = [];
+    callback.call(this);
+    result = __out.join('');
+    __out = out;
+    return __safe(result);
+  }, __sanitize = function(value) {
+    if (value && value.ecoSafe) {
+      return value;
+    } else if (typeof value !== 'undefined' && value != null) {
+      return __escape(value);
+    } else {
+      return '';
+    }
+  }, __safe, __objSafe = __obj.safe, __escape = __obj.escape;
+  __safe = __obj.safe = function(value) {
+    if (value && value.ecoSafe) {
+      return value;
+    } else {
+      if (!(typeof value !== 'undefined' && value != null)) value = '';
+      var result = new String(value);
+      result.ecoSafe = true;
+      return result;
+    }
+  };
+  if (!__escape) {
+    __escape = __obj.escape = function(value) {
+      return ('' + value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    };
+  }
+  (function() {
+    (function() {
+      __out.push('\n<div data-alert class="alert-box ');
+    
+      __out.push(__sanitize(this.hasLocalChanges ? 'warning' : ''));
+    
+      __out.push('">\n  Localdb ');
+    
+      __out.push(__sanitize(this._id));
+    
+      __out.push(' \n  ');
+    
+      __out.push(__sanitize(this.hasLocalChanges ? '(has local changes)' : '(no local changes)'));
+    
+      __out.push('\n</div>\n\n');
     
     }).call(this);
     
@@ -747,6 +906,118 @@
     };
 
     return CacheStateWidget;
+
+  })(Backbone.View);
+
+}).call(this);
+}, "views/LocaldbStateInList": function(exports, require, module) {(function() {
+  var LocaldbStateInListView, templateLocaldbStateInList,
+    __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
+    __hasProp = {}.hasOwnProperty,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+  templateLocaldbStateInList = require('templates/LocaldbStateInList');
+
+  module.exports = LocaldbStateInListView = (function(_super) {
+    __extends(LocaldbStateInListView, _super);
+
+    function LocaldbStateInListView() {
+      this.render = __bind(this.render, this);
+      this.template = __bind(this.template, this);
+      return LocaldbStateInListView.__super__.constructor.apply(this, arguments);
+    }
+
+    LocaldbStateInListView.prototype.tagName = 'div';
+
+    LocaldbStateInListView.prototype.className = 'column small-12 large-12';
+
+    LocaldbStateInListView.prototype.initialize = function() {
+      this.listenTo(this.model, 'change', this.render);
+      return this.render();
+    };
+
+    LocaldbStateInListView.prototype.template = function(d) {
+      return templateLocaldbStateInList(d);
+    };
+
+    LocaldbStateInListView.prototype.render = function() {
+      this.$el.html(this.template(this.model.attributes));
+      return this;
+    };
+
+    return LocaldbStateInListView;
+
+  })(Backbone.View);
+
+}).call(this);
+}, "views/LocaldbStateList": function(exports, require, module) {(function() {
+  var LocaldbState, LocaldbStateInListView, LocaldbStateListView,
+    __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
+    __hasProp = {}.hasOwnProperty,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+  LocaldbState = require('models/LocaldbState');
+
+  LocaldbStateInListView = require('views/LocaldbStateInList');
+
+  module.exports = LocaldbStateListView = (function(_super) {
+    __extends(LocaldbStateListView, _super);
+
+    function LocaldbStateListView() {
+      this.remove = __bind(this.remove, this);
+      this.add = __bind(this.add, this);
+      this.render = __bind(this.render, this);
+      this.template = __bind(this.template, this);
+      return LocaldbStateListView.__super__.constructor.apply(this, arguments);
+    }
+
+    LocaldbStateListView.prototype.tagName = 'div';
+
+    LocaldbStateListView.prototype.className = 'localdb-state-list row';
+
+    LocaldbStateListView.prototype.initialize = function() {
+      this.listenTo(this.model, 'add', this.add);
+      return this.listenTo(this.model, 'remove', this.remove);
+    };
+
+    LocaldbStateListView.prototype.template = function(d) {};
+
+    LocaldbStateListView.prototype.render = function() {
+      var views;
+      views = [];
+      this.model.forEach(this.add);
+      return this;
+    };
+
+    LocaldbStateListView.prototype.views = [];
+
+    LocaldbStateListView.prototype.add = function(file) {
+      var view;
+      console.log("LocaldbStateListView add " + file.attributes._id);
+      view = new LocaldbStateInListView({
+        model: file
+      });
+      this.$el.append(view.$el);
+      return this.views.push(view);
+    };
+
+    LocaldbStateListView.prototype.remove = function(file) {
+      var i, view, _i, _len, _ref;
+      console.log("LocaldbStateListView remove " + file.attributes._id);
+      _ref = this.views;
+      for (i = _i = 0, _len = _ref.length; _i < _len; i = ++_i) {
+        view = _ref[i];
+        if (!(view.model.id === file.id)) {
+          continue;
+        }
+        console.log("remove view");
+        view.$el.remove();
+        this.views.splice(i, 1);
+        return;
+      }
+    };
+
+    return LocaldbStateListView;
 
   })(Backbone.View);
 

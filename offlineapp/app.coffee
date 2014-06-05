@@ -5,6 +5,7 @@ CacheStateWidgetView = require 'views/CacheStateWidget'
 Track = require 'models/Track'
 TrackView = require 'views/Track'
 TrackReview = require 'models/TrackReview'
+LocaldbStateListView = require 'views/LocaldbStateList'
 
 localdb = require 'localdb'
 
@@ -96,6 +97,9 @@ App =
     appcacheWidget = new CacheStateWidgetView model: appcache.state
     $('body').append appcacheWidget.el
 
+    localdbStateListView = new LocaldbStateListView model: localdb.localdbStateList
+    $('body').append localdbStateListView.el
+
     #Backbone.sync =  BackbonePouch.sync
     #  db: db
     #  error: (err)->
@@ -113,9 +117,14 @@ App =
     
     Backbone.history.start()
 
-    appcache.onUpdate () ->
+    # wait for localdb initialisation
+    $('body').append '<p id="initialising">initialising</p>'
+
+    localdb.init ()->
+      $('#initialising').remove()
+      appcache.onUpdate () ->
+        refresh dburl,clientid
       refresh dburl,clientid
-    refresh dburl,clientid
 
 module.exports = App
 
