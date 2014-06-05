@@ -49,7 +49,7 @@
   }
   return this.require.define;
 }).call(this)({"app": function(exports, require, module) {(function() {
-  var App, CacheStateWidgetView, LocaldbStateListView, Router, Track, TrackReview, TrackView, appcache, checkConfig, checkTrack, clientid, dburl, itemViews, loadTrack, localdb, refresh,
+  var App, CacheStateWidgetView, LocaldbStateListView, Router, SyncState, SyncStateWidgetView, Track, TrackReview, TrackView, appcache, checkConfig, checkTrack, clientid, dburl, itemViews, loadTrack, localdb, refresh,
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
@@ -64,6 +64,10 @@
   TrackReview = require('models/TrackReview');
 
   LocaldbStateListView = require('views/LocaldbStateList');
+
+  SyncState = require('models/SyncState');
+
+  SyncStateWidgetView = require('views/SyncStateWidget');
 
   localdb = require('localdb');
 
@@ -147,7 +151,7 @@
     console.log("config: " + data);
     try {
       data = JSON.parse(data);
-      localdb.swapdb(data);
+      localdb.swapdb(dburl, data);
       _ref = data.items;
       _results = [];
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
@@ -188,7 +192,7 @@
 
   App = {
     init: function() {
-      var appcacheWidget, localdbStateListView, router;
+      var appcacheWidget, localdbStateListView, router, syncState, syncStateWidgetView;
       clientid = $('meta[name="mediahub-clientid"]').attr('content');
       console.log("OfflineApp starting... clientid=" + clientid);
       dburl = location.href;
@@ -203,6 +207,11 @@
         model: localdb.localdbStateList
       });
       $('body').append(localdbStateListView.el);
+      syncState = new SyncState();
+      syncStateWidgetView = new SyncStateWidgetView({
+        model: syncState
+      });
+      $('body').append(syncStateWidgetView.el);
       Backbone.Model.prototype.idAttribute = '_id';
       _.extend(Backbone.Model.prototype, BackbonePouch.attachments());
       router = new Router;
@@ -378,7 +387,7 @@
 
   module.exports.localdbStateList = localdbStateList;
 
-  module.exports.swapdb = function(config) {
+  module.exports.swapdb = function(dburl, config) {
     var dbchanges, dbname, err, instanceid, localdbState;
     instanceid = config._id + ":" + config._rev;
     dbname = encodeURIComponent(instanceid);
@@ -394,7 +403,8 @@
     if (localdbState == null) {
       console.log("Create LocaldbState " + instanceid);
       localdbState = new LocaldbState({
-        _id: instanceid
+        _id: instanceid,
+        remoteurl: dburl
       });
       try {
         localdbState.save();
@@ -403,6 +413,19 @@
         console.log("error saving LocaldbState " + instanceid + ": " + err.message);
       }
       localdbStateList.add(localdbState);
+    } else if (localdbState.attributes.remoteurl == null) {
+      console.log("initialise localdb remoteurl " + dburl);
+      localdbState.set({
+        remoteurl: dburl
+      });
+      try {
+        localdbState.save();
+      } catch (_error) {
+        err = _error;
+        console.log("error saving LocaldbState (set remoteurl) " + instanceid + ": " + err.message);
+      }
+    } else if (localdbState.attributes.remoteurl !== dburl) {
+      console.log("WARNING: new dburl does not match localdb remoteurl: " + dburl + " vs " + localdbState.attributes.remoteurl);
     }
     dbchanges = db.changes({
       include_docs: false,
@@ -511,6 +534,28 @@
     return LocaldbStateList;
 
   })(Backbone.Collection);
+
+}).call(this);
+}, "models/SyncState": function(exports, require, module) {(function() {
+  var SyncState,
+    __hasProp = {}.hasOwnProperty,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+  module.exports = SyncState = (function(_super) {
+    __extends(SyncState, _super);
+
+    function SyncState() {
+      return SyncState.__super__.constructor.apply(this, arguments);
+    }
+
+    SyncState.prototype.defaults = {
+      idle: true,
+      message: 'idle'
+    };
+
+    return SyncState;
+
+  })(Backbone.Model);
 
 }).call(this);
 }, "models/Track": function(exports, require, module) {(function() {
@@ -687,6 +732,64 @@
       __out.push(__sanitize(this.hasLocalChanges ? '(has local changes)' : '(no local changes)'));
     
       __out.push('\n</div>\n\n');
+    
+    }).call(this);
+    
+  }).call(__obj);
+  __obj.safe = __objSafe, __obj.escape = __escape;
+  return __out.join('');
+}}, "templates/SyncStateWidget": function(exports, require, module) {module.exports = function(__obj) {
+  if (!__obj) __obj = {};
+  var __out = [], __capture = function(callback) {
+    var out = __out, result;
+    __out = [];
+    callback.call(this);
+    result = __out.join('');
+    __out = out;
+    return __safe(result);
+  }, __sanitize = function(value) {
+    if (value && value.ecoSafe) {
+      return value;
+    } else if (typeof value !== 'undefined' && value != null) {
+      return __escape(value);
+    } else {
+      return '';
+    }
+  }, __safe, __objSafe = __obj.safe, __escape = __obj.escape;
+  __safe = __obj.safe = function(value) {
+    if (value && value.ecoSafe) {
+      return value;
+    } else {
+      if (!(typeof value !== 'undefined' && value != null)) value = '';
+      var result = new String(value);
+      result.ecoSafe = true;
+      return result;
+    }
+  };
+  if (!__escape) {
+    __escape = __obj.escape = function(value) {
+      return ('' + value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    };
+  }
+  (function() {
+    (function() {
+      __out.push('\n  <div class="column small-12 large-12">\n    <div data-alert class="alert-box clearfix ');
+    
+      __out.push(__sanitize(!this.idle ? 'warning' : ''));
+    
+      __out.push('">\n        <a href="#" class="button tiny right doSync" ');
+    
+      __out.push(__sanitize(!this.idle ? 'disabled' : ''));
+    
+      __out.push('>Sync Now</a>\n        Synchronisation...<br/>\n        ');
+    
+      __out.push(__sanitize(this.message));
+    
+      __out.push('\n    </div>\n  </div>\n\n\n');
     
     }).call(this);
     
@@ -1018,6 +1121,65 @@
     };
 
     return LocaldbStateListView;
+
+  })(Backbone.View);
+
+}).call(this);
+}, "views/SyncStateWidget": function(exports, require, module) {(function() {
+  var SyncStateWidget, templateSyncStateWidget,
+    __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
+    __hasProp = {}.hasOwnProperty,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+  templateSyncStateWidget = require('templates/SyncStateWidget');
+
+  module.exports = SyncStateWidget = (function(_super) {
+    __extends(SyncStateWidget, _super);
+
+    function SyncStateWidget() {
+      this.doSync = __bind(this.doSync, this);
+      this.render = __bind(this.render, this);
+      this.template = __bind(this.template, this);
+      return SyncStateWidget.__super__.constructor.apply(this, arguments);
+    }
+
+    SyncStateWidget.prototype.tagName = 'div';
+
+    SyncStateWidget.prototype.className = 'row';
+
+    SyncStateWidget.prototype.initialize = function() {
+      this.listenTo(this.model, 'change', this.render);
+      return this.render();
+    };
+
+    SyncStateWidget.prototype.template = function(d) {
+      return templateSyncStateWidget(d);
+    };
+
+    SyncStateWidget.prototype.render = function() {
+      console.log("render SyncStateWidget " + this.model.attributes);
+      this.$el.html(this.template(this.model.attributes));
+      return this;
+    };
+
+    SyncStateWidget.prototype.events = {
+      'click .doSync': "doSync"
+    };
+
+    SyncStateWidget.prototype.doSync = function(ev) {
+      if (!this.model.attributes.idle) {
+        return false;
+      }
+      console.log("Sync!");
+      ev.preventDefault();
+      this.model.set({
+        idle: false,
+        message: 'Attempting to synchronize... (not really)'
+      });
+      return false;
+    };
+
+    return SyncStateWidget;
 
   })(Backbone.View);
 

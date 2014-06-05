@@ -38,7 +38,7 @@ module.exports.init = (cb) ->
 
 module.exports.localdbStateList = localdbStateList
 
-module.exports.swapdb = (config) ->
+module.exports.swapdb = (dburl, config) ->
   # use config._id and config._rev as uniquely defining this client instantiation
   # URIEncoding seems to be undone when used as a document ID
   instanceid = config._id+":"+config._rev
@@ -53,12 +53,21 @@ module.exports.swapdb = (config) ->
   localdbState = localdbStateList.get instanceid
   if not localdbState?
     console.log "Create LocaldbState #{instanceid}"
-    localdbState = new LocaldbState {_id:instanceid}
+    localdbState = new LocaldbState {_id:instanceid, remoteurl:dburl}
     try 
       localdbState.save()
     catch err
       console.log "error saving LocaldbState #{instanceid}: #{err.message}"
     localdbStateList.add localdbState
+  else if not localdbState.attributes.remoteurl?
+    console.log "initialise localdb remoteurl #{dburl}"
+    localdbState.set remoteurl: dburl
+    try
+      localdbState.save()
+    catch err
+      console.log "error saving LocaldbState (set remoteurl) #{instanceid}: #{err.message}"
+  else if localdbState.attributes.remoteurl != dburl
+    console.log "WARNING: new dburl does not match localdb remoteurl: #{dburl} vs #{localdbState.attributes.remoteurl}"
 
   # changes?
   dbchanges = db.changes 

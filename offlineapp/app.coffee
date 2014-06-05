@@ -6,6 +6,8 @@ Track = require 'models/Track'
 TrackView = require 'views/Track'
 TrackReview = require 'models/TrackReview'
 LocaldbStateListView = require 'views/LocaldbStateList'
+SyncState = require 'models/SyncState'
+SyncStateWidgetView = require 'views/SyncStateWidget'
 
 localdb = require 'localdb'
 
@@ -63,7 +65,7 @@ checkConfig = (data) ->
   try 
     data = JSON.parse data
     # switch local db
-    localdb.swapdb data
+    localdb.swapdb dburl, data
     for item in data.items
       # id, url, type
       if item.type=='track'
@@ -99,6 +101,10 @@ App =
 
     localdbStateListView = new LocaldbStateListView model: localdb.localdbStateList
     $('body').append localdbStateListView.el
+
+    syncState = new SyncState()
+    syncStateWidgetView = new SyncStateWidgetView model: syncState
+    $('body').append syncStateWidgetView.el   
 
     #Backbone.sync =  BackbonePouch.sync
     #  db: db
