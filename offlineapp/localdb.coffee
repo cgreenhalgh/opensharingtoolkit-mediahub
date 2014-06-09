@@ -3,16 +3,25 @@ appcache = require 'appcache'
 LocaldbState = require 'models/LocaldbState'
 LocaldbStateList = require 'models/LocaldbStateList'
 
+dbcache = {}
+getdb = (url) ->
+  if dbcache[url]?
+    dbcache[url]
+  else
+    dbcache[url] = db = new PouchDB url, 
+      adapter: 'websql'
+    db
+
+module.exports.getdb = getdb
+
 # waiting on backbone-pouch fix https://github.com/pouchdb/pouchdb/issues/2158
 # interrim workaround - force websql (idp-specific failure)
-metadb = new PouchDB 'metadata', 
-  adapter: 'websql'
+metadb = getdb 'metadata'
 
 module.exports.metadb = metadb
 
 # current 'local' db
-db = new PouchDB 'initial', 
-  adapter: 'websql'
+db = getdb 'initial'
 
 module.exports.getdb = () -> db
 
@@ -47,8 +56,7 @@ module.exports.swapdb = (dburl, config) ->
   if dbchanges?
     dbchanges.cancel()
     dbchanges = null
-  db = new PouchDB dbname,
-    adapter: 'websql'
+  db = getdb dbname
   # record?!
   localdbState = localdbStateList.get instanceid
   if not localdbState?

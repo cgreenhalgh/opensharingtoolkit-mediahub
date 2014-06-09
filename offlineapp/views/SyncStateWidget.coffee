@@ -24,14 +24,8 @@ module.exports = class SyncStateWidget extends Backbone.View
     'click .doSync': "doSync"
 
   doSync: (ev) =>
-    if not @model.attributes.idle
-      return false
     console.log "Sync!"
     ev.preventDefault()
-    @model.set 
-      idle:false
-      message:'Attempting to synchronize... (not really)' 
-    # ...
-    false
+    @model.doSync()
 
 

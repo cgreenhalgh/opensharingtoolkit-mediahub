@@ -330,7 +330,7 @@
 
 }).call(this);
 }, "localdb": function(exports, require, module) {(function() {
-  var LocaldbState, LocaldbStateList, appcache, db, localdbStateList, metadb;
+  var LocaldbState, LocaldbStateList, appcache, db, dbcache, getdb, localdbStateList, metadb;
 
   appcache = require('appcache');
 
@@ -338,15 +338,27 @@
 
   LocaldbStateList = require('models/LocaldbStateList');
 
-  metadb = new PouchDB('metadata', {
-    adapter: 'websql'
-  });
+  dbcache = {};
+
+  getdb = function(url) {
+    var db;
+    if (dbcache[url] != null) {
+      return dbcache[url];
+    } else {
+      dbcache[url] = db = new PouchDB(url, {
+        adapter: 'websql'
+      });
+      return db;
+    }
+  };
+
+  module.exports.getdb = getdb;
+
+  metadb = getdb('metadata');
 
   module.exports.metadb = metadb;
 
-  db = new PouchDB('initial', {
-    adapter: 'websql'
-  });
+  db = getdb('initial');
 
   module.exports.getdb = function() {
     return db;
@@ -396,9 +408,7 @@
       dbchanges.cancel();
       dbchanges = null;
     }
-    db = new PouchDB(dbname, {
-      adapter: 'websql'
-    });
+    db = getdb(dbname);
     localdbState = localdbStateList.get(instanceid);
     if (localdbState == null) {
       console.log("Create LocaldbState " + instanceid);
@@ -537,9 +547,11 @@
 
 }).call(this);
 }, "models/SyncState": function(exports, require, module) {(function() {
-  var SyncState,
+  var SyncState, localdb,
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+  localdb = require('localdb');
 
   module.exports = SyncState = (function(_super) {
     __extends(SyncState, _super);
@@ -551,6 +563,61 @@
     SyncState.prototype.defaults = {
       idle: true,
       message: 'idle'
+    };
+
+    SyncState.prototype.localdbStatesToCheck = [];
+
+    SyncState.prototype.doSync = function() {
+      var ldb, _i, _len, _ref;
+      if (!this.get('idle')) {
+        return false;
+      }
+      this.set({
+        idle: false,
+        message: 'Attempting to synchronize...'
+      });
+      _ref = localdb.localdbStateList.models;
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        ldb = _ref[_i];
+        if (true) {
+          this.localdbStatesToCheck.push(ldb);
+        }
+      }
+      return this.checkNextLocaldb();
+    };
+
+    SyncState.prototype.checkNextLocaldb = function() {
+      var dbname, localdbState, recurse;
+      if (this.localdbStatesToCheck.length === 0) {
+        console.log("No more localdbs to check");
+        this.set({
+          idle: true,
+          message: 'Idle (all localdbs checked)'
+        });
+        return;
+      }
+      localdbState = (this.localdbStatesToCheck.splice(0, 1))[0];
+      this.set({
+        idle: false,
+        message: "Attempting to synchronize " + localdbState.id + "..."
+      });
+      dbname = encodeURIComponent(localdbState.id);
+      console.log("replicate " + dbname + " to " + localdbState.attributes.remoteurl + "...");
+      recurse = (function(_this) {
+        return function() {
+          return _this.checkNextLocaldb();
+        };
+      })(this);
+      return PouchDB.replicate(dbname, localdbState.attributes.remoteurl).on('change', function(info) {
+        return console.log("- change " + (JSON.stringify(info)));
+      }).on('complete', function(info) {
+        console.log("- complete " + (JSON.stringify(info)));
+        return setTimeout(recurse, 0);
+      }).on('uptodate', function(info) {
+        return console.log("- uptodate " + (JSON.stringify(info)));
+      }).on('error', function(info) {
+        return console.log("- error " + (JSON.stringify(info)));
+      });
     };
 
     return SyncState;
@@ -1167,16 +1234,9 @@
     };
 
     SyncStateWidget.prototype.doSync = function(ev) {
-      if (!this.model.attributes.idle) {
-        return false;
-      }
       console.log("Sync!");
       ev.preventDefault();
-      this.model.set({
-        idle: false,
-        message: 'Attempting to synchronize... (not really)'
-      });
-      return false;
+      return this.model.doSync();
     };
 
     return SyncStateWidget;
