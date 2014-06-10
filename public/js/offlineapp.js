@@ -49,7 +49,7 @@
   }
   return this.require.define;
 }).call(this)({"app": function(exports, require, module) {(function() {
-  var App, CacheStateWidgetView, LocaldbStateListView, Router, SyncState, SyncStateWidgetView, Track, TrackReview, TrackView, appcache, checkConfig, checkTrack, clientid, dburl, itemViews, loadItems, loadTrack, localdb, refresh, syncState,
+  var App, CacheStateWidgetView, LocaldbStateListView, Router, SyncState, SyncStateWidgetView, Track, TrackReview, TrackReviewList, TrackView, appcache, checkConfig, checkTrack, clientid, dburl, itemViews, loadItems, loadTrack, localdb, refresh, syncState,
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
@@ -62,6 +62,8 @@
   TrackView = require('views/Track');
 
   TrackReview = require('models/TrackReview');
+
+  TrackReviewList = require('models/TrackReviewList');
 
   LocaldbStateListView = require('views/LocaldbStateList');
 
@@ -126,6 +128,16 @@
       } catch (_error) {
         err = _error;
         console.log("error fetching review " + reviewid + ": " + err.message);
+      }
+      track.trackReviewList = new TrackReviewList();
+      track.trackReviewList.sync = BackbonePouch.sync({
+        db: localdb.currentdb()
+      });
+      try {
+        track.trackReviewList.fetch();
+      } catch (_error) {
+        err = _error;
+        console.log("error fetching trackreviews: " + err.message);
       }
       trackView = new TrackView({
         model: track
@@ -483,7 +495,6 @@
       live: true,
       returnDocs: false
     });
-    console.log("dbchanges = " + dbchanges + ", dbchanges.on = " + dbchanges.on);
     return dbchanges.on('change', function(change) {
       console.log("change to db " + instanceid + " id=" + change.id + " seq=" + change.seq + ": " + (JSON.stringify(change)));
       localdbState.set({
@@ -786,6 +797,58 @@
     return TrackReview;
 
   })(Backbone.Model);
+
+}).call(this);
+}, "models/TrackReviewList": function(exports, require, module) {(function() {
+  var TrackReview, TrackReviewList,
+    __hasProp = {}.hasOwnProperty,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+  TrackReview = require('models/TrackReview');
+
+  module.exports = TrackReviewList = (function(_super) {
+    __extends(TrackReviewList, _super);
+
+    function TrackReviewList() {
+      return TrackReviewList.__super__.constructor.apply(this, arguments);
+    }
+
+    TrackReviewList.prototype.model = TrackReview;
+
+    TrackReviewList.prototype.pouch = {
+      fetch: 'query',
+      options: {
+        listen: false,
+        allDocs: {
+          include_docs: true
+        },
+        query: {
+          include_docs: true,
+          fun: {
+            map: function(doc) {
+              if (doc._id.indexOf('trackreview:') === 0) {
+                return emit(doc._id, null);
+              }
+            }
+          }
+        },
+        changes: {
+          include_docs: true,
+          filter: function(doc) {
+            return doc._deleted || doc._id.indexOf('trackreview:') === 0;
+          }
+        }
+      }
+    };
+
+    TrackReviewList.prototype.parse = function(result) {
+      console.log("parse " + (JSON.stringify(result)));
+      return _.pluck(result.rows, 'doc');
+    };
+
+    return TrackReviewList;
+
+  })(Backbone.Collection);
 
 }).call(this);
 }, "templates/CacheStateWidget": function(exports, require, module) {module.exports = function(__obj) {
@@ -1154,6 +1217,80 @@
   }).call(__obj);
   __obj.safe = __objSafe, __obj.escape = __escape;
   return __out.join('');
+}}, "templates/TrackReviewInList": function(exports, require, module) {module.exports = function(__obj) {
+  if (!__obj) __obj = {};
+  var __out = [], __capture = function(callback) {
+    var out = __out, result;
+    __out = [];
+    callback.call(this);
+    result = __out.join('');
+    __out = out;
+    return __safe(result);
+  }, __sanitize = function(value) {
+    if (value && value.ecoSafe) {
+      return value;
+    } else if (typeof value !== 'undefined' && value != null) {
+      return __escape(value);
+    } else {
+      return '';
+    }
+  }, __safe, __objSafe = __obj.safe, __escape = __obj.escape;
+  __safe = __obj.safe = function(value) {
+    if (value && value.ecoSafe) {
+      return value;
+    } else {
+      if (!(typeof value !== 'undefined' && value != null)) value = '';
+      var result = new String(value);
+      result.ecoSafe = true;
+      return result;
+    }
+  };
+  if (!__escape) {
+    __escape = __obj.escape = function(value) {
+      return ('' + value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    };
+  }
+  (function() {
+    (function() {
+      __out.push('\n<div class="column small-12 large-12">\n  <div class="rating">');
+    
+      __out.push(this.rating > 0 ? '&#9733;' : '&#9734;');
+    
+      __out.push('<!--\n  -->');
+    
+      __out.push(this.rating > 1 ? '&#9733;' : '&#9734;');
+    
+      __out.push('<!--\n  -->');
+    
+      __out.push(this.rating > 2 ? '&#9733;' : '&#9734;');
+    
+      __out.push('<!--\n  -->');
+    
+      __out.push(this.rating > 3 ? '&#9733;' : '&#9734;');
+    
+      __out.push('<!--\n  -->');
+    
+      __out.push(this.rating > 4 ? '&#9733;' : '&#9734;');
+    
+      __out.push('</div>\n  ');
+    
+      if ((this.comment != null) && this.comment.length > 0) {
+        __out.push('\n    <p name="comment">');
+        __out.push(__sanitize(this.comment));
+        __out.push('</p>\n  ');
+      }
+    
+      __out.push('\n</div>\n\n\n\n');
+    
+    }).call(this);
+    
+  }).call(__obj);
+  __obj.safe = __objSafe, __obj.escape = __escape;
+  return __out.join('');
 }}, "views/CacheStateWidget": function(exports, require, module) {(function() {
   var CacheStateWidget, templateCacheStateWidget,
     __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
@@ -1308,7 +1445,7 @@
           continue;
         }
         console.log("remove view");
-        view.$el.remove();
+        view.remove();
         this.views.splice(i, 1);
         return;
       }
@@ -1372,7 +1509,7 @@
 
 }).call(this);
 }, "views/Track": function(exports, require, module) {(function() {
-  var TrackReviewView, TrackView, templateTrack,
+  var TrackReviewListView, TrackReviewView, TrackView, templateTrack,
     __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -1380,6 +1517,8 @@
   templateTrack = require('templates/Track');
 
   TrackReviewView = require('views/TrackReview');
+
+  TrackReviewListView = require('views/TrackReviewList');
 
   module.exports = TrackView = (function(_super) {
     __extends(TrackView, _super);
@@ -1399,6 +1538,9 @@
       this.trackReviewView = new TrackReviewView({
         model: this.model.trackReview
       });
+      this.trackReviewListView = new TrackReviewListView({
+        model: this.model.trackReviewList
+      });
       return this.render();
     };
 
@@ -1409,7 +1551,14 @@
     TrackView.prototype.render = function() {
       this.$el.html(this.template(this.model.attributes));
       this.$el.append(this.trackReviewView.el);
+      this.$el.append(this.trackReviewListView.el);
       return this;
+    };
+
+    TrackView.prototype.remove = function() {
+      this.trackReviewView.remove();
+      this.trackReviewListView.remove();
+      return TrackView.__super__.remove.call(this);
     };
 
     return TrackView;
@@ -1528,6 +1677,120 @@
     };
 
     return TrackReviewView;
+
+  })(Backbone.View);
+
+}).call(this);
+}, "views/TrackReviewInList": function(exports, require, module) {(function() {
+  var TrackReviewInListView, templateTrackReviewInList,
+    __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
+    __hasProp = {}.hasOwnProperty,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+  templateTrackReviewInList = require('templates/TrackReviewInList');
+
+  module.exports = TrackReviewInListView = (function(_super) {
+    __extends(TrackReviewInListView, _super);
+
+    function TrackReviewInListView() {
+      this.render = __bind(this.render, this);
+      this.template = __bind(this.template, this);
+      return TrackReviewInListView.__super__.constructor.apply(this, arguments);
+    }
+
+    TrackReviewInListView.prototype.tagName = 'div';
+
+    TrackReviewInListView.prototype.className = 'row';
+
+    TrackReviewInListView.prototype.initialize = function() {
+      this.listenTo(this.model, 'change', this.render);
+      return this.render();
+    };
+
+    TrackReviewInListView.prototype.template = function(d) {
+      return templateTrackReviewInList(d);
+    };
+
+    TrackReviewInListView.prototype.render = function() {
+      this.$el.html(this.template(this.model.attributes));
+      return this;
+    };
+
+    return TrackReviewInListView;
+
+  })(Backbone.View);
+
+}).call(this);
+}, "views/TrackReviewList": function(exports, require, module) {(function() {
+  var TrackReview, TrackReviewInListView, TrackReviewListView,
+    __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
+    __hasProp = {}.hasOwnProperty,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+  TrackReview = require('models/TrackReview');
+
+  TrackReviewInListView = require('views/TrackReviewInList');
+
+  module.exports = TrackReviewListView = (function(_super) {
+    __extends(TrackReviewListView, _super);
+
+    function TrackReviewListView() {
+      this.remove = __bind(this.remove, this);
+      this.add = __bind(this.add, this);
+      this.render = __bind(this.render, this);
+      this.template = __bind(this.template, this);
+      return TrackReviewListView.__super__.constructor.apply(this, arguments);
+    }
+
+    TrackReviewListView.prototype.tagName = 'div';
+
+    TrackReviewListView.prototype.className = 'track-review-list column large-12 small-12';
+
+    TrackReviewListView.prototype.initialize = function() {
+      this.listenTo(this.model, 'add', this.add);
+      this.listenTo(this.model, 'remove', this.remove);
+      return this.render();
+    };
+
+    TrackReviewListView.prototype.template = function(d) {};
+
+    TrackReviewListView.prototype.render = function() {
+      var views;
+      this.$el.append('<h2>All Reviews</h2>');
+      views = [];
+      this.model.forEach(this.add);
+      return this;
+    };
+
+    TrackReviewListView.prototype.views = [];
+
+    TrackReviewListView.prototype.add = function(item) {
+      var view;
+      console.log("TrackReviewListView add " + item.id);
+      view = new TrackReviewInListView({
+        model: item
+      });
+      this.$el.append(view.$el);
+      return this.views.push(view);
+    };
+
+    TrackReviewListView.prototype.remove = function(item) {
+      var i, view, _i, _len, _ref;
+      console.log("TrackReviewListView remove " + item.id);
+      _ref = this.views;
+      for (i = _i = 0, _len = _ref.length; _i < _len; i = ++_i) {
+        view = _ref[i];
+        if (!(view.model.id === item.id)) {
+          continue;
+        }
+        console.log("remove view");
+        view.remove();
+        this.views.splice(i, 1);
+        return;
+      }
+    };
+
+    return TrackReviewListView;
 
   })(Backbone.View);
 

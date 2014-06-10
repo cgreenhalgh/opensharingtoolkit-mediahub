@@ -34,7 +34,7 @@ module.exports = class LocaldbStateListView extends Backbone.View
     console.log "LocaldbStateListView remove #{file.attributes._id}"
     for view, i in @views when view.model.id == file.id
       console.log "remove view" 
-      view.$el.remove()
+      view.remove()
       @views.splice i,1
       return
     

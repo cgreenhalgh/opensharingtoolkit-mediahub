@@ -5,6 +5,7 @@ CacheStateWidgetView = require 'views/CacheStateWidget'
 Track = require 'models/Track'
 TrackView = require 'views/Track'
 TrackReview = require 'models/TrackReview'
+TrackReviewList = require 'models/TrackReviewList'
 LocaldbStateListView = require 'views/LocaldbStateList'
 SyncState = require 'models/SyncState'
 SyncStateWidgetView = require 'views/SyncStateWidget'
@@ -46,6 +47,16 @@ checkTrack = (instanceid, data) ->
       track.trackReview.fetch()
     catch err
       console.log "error fetching review #{reviewid}: #{err.message}"
+
+    # TODO: filter by track
+    track.trackReviewList = new TrackReviewList()
+    track.trackReviewList.sync = BackbonePouch.sync
+      db: localdb.currentdb()
+    try 
+      track.trackReviewList.fetch()
+    catch err
+      console.log "error fetching trackreviews: #{err.message}"
+
     trackView = new TrackView model:track
     itemViews.push trackView
     $('body').append trackView.el
