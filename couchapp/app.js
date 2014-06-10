@@ -9,7 +9,8 @@ ddoc = {
   _id: '_design/app'
 , views: {}
 , lists: {}
-, shows: {} 
+, shows: {}
+, filters: {} 
 }
 
 module.exports = ddoc;
@@ -73,6 +74,18 @@ while ((src=srcpatt.exec(index))!==null) {
 }
 
 ddoc.shows.manifest = showManifest.toString().replace("${@manifest}", minescape(manifest.toString()));
+
+ddoc.filters.clientsync = function(doc, req) {
+  if (doc._id.indexOf('trackreview:')!==0) {
+    return false;
+  }
+  // req.query.itemIds = JSON-encoded array of (e.g.) track (file) IDs
+  if (doc.trackid && req.query.itemIds) {
+    encid = JSON.stringify(doc.trackid);
+    return req.query.itemIds.indexOf(encid)>=0;
+  }
+  return true; // passed!
+}
 
 ddoc.validate_doc_update = function (newDoc, oldDoc, userCtx) {
   function user_is(role) {

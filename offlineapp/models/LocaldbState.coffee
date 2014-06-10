@@ -4,6 +4,9 @@ module.exports = class LocaldbState extends Backbone.Model
     hasLocalChanges: false
     type: 'LocaldbState'
     isCurrent: false
+    lastSeq: 0
+    maxSeq: 0
+    syncedSeq: 0
 
   idAttribute: '_id'
 

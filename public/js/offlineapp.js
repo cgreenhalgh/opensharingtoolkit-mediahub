@@ -49,7 +49,7 @@
   }
   return this.require.define;
 }).call(this)({"app": function(exports, require, module) {(function() {
-  var App, CacheStateWidgetView, LocaldbStateListView, Router, SyncState, SyncStateWidgetView, Track, TrackReview, TrackView, appcache, checkConfig, checkTrack, clientid, dburl, itemViews, loadTrack, localdb, refresh,
+  var App, CacheStateWidgetView, LocaldbStateListView, Router, SyncState, SyncStateWidgetView, Track, TrackReview, TrackView, appcache, checkConfig, checkTrack, clientid, dburl, itemViews, loadItems, loadTrack, localdb, refresh, syncState,
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
@@ -77,6 +77,8 @@
 
   clientid = null;
 
+  syncState = new SyncState();
+
   Router = (function(_super) {
     __extends(Router, _super);
 
@@ -96,8 +98,12 @@
 
   })(Backbone.Router);
 
-  checkTrack = function(data) {
+  checkTrack = function(instanceid, data) {
     var cid, err, reviewid, track, trackView, trackid;
+    if (instanceid !== localdb.currentInstanceid()) {
+      console.log("Ignore track on load; old instanceid " + instanceid + " vs " + (localdb.currentInstanceid()));
+      return;
+    }
     console.log("track: " + data);
     try {
       data = JSON.parse(data);
@@ -113,7 +119,7 @@
         clientid: clientid
       });
       track.trackReview.sync = BackbonePouch.sync({
-        db: localdb.getdb()
+        db: localdb.currentdb()
       });
       try {
         track.trackReview.fetch();
@@ -132,37 +138,54 @@
     }
   };
 
-  loadTrack = function(item) {
+  loadTrack = function(instanceid, item) {
     console.log("load track " + item.id);
     return $.ajax(dburl + "/" + item.id, {
-      success: checkTrack,
+      success: function(data) {
+        return checkTrack(instanceid, data);
+      },
       dataType: "text",
       error: function(xhr, status, err) {
         console.log("get track error " + xhr.status + ": " + err.message);
         if (xhr.status === 0 && xhr.responseText) {
-          return checkTrack(xhr.responseText);
+          return checkTrack(instanceid, xhr.responseText);
         }
       }
     });
   };
 
+  loadItems = function(instanceid, data) {
+    var item, _i, _len, _ref, _results;
+    _ref = data.items;
+    _results = [];
+    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+      item = _ref[_i];
+      if (item.type === 'track') {
+        _results.push(loadTrack(instanceid, item));
+      } else {
+        _results.push(void 0);
+      }
+    }
+    return _results;
+  };
+
   checkConfig = function(data) {
-    var err, item, _i, _len, _ref, _results;
+    var err, instanceid;
     console.log("config: " + data);
     try {
       data = JSON.parse(data);
+      instanceid = data._id + ':' + data._rev;
       localdb.swapdb(dburl, data);
-      _ref = data.items;
-      _results = [];
-      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-        item = _ref[_i];
-        if (item.type === 'track') {
-          _results.push(loadTrack(item));
+      $('body').append('<p id="syncing">synchronizing</p>');
+      return syncState.doSync(function(success) {
+        if (success) {
+          $('#syncing').remove();
+          return loadItems(instanceid, data);
         } else {
-          _results.push(void 0);
+          console.log("Error doing initial synchronization");
+          return $('body').replace('<p id="syncing">Error doing initial synchronization - try reloading this page</p>');
         }
-      }
-      return _results;
+      });
     } catch (_error) {
       err = _error;
       return console.log("error parsing client config: " + err.message + ": " + data + " - " + err.stack);
@@ -192,7 +215,7 @@
 
   App = {
     init: function() {
-      var appcacheWidget, localdbStateListView, router, syncState, syncStateWidgetView;
+      var appcacheWidget, localdbStateListView, router, syncStateWidgetView;
       clientid = $('meta[name="mediahub-clientid"]').attr('content');
       console.log("OfflineApp starting... clientid=" + clientid);
       dburl = location.href;
@@ -207,7 +230,6 @@
         model: localdb.localdbStateList
       });
       $('body').append(localdbStateListView.el);
-      syncState = new SyncState();
       syncStateWidgetView = new SyncStateWidgetView({
         model: syncState
       });
@@ -330,7 +352,7 @@
 
 }).call(this);
 }, "localdb": function(exports, require, module) {(function() {
-  var LocaldbState, LocaldbStateList, appcache, db, dbcache, getdb, localdbStateList, metadb;
+  var LocaldbState, LocaldbStateList, appcache, config, db, dbcache, getdb, instanceid, localdbStateList, metadb;
 
   appcache = require('appcache');
 
@@ -345,10 +367,15 @@
     if (dbcache[url] != null) {
       return dbcache[url];
     } else {
-      dbcache[url] = db = new PouchDB(url, {
-        adapter: 'websql'
-      });
-      return db;
+      if (window.openDatabase != null) {
+        console.log("WARNING: forcing websql");
+        return dbcache[url] = db = new PouchDB(url, {
+          adapter: 'websql'
+        });
+      } else {
+        console.log("NOTE: using default pouchdb persistence");
+        return dbcache[url] = db = new PouchDB(url);
+      }
     }
   };
 
@@ -358,10 +385,22 @@
 
   module.exports.metadb = metadb;
 
+  instanceid = 'initial';
+
   db = getdb('initial');
 
-  module.exports.getdb = function() {
+  config = {};
+
+  module.exports.currentdb = function() {
     return db;
+  };
+
+  module.exports.currentInstanceid = function() {
+    return instanceid;
+  };
+
+  module.exports.currentConfig = function() {
+    return config;
   };
 
   LocaldbState.prototype.sync = BackbonePouch.sync({
@@ -399,8 +438,9 @@
 
   module.exports.localdbStateList = localdbStateList;
 
-  module.exports.swapdb = function(dburl, config) {
-    var dbchanges, dbname, err, instanceid, localdbState;
+  module.exports.swapdb = function(dburl, newconfig) {
+    var dbchanges, dbname, err, localdbState;
+    config = newconfig;
     instanceid = config._id + ":" + config._rev;
     dbname = encodeURIComponent(instanceid);
     console.log("swap local db to " + instanceid);
@@ -443,18 +483,19 @@
       live: true,
       returnDocs: false
     });
+    console.log("dbchanges = " + dbchanges + ", dbchanges.on = " + dbchanges.on);
     return dbchanges.on('change', function(change) {
       console.log("change to db " + instanceid + " id=" + change.id + " seq=" + change.seq + ": " + (JSON.stringify(change)));
-      if (localdbState.get('hasLocalChanges') === false) {
-        localdbState.set({
-          hasLocalChanges: true
-        });
-        console.log("db " + instanceid + " set hasLocalChanges");
-        try {
-          return localdbState.save();
-        } catch (_error) {
-          return console.log("error saving LocaldbState " + instanceid + ": " + err.message);
-        }
+      localdbState.set({
+        hasLocalChanges: localdbState.attributes.syncedSeq < change.seq,
+        lastSeq: change.seq,
+        maxSeq: (localdbState.attributes.maxSeq == null) || change.seq > localdbState.attributes.maxSeq ? change.seq : localdbState.attributes.maxSeq
+      });
+      console.log("db " + instanceid + " set hasLocalChanges:true, lastSeq: " + change.seq);
+      try {
+        return localdbState.save();
+      } catch (_error) {
+        return console.log("error saving LocaldbState " + instanceid + ": " + err.message);
       }
     });
   };
@@ -500,7 +541,10 @@
     LocaldbState.prototype.defaults = {
       hasLocalChanges: false,
       type: 'LocaldbState',
-      isCurrent: false
+      isCurrent: false,
+      lastSeq: 0,
+      maxSeq: 0,
+      syncedSeq: 0
     };
 
     LocaldbState.prototype.idAttribute = '_id';
@@ -567,15 +611,13 @@
 
     SyncState.prototype.localdbStatesToCheck = [];
 
-    SyncState.prototype.doSync = function() {
+    SyncState.prototype.successfns = [];
+
+    SyncState.prototype.doSync = function(successfn) {
       var ldb, _i, _len, _ref;
-      if (!this.get('idle')) {
-        return false;
+      if (successfn != null) {
+        this.successfns.push(successfn);
       }
-      this.set({
-        idle: false,
-        message: 'Attempting to synchronize...'
-      });
       _ref = localdb.localdbStateList.models;
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         ldb = _ref[_i];
@@ -583,11 +625,18 @@
           this.localdbStatesToCheck.push(ldb);
         }
       }
+      if (!this.get('idle')) {
+        return false;
+      }
+      this.set({
+        idle: false,
+        message: 'Attempting to synchronize...'
+      });
       return this.checkNextLocaldb();
     };
 
     SyncState.prototype.checkNextLocaldb = function() {
-      var dbname, localdbState, recurse;
+      var localdbState;
       if (this.localdbStatesToCheck.length === 0) {
         console.log("No more localdbs to check");
         this.set({
@@ -601,6 +650,11 @@
         idle: false,
         message: "Attempting to synchronize " + localdbState.id + "..."
       });
+      return this.syncIncoming(localdbState);
+    };
+
+    SyncState.prototype.syncOutgoing = function(localdbState) {
+      var dbname, recurse;
       dbname = encodeURIComponent(localdbState.id);
       console.log("replicate " + dbname + " to " + localdbState.attributes.remoteurl + "...");
       recurse = (function(_this) {
@@ -611,7 +665,68 @@
       return PouchDB.replicate(dbname, localdbState.attributes.remoteurl).on('change', function(info) {
         return console.log("- change " + (JSON.stringify(info)));
       }).on('complete', function(info) {
+        var err;
         console.log("- complete " + (JSON.stringify(info)));
+        if (info.ok && (info.last_seq != null)) {
+          console.log("update " + dbname + " syncedSeq: " + info.last_seq + ", lastSeq: " + localdbState.attributes.lastSeq);
+          localdbState.set({
+            syncedSeq: info.last_seq,
+            hasLocalChanges: info.last_seq < localdbState.attributes.lastSeq
+          });
+          try {
+            localdbState.save();
+          } catch (_error) {
+            err = _error;
+            console.log("Error saving localdbState " + localdbState.id + ": " + err.message);
+          }
+        }
+        return setTimeout(recurse, 0);
+      }).on('uptodate', function(info) {
+        return console.log("- uptodate " + (JSON.stringify(info)));
+      }).on('error', function(info) {
+        return console.log("- error " + (JSON.stringify(info)));
+      });
+    };
+
+    SyncState.prototype.syncIncoming = function(localdbState) {
+      var callfns, dbname, item, itemIds, query_params, recurse, _i, _len, _ref;
+      if (localdbState.id !== localdb.currentInstanceid()) {
+        return this.syncOutgoing(localdbState);
+      }
+      dbname = encodeURIComponent(localdbState.id);
+      console.log("replicate " + localdbState.attributes.remoteurl + " to " + dbname + "...");
+      recurse = (function(_this) {
+        return function() {
+          return _this.syncOutgoing(localdbState);
+        };
+      })(this);
+      callfns = this.successfns.splice(0, this.successfns.length);
+      _ref = localdb.currentConfig().items;
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        item = _ref[_i];
+        itemIds = item.id;
+      }
+      query_params = {
+        itemIds: JSON.stringify(itemIds)
+      };
+      console.log("sync using app/clientsync " + (JSON.stringify(query_params)));
+      return PouchDB.replicate(localdbState.attributes.remoteurl, dbname, {
+        filter: 'app/clientsync',
+        query_params: query_params
+      }).on('change', function(info) {
+        return console.log("- change " + (JSON.stringify(info)));
+      }).on('complete', function(info) {
+        var err, fn, _j, _len1;
+        console.log("- complete " + (JSON.stringify(info)));
+        for (_j = 0, _len1 = callfns.length; _j < _len1; _j++) {
+          fn = callfns[_j];
+          try {
+            fn(info.ok);
+          } catch (_error) {
+            err = _error;
+            console.log("Error calling sync success fn: " + err.message);
+          }
+        }
         return setTimeout(recurse, 0);
       }).on('uptodate', function(info) {
         return console.log("- uptodate " + (JSON.stringify(info)));
@@ -797,6 +912,18 @@
       __out.push(' \n  ');
     
       __out.push(__sanitize(this.hasLocalChanges ? '(has local changes)' : '(no local changes)'));
+    
+      __out.push('\n  lastSeq:');
+    
+      __out.push(__sanitize(this.lastSeq));
+    
+      __out.push(', maxSeq:');
+    
+      __out.push(__sanitize(this.maxSeq));
+    
+      __out.push(', syncedSeq:');
+    
+      __out.push(__sanitize(this.syncedSeq));
     
       __out.push('\n</div>\n\n');
     

@@ -16,6 +16,7 @@ localdb = require 'localdb'
 itemViews = []
 dburl = null
 clientid = null
+syncState = new SyncState()
 
 class Router extends Backbone.Router
   routes: 
@@ -24,7 +25,10 @@ class Router extends Backbone.Router
   entries: ->
     console.log "router: entries"
 
-checkTrack = (data) ->
+checkTrack = (instanceid, data) ->
+  if instanceid isnt localdb.currentInstanceid()
+    console.log "Ignore track on load; old instanceid #{instanceid} vs #{localdb.currentInstanceid()}"
+    return
   console.log "track: #{data}"
   try 
     data = JSON.parse data
@@ -36,7 +40,7 @@ checkTrack = (data) ->
     console.log "add track #{data._id} review #{reviewid}"
     track.trackReview = new TrackReview {_id:reviewid, trackid:data._id, clientid:clientid}
     track.trackReview.sync = BackbonePouch.sync
-      db: localdb.getdb()
+      db: localdb.currentdb()
     # might be in pouch from before
     try 
       track.trackReview.fetch()
@@ -49,27 +53,41 @@ checkTrack = (data) ->
     console.log "error parsing track: #{err.message}: #{data}"
 
 
-loadTrack = (item) ->
+loadTrack = (instanceid,item) ->
   console.log "load track #{item.id}"
   $.ajax dburl+"/"+item.id,
-    success: checkTrack
+    success: (data)->
+      checkTrack instanceid, data
     dataType: "text"
     error: (xhr,status,err) ->
       console.log "get track error "+xhr.status+": "+err.message
       # on android (at least) files from cache sometimes have status 0!!
       if xhr.status==0 && xhr.responseText
-        checkTrack xhr.responseText
+        checkTrack instanceid, xhr.responseText
+
+loadItems = (instanceid, data) ->
+  for item in data.items
+    # id, url, type
+    if item.type=='track'
+      loadTrack instanceid,item
 
 checkConfig = (data) ->
   console.log  "config: "+data 
   try 
     data = JSON.parse data
     # switch local db
+    instanceid = data._id+':'+data._rev
     localdb.swapdb dburl, data
-    for item in data.items
-      # id, url, type
-      if item.type=='track'
-        loadTrack item
+    # wait for localdb sync
+    $('body').append '<p id="syncing">synchronizing</p>'
+    syncState.doSync (success) ->
+      if success
+        $('#syncing').remove()
+        loadItems instanceid, data
+      else
+        console.log "Error doing initial synchronization"
+        $('body').replace '<p id="syncing">Error doing initial synchronization - try reloading this page</p>'
+
   catch err
     console.log "error parsing client config: #{err.message}: #{data} - #{err.stack}"
 
@@ -102,7 +120,6 @@ App =
     localdbStateListView = new LocaldbStateListView model: localdb.localdbStateList
     $('body').append localdbStateListView.el
 
-    syncState = new SyncState()
     syncStateWidgetView = new SyncStateWidgetView model: syncState
     $('body').append syncStateWidgetView.el   
 

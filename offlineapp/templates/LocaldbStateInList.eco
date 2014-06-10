@@ -2,5 +2,6 @@
 <div data-alert class="alert-box <%= if @hasLocalChanges then 'warning' else '' %>">
   Localdb <%= @_id %> 
   <%= if @hasLocalChanges then '(has local changes)' else '(no local changes)' %>
+  lastSeq:<%= @lastSeq %>, maxSeq:<%= @maxSeq %>, syncedSeq:<%= @syncedSeq %>
 </div>
 
