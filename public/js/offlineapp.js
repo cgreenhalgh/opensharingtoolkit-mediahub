@@ -353,7 +353,7 @@
             _results.push(cb());
           } catch (_error) {
             err = _error;
-            _results.push(console.log("error calling cache onUpdate fn: " + err.message));
+            _results.push(console.log("error calling cache onUpdate fn: " + err.message + " " + err.stack));
           }
         }
         return _results;

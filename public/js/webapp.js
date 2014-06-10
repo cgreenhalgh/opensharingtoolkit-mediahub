@@ -951,6 +951,7 @@
     };
 
     FileInListView.prototype.testapp = function(ev) {
+      ev.preventDefault();
       return offline.testFile(this.model);
     };
 

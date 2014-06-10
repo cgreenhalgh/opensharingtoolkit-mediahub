@@ -55,7 +55,7 @@ on_cache_event = (ev) ->
         try
           cb()
         catch err
-          console.log "error calling cache onUpdate fn: #{err.message}"
+          console.log "error calling cache onUpdate fn: #{err.message} #{err.stack}"
     catch err 
       console.log "cache swap error: #{err.message}"
 

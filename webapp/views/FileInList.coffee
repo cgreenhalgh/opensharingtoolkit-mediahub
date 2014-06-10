@@ -45,6 +45,7 @@ module.exports = class FileInListView extends Backbone.View
     @model.download ev
 
   testapp: (ev) =>
+    ev.preventDefault()
     # offline test...
     offline.testFile @model
 
