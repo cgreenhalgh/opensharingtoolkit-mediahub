@@ -49,7 +49,7 @@
   }
   return this.require.define;
 }).call(this)({"app": function(exports, require, module) {(function() {
-  var App, File, FileList, FileListView, Router, config, db,
+  var App, File, FileList, FileListView, Router, config, db, updateRatings,
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
@@ -86,6 +86,34 @@
     return console.log("ajaxError " + exception);
   });
 
+  updateRatings = function(files, ratings) {
+    var err, file, row, _i, _len, _ref, _results;
+    try {
+      ratings = JSON.parse(ratings);
+    } catch (_error) {
+      err = _error;
+      console.log("Error parsing ratings: " + err.message + ": " + ratings);
+      return;
+    }
+    _ref = ratings.rows;
+    _results = [];
+    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+      row = _ref[_i];
+      files.ratings[row.key] = row.value;
+      file = files.get(row.key);
+      if (file != null) {
+        console.log("Set ratings on load-ratings " + file.id + " " + (JSON.stringify(row.value)));
+        _results.push(file.set({
+          ratingSum: row.value[0],
+          ratingCount: row.value[1]
+        }));
+      } else {
+        _results.push(void 0);
+      }
+    }
+    return _results;
+  };
+
   App = {
     init: function() {
       var files, filesView, router;
@@ -110,6 +138,16 @@
       filesView.render();
       $('body').append(filesView.el);
       files.fetch();
+      files.ratings = {};
+      $.ajax(window.mediahubconfig.dburl + '/_design/app/_view/rating?group=true', {
+        success: function(ratings) {
+          return updateRatings(files, ratings);
+        },
+        dataType: "text",
+        error: function(xhr, status, err) {
+          return console.log("get ratings error " + xhr.status + ": " + err.message);
+        }
+      });
       router = new Router;
       return Backbone.history.start();
     }
@@ -169,7 +207,9 @@
     File.prototype.defaults = {
       title: '',
       description: '',
-      type: 'file'
+      type: 'file',
+      ratingSum: 0,
+      ratingCount: 0
     };
 
     File.prototype.download = function(ev) {
@@ -536,6 +576,24 @@
       __out.push('\n<h4 class="clearfix">');
     
       __out.push(__sanitize(this.title));
+    
+      __out.push('\n  ');
+    
+      if (this.ratingCount !== 0) {
+        __out.push('\n   <span class="rating">');
+        __out.push(this.ratingSum / this.ratingCount >= 0.5 ? '&#9733;' : '&#9734;');
+        __out.push('<!--\n  -->');
+        __out.push(this.ratingSum / this.ratingCount >= 1.5 ? '&#9733;' : '&#9734;');
+        __out.push('<!--\n  -->');
+        __out.push(this.ratingSum / this.ratingCount >= 2.5 ? '&#9733;' : '&#9734;');
+        __out.push('<!--\n  -->');
+        __out.push(this.ratingSum / this.ratingCount >= 3.5 ? '&#9733;' : '&#9734;');
+        __out.push('<!--\n  -->');
+        __out.push(this.ratingSum / this.ratingCount >= 4.5 ? '&#9733;' : '&#9734;');
+        __out.push('</span>\n   (');
+        __out.push(__sanitize(this.ratingCount));
+        __out.push(' ratings)\n  ');
+      }
     
       __out.push('\n  <a href="#-delete-file" class="action-button do-delete-file right">Delete</a>\n  <a href="#-edit-file" class="action-button do-edit-file right">Edit</a>\n');
     
@@ -954,6 +1012,13 @@
     FileListView.prototype.add = function(file) {
       var view;
       console.log("FileListView add " + file.attributes._id);
+      if (file.attributes.ratingCount === 0 && (this.model.ratings[file.id] != null)) {
+        console.log("Set ratings on add " + file.id + " " + (JSON.stringify(this.model.ratings[file.id])));
+        file.set({
+          ratingSum: this.model.ratings[file.id][0],
+          ratingCount: this.model.ratings[file.id][1]
+        });
+      }
       view = new FileInListView({
         model: file
       });

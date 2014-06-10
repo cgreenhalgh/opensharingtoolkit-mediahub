@@ -11,6 +11,7 @@ module.exports.onUpdate = (cb)->
   onUpdate.push cb
 
 appCache = window.applicationCache
+lastState = -1
 
 updateState = ()->
   newState = switch appCache.status
@@ -40,6 +41,9 @@ updateState = ()->
   state.set newState
 
 on_cache_event = (ev) ->
+  if appCache.status==lastState
+    return false
+  lastState = appCache.status
   console.log 'AppCache status = '+appCache.status
   updateState()  
   if appCache.status==appCache.UPDATEREADY 

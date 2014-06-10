@@ -1,5 +1,13 @@
 <%# File in File List, takes File as data (title, description, ...) %>
 <h4 class="clearfix"><%= @title %>
+  <% if @ratingCount!=0: %>
+   <span class="rating"><%- if @ratingSum/@ratingCount >= 0.5 then '&#9733;' else '&#9734;' %><!--
+  --><%- if @ratingSum/@ratingCount>=1.5 then '&#9733;' else '&#9734;' %><!--
+  --><%- if @ratingSum/@ratingCount>=2.5 then '&#9733;' else '&#9734;' %><!--
+  --><%- if @ratingSum/@ratingCount>=3.5 then '&#9733;' else '&#9734;' %><!--
+  --><%- if @ratingSum/@ratingCount>=4.5 then '&#9733;' else '&#9734;' %></span>
+   (<%= @ratingCount %> ratings)
+  <% end %>
   <a href="#-delete-file" class="action-button do-delete-file right">Delete</a>
   <a href="#-edit-file" class="action-button do-edit-file right">Edit</a>
 <% if @hasFile: %>

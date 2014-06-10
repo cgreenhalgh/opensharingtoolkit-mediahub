@@ -18,6 +18,22 @@ class Router extends Backbone.Router
 $( document ).ajaxError ( event, jqxhr, settings, exception ) ->
   console.log "ajaxError #{exception}"
 
+updateRatings = (files, ratings) ->
+  try 
+    ratings = JSON.parse ratings
+  catch err
+    console.log "Error parsing ratings: #{err.message}: #{ratings}"
+    return
+  #{rows:[{key:"FILEID",value:[SUM,COUNT]}]}
+  for row in ratings.rows
+    files.ratings[row.key] = row.value
+    file = files.get row.key
+    if file?
+      console.log "Set ratings on load-ratings #{file.id} #{JSON.stringify row.value}"
+      file.set 
+        ratingSum: row.value[0]
+        ratingCount: row.value[1]
+
 App = 
   init: ->
     console.log "App starting..."
@@ -52,6 +68,13 @@ App =
 
     #files.reset files.to_json 
     files.fetch()
+    files.ratings = {}
+    # ratings, too
+    $.ajax window.mediahubconfig.dburl+'/_design/app/_view/rating?group=true',
+      success: (ratings) -> updateRatings files, ratings
+      dataType: "text"
+      error: (xhr,status,err) ->
+        console.log "get ratings error "+xhr.status+": "+err.message
 
     # in-app virtual pages
     router = new Router

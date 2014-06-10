@@ -4,6 +4,8 @@ module.exports = class File extends Backbone.Model
     title: ''
     description: ''
     type: 'file'
+    ratingSum: 0
+    ratingCount: 0
 
   download: (ev) =>
     if ev?

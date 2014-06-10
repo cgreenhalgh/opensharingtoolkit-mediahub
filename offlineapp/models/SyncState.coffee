@@ -59,6 +59,8 @@ module.exports = class SyncState extends Backbone.Model
        console.log "- uptodate #{JSON.stringify info}"
      .on 'error', (info) ->
        console.log "- error #{JSON.stringify info}"
+       # not sure if error is an end state!
+       setTimeout recurse, 0
 
   syncIncoming: (localdbState) -> 
     if localdbState.id != localdb.currentInstanceid()
@@ -90,4 +92,7 @@ module.exports = class SyncState extends Backbone.Model
        console.log "- uptodate #{JSON.stringify info}"
      .on 'error', (info) ->
        console.log "- error #{JSON.stringify info}"
+       # not sure if error is an end state!
+       setTimeout recurse, 0
+
 

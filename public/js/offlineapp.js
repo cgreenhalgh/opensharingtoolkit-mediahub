@@ -265,7 +265,7 @@
 
 }).call(this);
 }, "appcache": function(exports, require, module) {(function() {
-  var CacheState, appCache, onUpdate, on_cache_event, state, updateState;
+  var CacheState, appCache, lastState, onUpdate, on_cache_event, state, updateState;
 
   CacheState = require('models/CacheState');
 
@@ -280,6 +280,8 @@
   };
 
   appCache = window.applicationCache;
+
+  lastState = -1;
 
   updateState = function() {
     var newState;
@@ -333,6 +335,10 @@
 
   on_cache_event = function(ev) {
     var cb, err, _i, _len, _results;
+    if (appCache.status === lastState) {
+      return false;
+    }
+    lastState = appCache.status;
     console.log('AppCache status = ' + appCache.status);
     updateState();
     if (appCache.status === appCache.UPDATEREADY) {
@@ -695,7 +701,8 @@
       }).on('uptodate', function(info) {
         return console.log("- uptodate " + (JSON.stringify(info)));
       }).on('error', function(info) {
-        return console.log("- error " + (JSON.stringify(info)));
+        console.log("- error " + (JSON.stringify(info)));
+        return setTimeout(recurse, 0);
       });
     };
 
@@ -742,7 +749,8 @@
       }).on('uptodate', function(info) {
         return console.log("- uptodate " + (JSON.stringify(info)));
       }).on('error', function(info) {
-        return console.log("- error " + (JSON.stringify(info)));
+        console.log("- error " + (JSON.stringify(info)));
+        return setTimeout(recurse, 0);
       });
     };
 

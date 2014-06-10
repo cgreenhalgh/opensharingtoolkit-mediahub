@@ -85,7 +85,24 @@ ddoc.filters.clientsync = function(doc, req) {
     return req.query.itemIds.indexOf(encid)>=0;
   }
   return true; // passed!
-}
+};
+
+// view of trackreview rating
+ddoc.views.rating = {
+  map: function(doc) {
+    if (doc._id.indexOf('trackreview:')===0 && doc.rating && doc.trackid) {
+      emit(doc.trackid, [doc.rating,1]);
+    }  
+  },
+  reduce: function(keys, values, rereduce) {
+    var res = [0,0];
+    for (var i in values) {
+      res[0] += values[i][0];
+      res[1] += values[i][1];
+    }  
+    return res;
+  }
+};
 
 ddoc.validate_doc_update = function (newDoc, oldDoc, userCtx) {
   function user_is(role) {
