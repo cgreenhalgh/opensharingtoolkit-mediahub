@@ -9,7 +9,7 @@ Status: skeleton
 
 ## Install
 
-You'll need npm, node, coffescript, zurb foundation tool(s), e.g. (ubuntu 10.x)
+You'll need npm, node, coffescript, zurb foundation tool(s), e.g. (ubuntu). N.B. you will need a relatively recent version of node and npm (certainly >0.6) so if you are using an older OS version you may need to download/build node and npm directly from their website(s).
 ```
 sudo apt-get install npm
 sudo apt-get install nodejs-legacy
