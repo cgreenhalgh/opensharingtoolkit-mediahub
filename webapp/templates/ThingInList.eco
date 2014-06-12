@@ -2,4 +2,5 @@
 <h4 class="clearfix"><%= @title %>
   <a href="#-delete-file" class="action-button do-delete-file right">Delete</a>
   <a href="#-edit-file" class="action-button do-edit-file right">Edit</a>
+  <a href="#-view-file" class="action-button do-view-file right">View</a>
 </h3>

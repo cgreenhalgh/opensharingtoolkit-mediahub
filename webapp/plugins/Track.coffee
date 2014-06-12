@@ -4,6 +4,7 @@ File = require 'models/File'
 FileList = require 'models/FileList'
 FileListView = require 'views/FileList'
 FileInListView = require 'views/FileInList'
+ThingView = require 'views/Thing'
 FileEditView = require 'views/FileEdit'
 
 ThingBuilder = require 'plugins/ThingBuilder'
@@ -29,7 +30,7 @@ updateRatings = (files, ratings) ->
         ratingSum: row.value[0]
         ratingCount: row.value[1]
 
-contentType = ThingBuilder.createThingType attributes, File, FileList, FileListView, FileInListView, FileEditView
+contentType = ThingBuilder.createThingType attributes, File, FileList, FileListView, FileInListView, ThingView, FileEditView
 
 superCreateView = contentType.createView
 contentType.createView = () ->

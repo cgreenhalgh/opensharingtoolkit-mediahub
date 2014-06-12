@@ -2,7 +2,7 @@
 plugins = require 'plugins'
 ContentType = require 'models/ContentType'
 
-module.exports.createThingType = (attributes, ThisThing, ThisThingList, ThisThingListView, ThisThingInListView, ThisThingEditView) ->
+module.exports.createThingType = (attributes, ThisThing, ThisThingList, ThisThingListView, ThisThingInListView, ThisThingView, ThisThingEditView) ->
   things = null
 
   contentType = new ContentType attributes
@@ -30,6 +30,12 @@ module.exports.createThingType = (attributes, ThisThing, ThisThingList, ThisThin
         alert "could not find #{contentType.id} #{id}"
         return
       return new ThisThingEditView model: thing
+    else if action=='view'
+      thing = things.get id
+      if not thing?
+        alert "could not find #{contentType.id} #{id}"
+        return
+      return new ThisThingView model: thing
     else if action=='add'
       # work-around backbone-pouchdb attach presumes Math.uuid
       thing = new ThisThing _id: contentType.id+':'+uuid()

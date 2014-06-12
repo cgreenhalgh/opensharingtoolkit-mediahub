@@ -54,6 +54,9 @@ $outline-color: $primary-color; //scale-color($primary-color, $lightness: -66%);
   }
 }
 
+.html-preview {
+  border: 1px solid $outline-color;
+}
 
 .file-list {
   @extend .row;

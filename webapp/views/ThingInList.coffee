@@ -21,8 +21,14 @@ module.exports = class ThingInListView extends Backbone.View
     @
 
   events:
+    "click .do-view-file": "view"
     "click .do-edit-file": "edit"
     "click .do-delete-file": "delete"
+
+  view: (ev) =>
+    console.log "view #{@model.attributes._id}"
+    ev.preventDefault()
+    window.router.navigate "#ContentType/#{@model.getContentType().id}/view/#{encodeURIComponent @model.attributes._id}", trigger:true
 
   edit: (ev) =>
     console.log "edit #{@model.attributes._id}"

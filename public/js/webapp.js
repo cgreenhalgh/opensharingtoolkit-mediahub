@@ -491,7 +491,7 @@
 
 }).call(this);
 }, "plugins/Html": function(exports, require, module) {(function() {
-  var ThingBuilder, ThisThing, ThisThingEditView, ThisThingInListView, ThisThingList, ThisThingListView, attributes, contentType, plugins;
+  var ThingBuilder, ThisThing, ThisThingEditView, ThisThingInListView, ThisThingList, ThisThingListView, ThisThingView, attributes, contentType, plugins;
 
   plugins = require('plugins');
 
@@ -503,7 +503,9 @@
 
   ThisThingInListView = require('views/ThingInList');
 
-  ThisThingEditView = require('views/ThingEdit');
+  ThisThingView = require('views/Html');
+
+  ThisThingEditView = require('views/HtmlEdit');
 
   ThingBuilder = require('plugins/ThingBuilder');
 
@@ -513,7 +515,7 @@
     description: 'A well-formed HTML fragment (actually just a place-holder at the moment!)'
   };
 
-  contentType = ThingBuilder.createThingType(attributes, ThisThing, ThisThingList, ThisThingListView, ThisThingInListView, ThisThingEditView);
+  contentType = ThingBuilder.createThingType(attributes, ThisThing, ThisThingList, ThisThingListView, ThisThingInListView, ThisThingView, ThisThingEditView);
 
   plugins.registerContentType(contentType.id, contentType);
 
@@ -525,7 +527,7 @@
 
   ContentType = require('models/ContentType');
 
-  module.exports.createThingType = function(attributes, ThisThing, ThisThingList, ThisThingListView, ThisThingInListView, ThisThingEditView) {
+  module.exports.createThingType = function(attributes, ThisThing, ThisThingList, ThisThingListView, ThisThingInListView, ThisThingView, ThisThingEditView) {
     var contentType, things;
     things = null;
     contentType = new ContentType(attributes);
@@ -560,6 +562,15 @@
         return new ThisThingEditView({
           model: thing
         });
+      } else if (action === 'view') {
+        thing = things.get(id);
+        if (thing == null) {
+          alert("could not find " + contentType.id + " " + id);
+          return;
+        }
+        return new ThisThingView({
+          model: thing
+        });
       } else if (action === 'add') {
         thing = new ThisThing({
           _id: contentType.id + ':' + uuid()
@@ -580,7 +591,7 @@
 
 }).call(this);
 }, "plugins/Track": function(exports, require, module) {(function() {
-  var File, FileEditView, FileInListView, FileList, FileListView, ThingBuilder, attributes, contentType, plugins, superCreateView, updateRatings;
+  var File, FileEditView, FileInListView, FileList, FileListView, ThingBuilder, ThingView, attributes, contentType, plugins, superCreateView, updateRatings;
 
   plugins = require('plugins');
 
@@ -591,6 +602,8 @@
   FileListView = require('views/FileList');
 
   FileInListView = require('views/FileInList');
+
+  ThingView = require('views/Thing');
 
   FileEditView = require('views/FileEdit');
 
@@ -630,7 +643,7 @@
     return _results;
   };
 
-  contentType = ThingBuilder.createThingType(attributes, File, FileList, FileListView, FileInListView, FileEditView);
+  contentType = ThingBuilder.createThingType(attributes, File, FileList, FileListView, FileInListView, ThingView, FileEditView);
 
   superCreateView = contentType.createView;
 
@@ -965,6 +978,196 @@
   }).call(__obj);
   __obj.safe = __objSafe, __obj.escape = __escape;
   return __out.join('');
+}}, "templates/Html": function(exports, require, module) {module.exports = function(__obj) {
+  if (!__obj) __obj = {};
+  var __out = [], __capture = function(callback) {
+    var out = __out, result;
+    __out = [];
+    callback.call(this);
+    result = __out.join('');
+    __out = out;
+    return __safe(result);
+  }, __sanitize = function(value) {
+    if (value && value.ecoSafe) {
+      return value;
+    } else if (typeof value !== 'undefined' && value != null) {
+      return __escape(value);
+    } else {
+      return '';
+    }
+  }, __safe, __objSafe = __obj.safe, __escape = __obj.escape;
+  __safe = __obj.safe = function(value) {
+    if (value && value.ecoSafe) {
+      return value;
+    } else {
+      if (!(typeof value !== 'undefined' && value != null)) value = '';
+      var result = new String(value);
+      result.ecoSafe = true;
+      return result;
+    }
+  };
+  if (!__escape) {
+    __escape = __obj.escape = function(value) {
+      return ('' + value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    };
+  }
+  (function() {
+    (function() {
+      __out.push('\n<div class="columns large-12">\n  <h2>');
+    
+      __out.push(__sanitize(this.contentType.title));
+    
+      __out.push(': ');
+    
+      __out.push(__sanitize(this.data.title));
+    
+      __out.push('</h2>\n  <p>');
+    
+      __out.push(__sanitize(this.data.description));
+    
+      __out.push('</p>\n  <div class="html-preview">');
+    
+      __out.push(this.data.html);
+    
+      __out.push('</div>\n</div>\n<form>\n  <div class="columns large-12">\n    <input type="button" value="Edit" class="do-edit"/>\n    <input type="button" value="OK" class="do-cancel"/>\n  </div>\n</form>\n\n');
+    
+    }).call(this);
+    
+  }).call(__obj);
+  __obj.safe = __objSafe, __obj.escape = __escape;
+  return __out.join('');
+}}, "templates/HtmlEdit": function(exports, require, module) {module.exports = function(__obj) {
+  if (!__obj) __obj = {};
+  var __out = [], __capture = function(callback) {
+    var out = __out, result;
+    __out = [];
+    callback.call(this);
+    result = __out.join('');
+    __out = out;
+    return __safe(result);
+  }, __sanitize = function(value) {
+    if (value && value.ecoSafe) {
+      return value;
+    } else if (typeof value !== 'undefined' && value != null) {
+      return __escape(value);
+    } else {
+      return '';
+    }
+  }, __safe, __objSafe = __obj.safe, __escape = __obj.escape;
+  __safe = __obj.safe = function(value) {
+    if (value && value.ecoSafe) {
+      return value;
+    } else {
+      if (!(typeof value !== 'undefined' && value != null)) value = '';
+      var result = new String(value);
+      result.ecoSafe = true;
+      return result;
+    }
+  };
+  if (!__escape) {
+    __escape = __obj.escape = function(value) {
+      return ('' + value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    };
+  }
+  (function() {
+    (function() {
+      __out.push('\n<div class="columns large-12">\n  <h2>');
+    
+      __out.push(__sanitize(this.add ? 'Add' : 'Edit'));
+    
+      __out.push(' ');
+    
+      __out.push(__sanitize(this.contentType.title));
+    
+      __out.push('</h2>\n</div>\n<form>\n  <div class="columns large-12">\n    <label>Title\n      <input type="text" name="title" placeholder="title" value="');
+    
+      __out.push(__sanitize(this.data.title));
+    
+      __out.push('"/>\n    </label>\n    <label>Description\n      <textarea name="description" placeholder="description" >');
+    
+      __out.push(__sanitize(this.data.description));
+    
+      __out.push('</textarea>\n    </label>\n    <label>Html\n      <textarea name="html" placeholder="html" >');
+    
+      __out.push(__sanitize(this.data.html));
+    
+      __out.push('</textarea>\n    </label>\n    <input type="submit" value="');
+    
+      __out.push(__sanitize(this.add ? 'Add' : 'Save changes'));
+    
+      __out.push('"/>\n    <input type="reset" value="Clear"/>\n    <input type="button" value="Cancel" class="do-cancel"/>\n  </div>\n</form>\n\n');
+    
+    }).call(this);
+    
+  }).call(__obj);
+  __obj.safe = __objSafe, __obj.escape = __escape;
+  return __out.join('');
+}}, "templates/Thing": function(exports, require, module) {module.exports = function(__obj) {
+  if (!__obj) __obj = {};
+  var __out = [], __capture = function(callback) {
+    var out = __out, result;
+    __out = [];
+    callback.call(this);
+    result = __out.join('');
+    __out = out;
+    return __safe(result);
+  }, __sanitize = function(value) {
+    if (value && value.ecoSafe) {
+      return value;
+    } else if (typeof value !== 'undefined' && value != null) {
+      return __escape(value);
+    } else {
+      return '';
+    }
+  }, __safe, __objSafe = __obj.safe, __escape = __obj.escape;
+  __safe = __obj.safe = function(value) {
+    if (value && value.ecoSafe) {
+      return value;
+    } else {
+      if (!(typeof value !== 'undefined' && value != null)) value = '';
+      var result = new String(value);
+      result.ecoSafe = true;
+      return result;
+    }
+  };
+  if (!__escape) {
+    __escape = __obj.escape = function(value) {
+      return ('' + value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    };
+  }
+  (function() {
+    (function() {
+      __out.push('\n<div class="columns large-12">\n  <h2>');
+    
+      __out.push(__sanitize(this.contentType.title));
+    
+      __out.push(': ');
+    
+      __out.push(__sanitize(this.data.title));
+    
+      __out.push('</h2>\n  <p>');
+    
+      __out.push(__sanitize(this.data.description));
+    
+      __out.push('</p>\n</div>\n<form>\n  <div class="columns large-12">\n    <input type="button" value="Edit" class="do-edit"/>\n    <input type="button" value="OK" class="do-cancel"/>\n  </div>\n</form>\n\n');
+    
+    }).call(this);
+    
+  }).call(__obj);
+  __obj.safe = __objSafe, __obj.escape = __escape;
+  return __out.join('');
 }}, "templates/ThingDeleteModal": function(exports, require, module) {module.exports = function(__obj) {
   if (!__obj) __obj = {};
   var __out = [], __capture = function(callback) {
@@ -1128,7 +1331,7 @@
     
       __out.push(__sanitize(this.title));
     
-      __out.push('\n  <a href="#-delete-file" class="action-button do-delete-file right">Delete</a>\n  <a href="#-edit-file" class="action-button do-edit-file right">Edit</a>\n</h3>\n');
+      __out.push('\n  <a href="#-delete-file" class="action-button do-delete-file right">Delete</a>\n  <a href="#-edit-file" class="action-button do-edit-file right">Edit</a>\n  <a href="#-view-file" class="action-button do-view-file right">View</a>\n</h3>\n');
     
     }).call(this);
     
@@ -1657,6 +1860,138 @@
   })(ThingListView);
 
 }).call(this);
+}, "views/Html": function(exports, require, module) {(function() {
+  var HtmlView, ThingView, templateHtml,
+    __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
+    __hasProp = {}.hasOwnProperty,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+  templateHtml = require('templates/Html');
+
+  ThingView = require('views/Thing');
+
+  module.exports = HtmlView = (function(_super) {
+    __extends(HtmlView, _super);
+
+    function HtmlView() {
+      this.template = __bind(this.template, this);
+      return HtmlView.__super__.constructor.apply(this, arguments);
+    }
+
+    HtmlView.prototype.template = function(d) {
+      return templateHtml(d);
+    };
+
+    return HtmlView;
+
+  })(ThingView);
+
+}).call(this);
+}, "views/HtmlEdit": function(exports, require, module) {(function() {
+  var HtmlEditView, ThingEditView, templateHtmlEdit,
+    __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
+    __hasProp = {}.hasOwnProperty,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+  templateHtmlEdit = require('templates/HtmlEdit');
+
+  ThingEditView = require('views/ThingEdit');
+
+  module.exports = HtmlEditView = (function(_super) {
+    __extends(HtmlEditView, _super);
+
+    function HtmlEditView() {
+      this.formToModel = __bind(this.formToModel, this);
+      this.template = __bind(this.template, this);
+      return HtmlEditView.__super__.constructor.apply(this, arguments);
+    }
+
+    HtmlEditView.prototype.template = function(d) {
+      return templateHtmlEdit(d);
+    };
+
+    HtmlEditView.prototype.formToModel = function() {
+      var html;
+      html = $(':input[name="html"]', this.$el).val();
+      console.log("html = " + html);
+      this.model.set('html', html);
+      return HtmlEditView.__super__.formToModel.call(this);
+    };
+
+    return HtmlEditView;
+
+  })(ThingEditView);
+
+}).call(this);
+}, "views/Thing": function(exports, require, module) {(function() {
+  var ThingView, templateThing,
+    __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
+    __hasProp = {}.hasOwnProperty,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+  templateThing = require('templates/Thing');
+
+  module.exports = ThingView = (function(_super) {
+    __extends(ThingView, _super);
+
+    function ThingView() {
+      this.edit = __bind(this.edit, this);
+      this.close = __bind(this.close, this);
+      this.cancel = __bind(this.cancel, this);
+      this.render = __bind(this.render, this);
+      this.template = __bind(this.template, this);
+      return ThingView.__super__.constructor.apply(this, arguments);
+    }
+
+    ThingView.prototype.tagName = 'div';
+
+    ThingView.prototype.className = 'row thing';
+
+    ThingView.prototype.initialize = function() {
+      this.listenTo(this.model, 'change', this.render);
+      return this.render();
+    };
+
+    ThingView.prototype.template = function(d) {
+      return templateThing(d);
+    };
+
+    ThingView.prototype.render = function() {
+      console.log("render Thing " + this.model.attributes._id + ": " + this.model.attributes.title);
+      this.$el.html(this.template({
+        data: this.model.attributes,
+        contentType: this.model.getContentType().attributes
+      }));
+      return this;
+    };
+
+    ThingView.prototype.events = {
+      "click .do-cancel": "cancel",
+      "click .do-edit": "edit"
+    };
+
+    ThingView.prototype.cancel = function(ev) {
+      ev.preventDefault();
+      return this.close();
+    };
+
+    ThingView.prototype.close = function() {
+      this.remove();
+      return window.history.back();
+    };
+
+    ThingView.prototype.edit = function(ev) {
+      ev.preventDefault();
+      return window.router.navigate("#ContentType/" + (this.model.getContentType().id) + "/edit/" + (encodeURIComponent(this.model.attributes._id)), {
+        trigger: true
+      });
+    };
+
+    return ThingView;
+
+  })(Backbone.View);
+
+}).call(this);
 }, "views/ThingEdit": function(exports, require, module) {(function() {
   var ThingEditView, templateThingEdit,
     __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
@@ -1768,6 +2103,7 @@
     function ThingInListView() {
       this["delete"] = __bind(this["delete"], this);
       this.edit = __bind(this.edit, this);
+      this.view = __bind(this.view, this);
       this.render = __bind(this.render, this);
       this.template = __bind(this.template, this);
       return ThingInListView.__super__.constructor.apply(this, arguments);
@@ -1793,8 +2129,17 @@
     };
 
     ThingInListView.prototype.events = {
+      "click .do-view-file": "view",
       "click .do-edit-file": "edit",
       "click .do-delete-file": "delete"
+    };
+
+    ThingInListView.prototype.view = function(ev) {
+      console.log("view " + this.model.attributes._id);
+      ev.preventDefault();
+      return window.router.navigate("#ContentType/" + (this.model.getContentType().id) + "/view/" + (encodeURIComponent(this.model.attributes._id)), {
+        trigger: true
+      });
     };
 
     ThingInListView.prototype.edit = function(ev) {

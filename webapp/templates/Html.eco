@@ -1,0 +1,13 @@
+<%# Html view, takes { data: Thing, contentType:  } as data (title, description, ...); parent is a row %>
+<div class="columns large-12">
+  <h2><%= @contentType.title %>: <%= @data.title %></h2>
+  <p><%= @data.description %></p>
+  <div class="html-preview"><%- @data.html %></div>
+</div>
+<form>
+  <div class="columns large-12">
+    <input type="button" value="Edit" class="do-edit"/>
+    <input type="button" value="OK" class="do-cancel"/>
+  </div>
+</form>
+
