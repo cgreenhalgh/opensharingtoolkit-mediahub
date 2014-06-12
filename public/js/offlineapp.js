@@ -898,7 +898,7 @@
   }
   (function() {
     (function() {
-      __out.push('\n  <div class="column small-12 large-12">\n    <div data-alert class="alert-box clearfix ');
+      __out.push('\n  <div class="columns small-12 large-12">\n    <div data-alert class="alert-box clearfix ');
     
       __out.push(__sanitize(this.alertType));
     
@@ -1042,7 +1042,7 @@
   }
   (function() {
     (function() {
-      __out.push('\n  <div class="column small-12 large-12">\n    <div data-alert class="alert-box clearfix ');
+      __out.push('\n  <div class="columns small-12 large-12">\n    <div data-alert class="alert-box clearfix ');
     
       __out.push(__sanitize(!this.idle ? 'warning' : ''));
     
@@ -1100,7 +1100,7 @@
   }
   (function() {
     (function() {
-      __out.push('\n<div class="column small-12 large-12">\n  <h1>');
+      __out.push('\n<div class="columns small-12 large-12">\n  <h1>');
     
       __out.push(__sanitize(this.title));
     
@@ -1264,7 +1264,7 @@
   }
   (function() {
     (function() {
-      __out.push('\n<div class="column small-12 large-12">\n  <div class="rating">');
+      __out.push('\n<div class="columns small-12 large-12">\n  <div class="rating">');
     
       __out.push(this.rating > 0 ? '&#9733;' : '&#9734;');
     
@@ -1371,7 +1371,7 @@
 
     LocaldbStateInListView.prototype.tagName = 'div';
 
-    LocaldbStateInListView.prototype.className = 'column small-12 large-12';
+    LocaldbStateInListView.prototype.className = 'columns small-12 large-12';
 
     LocaldbStateInListView.prototype.initialize = function() {
       this.listenTo(this.model, 'change', this.render);
@@ -1597,7 +1597,7 @@
 
     TrackReviewView.prototype.tagName = 'div';
 
-    TrackReviewView.prototype.className = 'column small-12 large-12';
+    TrackReviewView.prototype.className = 'columns small-12 large-12';
 
     TrackReviewView.prototype.initialize = function() {
       this.listenTo(this.model, 'change', this.render);
@@ -1752,7 +1752,7 @@
 
     TrackReviewListView.prototype.tagName = 'div';
 
-    TrackReviewListView.prototype.className = 'track-review-list column large-12 small-12';
+    TrackReviewListView.prototype.className = 'track-review-list columns large-12 small-12';
 
     TrackReviewListView.prototype.initialize = function() {
       this.listenTo(this.model, 'add', this.add);

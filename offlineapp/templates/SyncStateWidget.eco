@@ -1,5 +1,5 @@
 <%# sync status view - general widget, in row (for now); data is SyncState %>
-  <div class="column small-12 large-12">
+  <div class="columns small-12 large-12">
     <div data-alert class="alert-box clearfix <%= if not @idle then 'warning' else '' %>">
         <a href="#" class="button tiny right doSync" <%= if not @idle then 'disabled' else '' %>>Sync Now</a>
         Synchronisation...<br/>

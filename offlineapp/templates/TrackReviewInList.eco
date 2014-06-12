@@ -1,5 +1,5 @@
 <%# TrackReviewInList view - in row (for now); data is TrackReview %>
-<div class="column small-12 large-12">
+<div class="columns small-12 large-12">
   <div class="rating"><%- if @rating>0 then '&#9733;' else '&#9734;' %><!--
   --><%- if @rating>1 then '&#9733;' else '&#9734;' %><!--
   --><%- if @rating>2 then '&#9733;' else '&#9734;' %><!--

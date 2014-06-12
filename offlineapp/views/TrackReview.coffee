@@ -5,7 +5,7 @@ templateTrackReview = require 'templates/TrackReview'
 module.exports = class TrackReviewView extends Backbone.View
 
   tagName: 'div'
-  className: 'column small-12 large-12'
+  className: 'columns small-12 large-12'
 
   initialize: ->
     @listenTo @model, 'change', @render

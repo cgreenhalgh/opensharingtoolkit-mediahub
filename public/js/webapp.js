@@ -1174,7 +1174,7 @@
   }
   (function() {
     (function() {
-      __out.push('\n  <div class="column large-12 small-12">\n    <h2>');
+      __out.push('\n  <div class="columns large-12 small-12">\n    <h2>');
     
       __out.push(__sanitize(this.contentType.title));
     

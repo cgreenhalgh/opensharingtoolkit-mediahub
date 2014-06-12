@@ -6,7 +6,7 @@ TrackReviewInListView = require 'views/TrackReviewInList'
 module.exports = class TrackReviewListView extends Backbone.View
 
   tagName: 'div'
-  className: 'track-review-list column large-12 small-12'
+  className: 'track-review-list columns large-12 small-12'
 
   initialize: ->
     @listenTo @model, 'add', @add
