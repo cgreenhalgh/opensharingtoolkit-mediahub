@@ -12,9 +12,9 @@ module.exports = class HtmlEditView extends ThingEditView
     super()
     replace = () -> 
       console.log "Set up CKEditor..."
-      editor = CKEDITOR.instances['htmlfragment']
-      if editor 
-        editor.destroy(true)
+      #editor = CKEDITOR.instances['htmlfragment']
+      #if editor 
+      #  editor.destroy(true)
       CKEDITOR.replace( 'htmlfragment' )
     setTimeout replace,0
 
@@ -24,4 +24,10 @@ module.exports = class HtmlEditView extends ThingEditView
     @model.set 'html', html
     super()
 
+  remove: () =>
+    editor = CKEDITOR.instances['htmlfragment']
+    if editor 
+      console.log "destroy ckeditor"
+      editor.destroy(true)
+    super()
 

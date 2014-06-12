@@ -1901,6 +1901,7 @@
     __extends(HtmlEditView, _super);
 
     function HtmlEditView() {
+      this.remove = __bind(this.remove, this);
       this.formToModel = __bind(this.formToModel, this);
       this.render = __bind(this.render, this);
       this.template = __bind(this.template, this);
@@ -1915,12 +1916,7 @@
       var replace;
       HtmlEditView.__super__.render.call(this);
       replace = function() {
-        var editor;
         console.log("Set up CKEditor...");
-        editor = CKEDITOR.instances['htmlfragment'];
-        if (editor) {
-          editor.destroy(true);
-        }
         return CKEDITOR.replace('htmlfragment');
       };
       return setTimeout(replace, 0);
@@ -1932,6 +1928,16 @@
       console.log("html = " + html);
       this.model.set('html', html);
       return HtmlEditView.__super__.formToModel.call(this);
+    };
+
+    HtmlEditView.prototype.remove = function() {
+      var editor;
+      editor = CKEDITOR.instances['htmlfragment'];
+      if (editor) {
+        console.log("destroy ckeditor");
+        editor.destroy(true);
+      }
+      return HtmlEditView.__super__.remove.call(this);
     };
 
     return HtmlEditView;
