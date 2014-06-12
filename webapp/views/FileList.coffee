@@ -7,7 +7,7 @@ templateFileList = require 'templates/FileList'
 module.exports = class FileListView extends Backbone.View
 
   tagName: 'div'
-  className: 'file-list top-level-view'
+  className: 'row file-list top-level-view'
 
   initialize: ->
     @listenTo @model, 'add', @add
@@ -52,12 +52,5 @@ module.exports = class FileListView extends Backbone.View
   addFile: (ev) =>
     console.log "addFile"
     ev.preventDefault()
-    @$el.hide()
-    # work-around backbone-pouchdb attach presumes Math.uuid
-    file = new File _id: 'file:'+uuid()
-    console.log "new id #{file.id}"
-    @model.add file
-    addView = new FileEditView {model: file, add: true}
-    $('body').append addView.$el
-    false
+    window.router.navigate "#ContentType/Track/add", trigger:true
 

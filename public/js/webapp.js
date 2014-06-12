@@ -77,6 +77,7 @@
     Router.prototype.routes = {
       "": "entries",
       "ContentType/:type": "contentType",
+      "ContentType/:type/:action": "contentTypeAction",
       "ContentType/:type/:action/:id": "contentTypeAction"
     };
 
@@ -521,6 +522,17 @@
       return new FileEditView({
         model: file
       });
+    } else if (action === 'add') {
+      file = new File({
+        _id: 'file:' + uuid()
+      });
+      console.log("new id " + file.id);
+      files.add(file);
+      return new FileEditView({
+        model: file,
+        add: true,
+        files: files
+      });
     } else {
       return console.log("unknown Track action " + action + " (id " + id + ")");
     }
@@ -798,7 +810,11 @@
   }
   (function() {
     (function() {
-      __out.push('\n<form>\n  <div class="columns large-12">\n    <label>Title\n      <input type="text" name="title" placeholder="title" value="');
+      __out.push('\n<div class="columns large-12">\n  <h2>');
+    
+      __out.push(__sanitize(this.add ? 'Add' : 'Edit'));
+    
+      __out.push(' File/Track</h2>\n</div>\n<form>\n  <div class="columns large-12">\n    <label>Title\n      <input type="text" name="title" placeholder="title" value="');
     
       __out.push(__sanitize(this.data.title));
     
@@ -930,7 +946,7 @@
   }
   (function() {
     (function() {
-      __out.push('\n<div class="row">\n  <div class="column large-12 small-12">\n    <a href="#-add-file" class="button do-add-file">Add...</a>\n  </div>\n</div>\n\n');
+      __out.push('\n  <div class="column large-12 small-12">\n    <h2>File/Track List</h2>\n    <a href="#-add-file" class="button do-add-file">Add...</a>\n  </div>\n\n');
     
     }).call(this);
     
@@ -1093,6 +1109,7 @@
       this.render = __bind(this.render, this);
       this.template = __bind(this.template, this);
       this.add = options.add != null ? options.add : options.add = false;
+      this.files = options.files != null ? options.files : options.files = null;
       FileEditView.__super__.constructor.call(this, options);
     }
 
@@ -1165,6 +1182,10 @@
       if (this.created && (this.model.id != null)) {
         console.log("try destroy on cancel for " + this.model.id);
         this.model.destroy();
+      }
+      if ((this.model.id != null) && (this.files != null)) {
+        console.log("try remove on cancel for " + this.model.id);
+        this.files.remove(this.model);
       }
       return this.close();
     };
@@ -1399,7 +1420,7 @@
 
     FileListView.prototype.tagName = 'div';
 
-    FileListView.prototype.className = 'file-list top-level-view';
+    FileListView.prototype.className = 'row file-list top-level-view';
 
     FileListView.prototype.initialize = function() {
       this.listenTo(this.model, 'add', this.add);
@@ -1459,21 +1480,11 @@
     };
 
     FileListView.prototype.addFile = function(ev) {
-      var addView, file;
       console.log("addFile");
       ev.preventDefault();
-      this.$el.hide();
-      file = new File({
-        _id: 'file:' + uuid()
+      return window.router.navigate("#ContentType/Track/add", {
+        trigger: true
       });
-      console.log("new id " + file.id);
-      this.model.add(file);
-      addView = new FileEditView({
-        model: file,
-        add: true
-      });
-      $('body').append(addView.$el);
-      return false;
     };
 
     return FileListView;

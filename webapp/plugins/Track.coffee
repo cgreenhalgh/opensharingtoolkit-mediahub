@@ -55,6 +55,12 @@ trackType.createActionView = (action,id) ->
       alert "could not find Track #{id}"
       return
     return new FileEditView model: file
+  else if action=='add'
+    # work-around backbone-pouchdb attach presumes Math.uuid
+    file = new File _id: 'file:'+uuid()
+    console.log "new id #{file.id}"
+    files.add file
+    return new FileEditView {model: file, add: true, files: files}
   else
     console.log "unknown Track action #{action} (id #{id})"
 

@@ -1,7 +1,6 @@
 <%# File List common - add button %>
-<div class="row">
   <div class="column large-12 small-12">
+    <h2>File/Track List</h2>
     <a href="#-add-file" class="button do-add-file">Add...</a>
   </div>
-</div>
 

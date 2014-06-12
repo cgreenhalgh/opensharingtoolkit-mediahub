@@ -6,6 +6,7 @@ module.exports = class FileEditView extends Backbone.View
 
   constructor:(options)->
     @add = options.add ?= false
+    @files = options.files ?= null
     super(options)
 
   tagName: 'div'
@@ -66,6 +67,9 @@ module.exports = class FileEditView extends Backbone.View
     if @created and @model.id?
       console.log "try destroy on cancel for #{@model.id}"
       @model.destroy()
+    if @model.id? and @files?
+      console.log "try remove on cancel for #{@model.id}"
+      @files.remove @model
     @close()
 
   close: =>

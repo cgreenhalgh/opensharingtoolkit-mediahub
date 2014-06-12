@@ -1,4 +1,7 @@
 <%# File add or edit, takes { data: File, add: true|false } as data (title, description, ...); parent is a row %>
+<div class="columns large-12">
+  <h2><%= if @add then 'Add' else 'Edit' %> File/Track</h2>
+</div>
 <form>
   <div class="columns large-12">
     <label>Title

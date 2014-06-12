@@ -16,6 +16,7 @@ class Router extends Backbone.Router
   routes: 
     "" : "entries"
     "ContentType/:type" : "contentType"
+    "ContentType/:type/:action" : "contentTypeAction"
     "ContentType/:type/:action/:id" : "contentTypeAction"
 
   entries: ->
