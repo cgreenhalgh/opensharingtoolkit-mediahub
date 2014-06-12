@@ -1,0 +1,8 @@
+<%# ContentType in ContentType List, takes ContentType as data (title, description, ...), in column(s) %>
+<a href="#" class="select-content-type">
+  <h4><%= @title %></h4>
+  <% if @description? and @description.length>0: %>
+   <p><%= @description %></p>
+  <% end %>
+</a>
+

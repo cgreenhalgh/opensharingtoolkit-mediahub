@@ -7,7 +7,7 @@ templateFileList = require 'templates/FileList'
 module.exports = class FileListView extends Backbone.View
 
   tagName: 'div'
-  className: 'file-list'
+  className: 'file-list top-level-view'
 
   initialize: ->
     @listenTo @model, 'add', @add

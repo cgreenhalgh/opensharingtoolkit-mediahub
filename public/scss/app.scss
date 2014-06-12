@@ -41,6 +41,20 @@
 
 $outline-color: $primary-color; //scale-color($primary-color, $lightness: -66%);
 
+.content-type-in-list {
+  @extend .columns;
+  @extend .large-12;
+  @extend .medium-12;
+  @extend .small-12;
+  border: 1px solid $outline-color;
+  background-color: scale-color($outline-color, $lightness: 66%);
+
+  h3, h4 {
+    margin-bottom: 0.2rem;
+  }
+}
+
+
 .file-list {
   @extend .row;
 }

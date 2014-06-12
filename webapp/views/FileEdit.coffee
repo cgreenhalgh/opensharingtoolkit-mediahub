@@ -70,7 +70,7 @@ module.exports = class FileEditView extends Backbone.View
 
   close: =>
     @remove()
-    $('.file-list').show()
+    window.history.back()
 
   handleDragEnter: (ev)->
     console.log "dragenter"

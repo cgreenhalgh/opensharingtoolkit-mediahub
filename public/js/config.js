@@ -1,4 +1,4 @@
 // config.js
 window.mediahubconfig = {
-  dburl: "http://hubwriter:hubwriter@"+window.location.host+"/mediahub"
+  dburl: "http://admin:admin@"+window.location.host+"/mediahub"
 };

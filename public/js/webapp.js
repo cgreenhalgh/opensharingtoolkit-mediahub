@@ -49,19 +49,23 @@
   }
   return this.require.define;
 }).call(this)({"app": function(exports, require, module) {(function() {
-  var App, File, FileList, FileListView, Router, config, db, updateRatings,
+  var App, ContentTypeList, ContentTypeListView, Router, config, db, plugins, tempViews,
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
-  File = require('models/File');
+  ContentTypeList = require('models/ContentTypeList');
 
-  FileList = require('models/FileList');
-
-  FileListView = require('views/FileList');
+  ContentTypeListView = require('views/ContentTypeList');
 
   db = require('mydb');
 
+  plugins = require('plugins');
+
+  require('plugins/Track');
+
   config = window.mediahubconfig;
+
+  tempViews = [];
 
   Router = (function(_super) {
     __extends(Router, _super);
@@ -71,11 +75,65 @@
     }
 
     Router.prototype.routes = {
-      "": "entries"
+      "": "entries",
+      "ContentType/:type": "contentType",
+      "ContentType/:type/:action/:id": "contentTypeAction"
     };
 
     Router.prototype.entries = function() {
-      return console.log("router: entries");
+      console.log("router: entries");
+      this.removeTempViews();
+      $('body .top-level-view').hide();
+      return $('body .content-type-list').show();
+    };
+
+    Router.prototype.removeTempViews = function() {
+      var view, _results;
+      console.log("removeTempViews (" + tempViews.length + ")");
+      _results = [];
+      while (tempViews.length > 0) {
+        view = tempViews.splice(0, 1)[0];
+        _results.push(view.remove());
+      }
+      return _results;
+    };
+
+    Router.prototype.contentType = function(type) {
+      var contentType;
+      contentType = plugins.getContentType(type);
+      if (contentType == null) {
+        console.log("Error: could not find ContentType " + type);
+        return;
+      }
+      console.log("show ContentType " + type + "...");
+      $('body .top-level-view').hide();
+      this.removeTempViews();
+      if (contentType.view == null) {
+        contentType.view = contentType.createView();
+        return $('body').append(contentType.view.el);
+      } else {
+        return $('body').append(contentType.view.$el.show());
+      }
+    };
+
+    Router.prototype.contentTypeAction = function(type, action, id) {
+      var contentType, view;
+      console.log;
+      contentType = plugins.getContentType(type);
+      if (contentType == null) {
+        console.log("Error: could not find ContentType " + type);
+        return;
+      }
+      console.log("consoleTypeAction " + type + " " + action + " " + id);
+      this.contentType(type);
+      $('body .top-level-view').hide();
+      this.removeTempViews();
+      view = contentType.createActionView(action, id);
+      if (view != null) {
+        view.render();
+        $('body').append(view.el);
+        return tempViews.push(view);
+      }
     };
 
     return Router;
@@ -86,37 +144,9 @@
     return console.log("ajaxError " + exception);
   });
 
-  updateRatings = function(files, ratings) {
-    var err, file, row, _i, _len, _ref, _results;
-    try {
-      ratings = JSON.parse(ratings);
-    } catch (_error) {
-      err = _error;
-      console.log("Error parsing ratings: " + err.message + ": " + ratings);
-      return;
-    }
-    _ref = ratings.rows;
-    _results = [];
-    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-      row = _ref[_i];
-      files.ratings[row.key] = row.value;
-      file = files.get(row.key);
-      if (file != null) {
-        console.log("Set ratings on load-ratings " + file.id + " " + (JSON.stringify(row.value)));
-        _results.push(file.set({
-          ratingSum: row.value[0],
-          ratingCount: row.value[1]
-        }));
-      } else {
-        _results.push(void 0);
-      }
-    }
-    return _results;
-  };
-
   App = {
     init: function() {
-      var files, filesView, router;
+      var contentTypes, contentTypesView, router;
       console.log("App starting...");
       Backbone.sync = BackbonePouch.sync({
         db: db,
@@ -131,24 +161,17 @@
       });
       Backbone.Model.prototype.idAttribute = '_id';
       _.extend(Backbone.Model.prototype, BackbonePouch.attachments());
-      files = new FileList();
-      filesView = new FileListView({
-        model: files
+      contentTypes = new ContentTypeList();
+      plugins.forEachContentType(function(ct, name) {
+        return contentTypes.add(ct);
       });
-      filesView.render();
-      $('body').append(filesView.el);
-      files.fetch();
-      files.ratings = {};
-      $.ajax(window.mediahubconfig.dburl + '/_design/app/_view/rating?group=true', {
-        success: function(ratings) {
-          return updateRatings(files, ratings);
-        },
-        dataType: "text",
-        error: function(xhr, status, err) {
-          return console.log("get ratings error " + xhr.status + ": " + err.message);
-        }
+      contentTypesView = new ContentTypeListView({
+        model: contentTypes
       });
+      contentTypesView.render();
+      $('body').append(contentTypesView.el);
       router = new Router;
+      window.router = router;
       return Backbone.history.start();
     }
   };
@@ -188,6 +211,51 @@
     $('#deleteModalHolder').html(templateFileDeleteModal(model.attributes));
     return $('#deleteModalHolder').foundation('reveal', 'open');
   };
+
+}).call(this);
+}, "models/ContentType": function(exports, require, module) {(function() {
+  var ContentType,
+    __hasProp = {}.hasOwnProperty,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+  module.exports = ContentType = (function(_super) {
+    __extends(ContentType, _super);
+
+    function ContentType() {
+      return ContentType.__super__.constructor.apply(this, arguments);
+    }
+
+    ContentType.prototype.defaults = {
+      title: '',
+      description: ''
+    };
+
+    ContentType.prototype.createView = function() {};
+
+    return ContentType;
+
+  })(Backbone.Model);
+
+}).call(this);
+}, "models/ContentTypeList": function(exports, require, module) {(function() {
+  var ContentType, ContentTypeList,
+    __hasProp = {}.hasOwnProperty,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+  ContentType = require('models/ContentType');
+
+  module.exports = ContentTypeList = (function(_super) {
+    __extends(ContentTypeList, _super);
+
+    function ContentTypeList() {
+      return ContentTypeList.__super__.constructor.apply(this, arguments);
+    }
+
+    ContentTypeList.prototype.model = ContentType;
+
+    return ContentTypeList;
+
+  })(Backbone.Collection);
 
 }).call(this);
 }, "models/File": function(exports, require, module) {(function() {
@@ -350,7 +418,222 @@
   };
 
 }).call(this);
-}, "templates/FileDeleteModal": function(exports, require, module) {module.exports = function(__obj) {
+}, "plugins": function(exports, require, module) {(function() {
+  var contentTypes;
+
+  contentTypes = {};
+
+  module.exports.registerContentType = function(name, info) {
+    console.log("register ContentType " + name + ": " + (JSON.stringify(info)));
+    return contentTypes[name] = info;
+  };
+
+  module.exports.forEachContentType = function(fn) {
+    return _.each(contentTypes, fn);
+  };
+
+  module.exports.getContentType = function(name) {
+    return contentTypes[name];
+  };
+
+}).call(this);
+}, "plugins/Track": function(exports, require, module) {(function() {
+  var ContentType, File, FileEditView, FileList, FileListView, files, plugins, trackType, updateRatings;
+
+  plugins = require('plugins');
+
+  ContentType = require('models/ContentType');
+
+  File = require('models/File');
+
+  FileList = require('models/FileList');
+
+  FileListView = require('views/FileList');
+
+  FileEditView = require('views/FileEdit');
+
+  files = null;
+
+  trackType = new ContentType({
+    id: 'Track',
+    title: 'File/Track',
+    description: 'Initial test/development content type - part file, part audio track'
+  });
+
+  updateRatings = function(files, ratings) {
+    var err, file, row, _i, _len, _ref, _results;
+    try {
+      ratings = JSON.parse(ratings);
+    } catch (_error) {
+      err = _error;
+      console.log("Error parsing ratings: " + err.message + ": " + ratings);
+      return;
+    }
+    _ref = ratings.rows;
+    _results = [];
+    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+      row = _ref[_i];
+      files.ratings[row.key] = row.value;
+      file = files.get(row.key);
+      if (file != null) {
+        console.log("Set ratings on load-ratings " + file.id + " " + (JSON.stringify(row.value)));
+        _results.push(file.set({
+          ratingSum: row.value[0],
+          ratingCount: row.value[1]
+        }));
+      } else {
+        _results.push(void 0);
+      }
+    }
+    return _results;
+  };
+
+  trackType.createView = function() {
+    var filesView;
+    console.log("create Track view");
+    files = new FileList();
+    filesView = new FileListView({
+      model: files
+    });
+    filesView.render();
+    files.fetch();
+    files.ratings = {};
+    $.ajax(window.mediahubconfig.dburl + '/_design/app/_view/rating?group=true', {
+      success: function(ratings) {
+        return updateRatings(files, ratings);
+      },
+      dataType: "text",
+      error: function(xhr, status, err) {
+        return console.log("get ratings error " + xhr.status + ": " + err.message);
+      }
+    });
+    return filesView;
+  };
+
+  trackType.createActionView = function(action, id) {
+    var file;
+    if (action === 'edit') {
+      file = files.get(id);
+      if (file == null) {
+        alert("could not find Track " + id);
+        return;
+      }
+      return new FileEditView({
+        model: file
+      });
+    } else {
+      return console.log("unknown Track action " + action + " (id " + id + ")");
+    }
+  };
+
+  plugins.registerContentType('Track', trackType);
+
+}).call(this);
+}, "templates/ContentTypeInList": function(exports, require, module) {module.exports = function(__obj) {
+  if (!__obj) __obj = {};
+  var __out = [], __capture = function(callback) {
+    var out = __out, result;
+    __out = [];
+    callback.call(this);
+    result = __out.join('');
+    __out = out;
+    return __safe(result);
+  }, __sanitize = function(value) {
+    if (value && value.ecoSafe) {
+      return value;
+    } else if (typeof value !== 'undefined' && value != null) {
+      return __escape(value);
+    } else {
+      return '';
+    }
+  }, __safe, __objSafe = __obj.safe, __escape = __obj.escape;
+  __safe = __obj.safe = function(value) {
+    if (value && value.ecoSafe) {
+      return value;
+    } else {
+      if (!(typeof value !== 'undefined' && value != null)) value = '';
+      var result = new String(value);
+      result.ecoSafe = true;
+      return result;
+    }
+  };
+  if (!__escape) {
+    __escape = __obj.escape = function(value) {
+      return ('' + value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    };
+  }
+  (function() {
+    (function() {
+      __out.push('\n<a href="#" class="select-content-type">\n  <h4>');
+    
+      __out.push(__sanitize(this.title));
+    
+      __out.push('</h4>\n  ');
+    
+      if ((this.description != null) && this.description.length > 0) {
+        __out.push('\n   <p>');
+        __out.push(__sanitize(this.description));
+        __out.push('</p>\n  ');
+      }
+    
+      __out.push('\n</a>\n\n');
+    
+    }).call(this);
+    
+  }).call(__obj);
+  __obj.safe = __objSafe, __obj.escape = __escape;
+  return __out.join('');
+}}, "templates/ContentTypeList": function(exports, require, module) {module.exports = function(__obj) {
+  if (!__obj) __obj = {};
+  var __out = [], __capture = function(callback) {
+    var out = __out, result;
+    __out = [];
+    callback.call(this);
+    result = __out.join('');
+    __out = out;
+    return __safe(result);
+  }, __sanitize = function(value) {
+    if (value && value.ecoSafe) {
+      return value;
+    } else if (typeof value !== 'undefined' && value != null) {
+      return __escape(value);
+    } else {
+      return '';
+    }
+  }, __safe, __objSafe = __obj.safe, __escape = __obj.escape;
+  __safe = __obj.safe = function(value) {
+    if (value && value.ecoSafe) {
+      return value;
+    } else {
+      if (!(typeof value !== 'undefined' && value != null)) value = '';
+      var result = new String(value);
+      result.ecoSafe = true;
+      return result;
+    }
+  };
+  if (!__escape) {
+    __escape = __obj.escape = function(value) {
+      return ('' + value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    };
+  }
+  (function() {
+    (function() {
+      __out.push('\n<div class="columns small-12 large-12">\n  <h2>Content Types</h2>\n</div>\n\n');
+    
+    }).call(this);
+    
+  }).call(__obj);
+  __obj.safe = __objSafe, __obj.escape = __escape;
+  return __out.join('');
+}}, "templates/FileDeleteModal": function(exports, require, module) {module.exports = function(__obj) {
   if (!__obj) __obj = {};
   var __out = [], __capture = function(callback) {
     var out = __out, result;
@@ -654,7 +937,139 @@
   }).call(__obj);
   __obj.safe = __objSafe, __obj.escape = __escape;
   return __out.join('');
-}}, "views/FileEdit": function(exports, require, module) {(function() {
+}}, "views/ContentTypeInList": function(exports, require, module) {(function() {
+  var ContentTypeInListView, templateContentTypeInList,
+    __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
+    __hasProp = {}.hasOwnProperty,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+  templateContentTypeInList = require('templates/ContentTypeInList');
+
+  module.exports = ContentTypeInListView = (function(_super) {
+    __extends(ContentTypeInListView, _super);
+
+    function ContentTypeInListView() {
+      this.select = __bind(this.select, this);
+      this.render = __bind(this.render, this);
+      this.template = __bind(this.template, this);
+      return ContentTypeInListView.__super__.constructor.apply(this, arguments);
+    }
+
+    ContentTypeInListView.prototype.tagName = 'div';
+
+    ContentTypeInListView.prototype.className = 'columns small-12 large-12 content-type-in-list';
+
+    ContentTypeInListView.prototype.initialize = function() {
+      this.listenTo(this.model, 'change', this.render);
+      return this.render();
+    };
+
+    ContentTypeInListView.prototype.template = function(d) {
+      return templateContentTypeInList(d);
+    };
+
+    ContentTypeInListView.prototype.render = function() {
+      console.log("render ContentTypeInList " + this.model.id + ": " + this.model.attributes.title);
+      this.$el.html(this.template(this.model.attributes));
+      return this;
+    };
+
+    ContentTypeInListView.prototype.events = {
+      "click .select-content-type": "select"
+    };
+
+    ContentTypeInListView.prototype.select = function(ev) {
+      console.log("select ContentType " + this.model.id);
+      ev.preventDefault();
+      return router.navigate("#ContentType/" + this.model.id, {
+        trigger: true
+      });
+    };
+
+    return ContentTypeInListView;
+
+  })(Backbone.View);
+
+}).call(this);
+}, "views/ContentTypeList": function(exports, require, module) {(function() {
+  var ContentType, ContentTypeInListView, ContentTypeListView, templateContentTypeList,
+    __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
+    __hasProp = {}.hasOwnProperty,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+  ContentType = require('models/ContentType');
+
+  ContentTypeInListView = require('views/ContentTypeInList');
+
+  templateContentTypeList = require('templates/ContentTypeList');
+
+  module.exports = ContentTypeListView = (function(_super) {
+    __extends(ContentTypeListView, _super);
+
+    function ContentTypeListView() {
+      this.remove = __bind(this.remove, this);
+      this.add = __bind(this.add, this);
+      this.render = __bind(this.render, this);
+      this.template = __bind(this.template, this);
+      return ContentTypeListView.__super__.constructor.apply(this, arguments);
+    }
+
+    ContentTypeListView.prototype.tagName = 'div';
+
+    ContentTypeListView.prototype.className = 'row content-type-list top-level-view';
+
+    ContentTypeListView.prototype.initialize = function() {
+      this.listenTo(this.model, 'add', this.add);
+      return this.listenTo(this.model, 'remove', this.remove);
+    };
+
+    ContentTypeListView.prototype.template = function(d) {
+      return templateContentTypeList(d);
+    };
+
+    ContentTypeListView.prototype.render = function() {
+      var views;
+      console.log("render ContentTypeList with template");
+      this.$el.html(this.template(this.model.attributes));
+      views = [];
+      this.model.forEach(this.add);
+      return this;
+    };
+
+    ContentTypeListView.prototype.views = [];
+
+    ContentTypeListView.prototype.add = function(item) {
+      var view;
+      console.log("ContentTypeListView add " + item.id);
+      view = new ContentTypeInListView({
+        model: item
+      });
+      this.$el.append(view.$el);
+      return this.views.push(view);
+    };
+
+    ContentTypeListView.prototype.remove = function(item) {
+      var i, view, _i, _len, _ref;
+      console.log("ContentTypeListView remove " + item.id);
+      _ref = this.views;
+      for (i = _i = 0, _len = _ref.length; _i < _len; i = ++_i) {
+        view = _ref[i];
+        if (!(view.model.id === item.id)) {
+          continue;
+        }
+        console.log("remove view");
+        view.$el.remove();
+        this.views.splice(i, 1);
+        return;
+      }
+    };
+
+    return ContentTypeListView;
+
+  })(Backbone.View);
+
+}).call(this);
+}, "views/FileEdit": function(exports, require, module) {(function() {
   var FileEditView, templateFileDetail, templateFileEdit,
     __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
     __hasProp = {}.hasOwnProperty,
@@ -756,7 +1171,7 @@
 
     FileEditView.prototype.close = function() {
       this.remove();
-      return $('.file-list').show();
+      return window.history.back();
     };
 
     FileEditView.prototype.handleDragEnter = function(ev) {
@@ -929,15 +1344,11 @@
     };
 
     FileInListView.prototype.edit = function(ev) {
-      var editView;
       console.log("edit " + this.model.attributes._id);
       ev.preventDefault();
-      $('.file-list').hide();
-      editView = new FileEditView({
-        model: this.model
+      return window.router.navigate("#ContentType/Track/edit/" + (encodeURIComponent(this.model.attributes._id)), {
+        trigger: true
       });
-      $('body').append(editView.$el);
-      return false;
     };
 
     FileInListView.prototype["delete"] = function(ev) {
@@ -988,7 +1399,7 @@
 
     FileListView.prototype.tagName = 'div';
 
-    FileListView.prototype.className = 'file-list';
+    FileListView.prototype.className = 'file-list top-level-view';
 
     FileListView.prototype.initialize = function() {
       this.listenTo(this.model, 'add', this.add);

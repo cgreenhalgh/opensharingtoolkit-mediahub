@@ -31,10 +31,7 @@ module.exports = class FileInListView extends Backbone.View
   edit: (ev) =>
     console.log "edit #{@model.attributes._id}"
     ev.preventDefault()
-    $('.file-list').hide()
-    editView = new FileEditView model: @model
-    $('body').append editView.$el
-    false
+    window.router.navigate "#ContentType/Track/edit/#{encodeURIComponent @model.attributes._id}", trigger:true
 
   delete: (ev) =>
     fileDeleter.delete @model
