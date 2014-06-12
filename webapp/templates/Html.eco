@@ -2,7 +2,7 @@
 <div class="columns large-12">
   <h2><%= @contentType.title %>: <%= @data.title %></h2>
   <p><%= @data.description %></p>
-  <div class="html-preview"><%- @data.html %></div>
+  <div class="html-preview clearfix"><%- @data.html %></div>
 </div>
 <form>
   <div class="columns large-12">

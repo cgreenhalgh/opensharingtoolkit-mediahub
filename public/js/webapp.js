@@ -1029,7 +1029,7 @@
     
       __out.push(__sanitize(this.data.description));
     
-      __out.push('</p>\n  <div class="html-preview">');
+      __out.push('</p>\n  <div class="html-preview clearfix">');
     
       __out.push(this.data.html);
     
@@ -1095,7 +1095,7 @@
     
       __out.push(__sanitize(this.data.description));
     
-      __out.push('</textarea>\n    </label>\n    <label>Html\n      <textarea name="html" placeholder="html" >');
+      __out.push('</textarea>\n    </label>\n    <label>Html\n      <textarea name="htmlfragment" >');
     
       __out.push(__sanitize(this.data.html));
     
@@ -1902,6 +1902,7 @@
 
     function HtmlEditView() {
       this.formToModel = __bind(this.formToModel, this);
+      this.render = __bind(this.render, this);
       this.template = __bind(this.template, this);
       return HtmlEditView.__super__.constructor.apply(this, arguments);
     }
@@ -1910,9 +1911,24 @@
       return templateHtmlEdit(d);
     };
 
+    HtmlEditView.prototype.render = function() {
+      var replace;
+      HtmlEditView.__super__.render.call(this);
+      replace = function() {
+        var editor;
+        console.log("Set up CKEditor...");
+        editor = CKEDITOR.instances['htmlfragment'];
+        if (editor) {
+          editor.destroy(true);
+        }
+        return CKEDITOR.replace('htmlfragment');
+      };
+      return setTimeout(replace, 0);
+    };
+
     HtmlEditView.prototype.formToModel = function() {
       var html;
-      html = $(':input[name="html"]', this.$el).val();
+      html = $(':input[name="htmlfragment"]', this.$el).val();
       console.log("html = " + html);
       this.model.set('html', html);
       return HtmlEditView.__super__.formToModel.call(this);
@@ -2021,9 +2037,7 @@
 
     ThingEditView.prototype.cancelled = false;
 
-    ThingEditView.prototype.initialize = function() {
-      return this.render();
-    };
+    ThingEditView.prototype.initialize = function() {};
 
     ThingEditView.prototype.template = function(d) {
       return templateThingEdit(d);

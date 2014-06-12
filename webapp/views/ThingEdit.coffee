@@ -14,7 +14,7 @@ module.exports = class ThingEditView extends Backbone.View
 
   initialize: ->
     #@listenTo @model, 'change', @render
-    @render()
+    #@render()
 
   # syntax ok?? or (x...) -> 
   template: (d) =>

@@ -11,7 +11,7 @@
       <textarea name="description" placeholder="description" ><%= @data.description %></textarea>
     </label>
     <label>Html
-      <textarea name="html" placeholder="html" ><%= @data.html %></textarea>
+      <textarea name="htmlfragment" ><%= @data.html %></textarea>
     </label>
     <input type="submit" value="<%= if @add then 'Add' else 'Save changes' %>"/>
     <input type="reset" value="Clear"/>
