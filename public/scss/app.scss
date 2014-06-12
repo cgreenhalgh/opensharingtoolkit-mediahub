@@ -59,7 +59,7 @@ $outline-color: $primary-color; //scale-color($primary-color, $lightness: -66%);
   @extend .row;
 }
 
-.file-in-list {
+.thing-in-list {
   @extend .columns;
   @extend .large-12;
   @extend .medium-12;

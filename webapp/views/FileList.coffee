@@ -1,29 +1,7 @@
 # FileList View
-File = require 'models/File'
-FileInListView = require 'views/FileInList'
-FileEditView = require 'views/FileEdit'
-templateFileList = require 'templates/FileList'
+ThingListView = require 'views/ThingList'
 
-module.exports = class FileListView extends Backbone.View
-
-  tagName: 'div'
-  className: 'row file-list top-level-view'
-
-  initialize: ->
-    @listenTo @model, 'add', @add
-    @listenTo @model, 'remove', @remove
-
-  template: (d) =>
-    templateFileList d
-
-  render: =>
-    console.log "render FileList with template"
-    @$el.html @template @model.attributes
-    views = []
-    @model.forEach @add
-    @
-
-  views: []
+module.exports = class FileListView extends ThingListView
 
   add: (file) =>
     console.log "FileListView add #{file.attributes._id}"
@@ -33,24 +11,5 @@ module.exports = class FileListView extends Backbone.View
       file.set
         ratingSum: @model.ratings[file.id][0]
         ratingCount: @model.ratings[file.id][1]
-    view = new FileInListView model: file
-    # TODO add in order / filter
-    @$el.append view.$el
-    @views.push view
-    
-  remove: (file) =>
-    console.log "FileListView remove #{file.attributes._id}"
-    for view, i in @views when view.model.id == file.id
-      console.log "remove view" 
-      view.$el.remove()
-      @views.splice i,1
-      return
-    
-  events:
-    "click .do-add-file": "addFile"
-
-  addFile: (ev) =>
-    console.log "addFile"
-    ev.preventDefault()
-    window.router.navigate "#ContentType/Track/add", trigger:true
+    super(file)
 

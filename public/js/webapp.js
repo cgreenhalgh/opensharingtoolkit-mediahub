@@ -63,6 +63,8 @@
 
   require('plugins/Track');
 
+  require('plugins/Html');
+
   config = window.mediahubconfig;
 
   tempViews = [];
@@ -178,40 +180,6 @@
   };
 
   module.exports = App;
-
-}).call(this);
-}, "fileDeleter": function(exports, require, module) {(function() {
-  var currentModel, templateFileDeleteModal;
-
-  templateFileDeleteModal = require('templates/FileDeleteModal');
-
-  currentModel = null;
-
-  $('#deleteModalHolder').on('closed', '[data-reveal]', function() {
-    console.log("deleteModalHolder closed");
-    return currentModel = null;
-  });
-
-  $('#deleteModalHolder').on('click', '.do-delete', function(ev) {
-    console.log("do-delete " + currentModel.id);
-    if (currentModel != null) {
-      currentModel.destroy();
-    }
-    return $('#deleteModalHolder').foundation('reveal', 'close');
-  });
-
-  $('#deleteModalHolder').on('click', '.do-close', function(ev) {
-    console.log("deleteModalHolder do-close");
-    currentModel = null;
-    return $('#deleteModalHolder').foundation('reveal', 'close');
-  });
-
-  module.exports["delete"] = function(model) {
-    console.log("delete " + model.attributes._id);
-    currentModel = model;
-    $('#deleteModalHolder').html(templateFileDeleteModal(model.attributes));
-    return $('#deleteModalHolder').foundation('reveal', 'open');
-  };
 
 }).call(this);
 }, "models/ContentType": function(exports, require, module) {(function() {
@@ -364,6 +332,90 @@
   })(Backbone.Collection);
 
 }).call(this);
+}, "models/Html": function(exports, require, module) {(function() {
+  var Html,
+    __hasProp = {}.hasOwnProperty,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+  module.exports = Html = (function(_super) {
+    __extends(Html, _super);
+
+    function Html() {
+      return Html.__super__.constructor.apply(this, arguments);
+    }
+
+    Html.prototype.defaults = {
+      title: '',
+      description: '',
+      type: 'html'
+    };
+
+    return Html;
+
+  })(Backbone.Model);
+
+}).call(this);
+}, "models/HtmlList": function(exports, require, module) {(function() {
+  var Html, HtmlList,
+    __hasProp = {}.hasOwnProperty,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+  Html = require('models/Html');
+
+  module.exports = HtmlList = (function(_super) {
+    __extends(HtmlList, _super);
+
+    function HtmlList() {
+      return HtmlList.__super__.constructor.apply(this, arguments);
+    }
+
+    HtmlList.prototype.model = Html;
+
+    HtmlList.prototype.pouch = {
+      fetch: 'allDocs',
+      error: function(err) {
+        return console.log("ERROR(HtmlList) (sync): " + err);
+      },
+      options: {
+        error: function(err) {
+          return console.log("ERROR(HtmlList/options) (sync): " + err);
+        },
+        listen: false,
+        allDocs: {
+          include_docs: true,
+          startkey: 'html:',
+          endkey: 'html;'
+        },
+        query: {
+          include_docs: true,
+          fun: {
+            map: function(doc) {
+              if (doc.type === 'html') {
+                return emit(doc.title, null);
+              }
+            }
+          }
+        },
+        changes: {
+          include_docs: true,
+          continuous: true,
+          filter: function(doc) {
+            return doc._deleted || doc.type === 'html';
+          }
+        }
+      }
+    };
+
+    HtmlList.prototype.parse = function(result) {
+      console.log("parse " + (JSON.stringify(result)));
+      return _.pluck(result.rows, 'doc');
+    };
+
+    return HtmlList;
+
+  })(Backbone.Collection);
+
+}).call(this);
 }, "mydb": function(exports, require, module) {(function() {
   var config;
 
@@ -438,12 +490,99 @@
   };
 
 }).call(this);
-}, "plugins/Track": function(exports, require, module) {(function() {
-  var ContentType, File, FileEditView, FileList, FileListView, files, plugins, trackType, updateRatings;
+}, "plugins/Html": function(exports, require, module) {(function() {
+  var ThingBuilder, ThisThing, ThisThingEditView, ThisThingInListView, ThisThingList, ThisThingListView, attributes, contentType, plugins;
+
+  plugins = require('plugins');
+
+  ThisThing = require('models/Html');
+
+  ThisThingList = require('models/HtmlList');
+
+  ThisThingListView = require('views/ThingList');
+
+  ThisThingInListView = require('views/ThingInList');
+
+  ThisThingEditView = require('views/ThingEdit');
+
+  ThingBuilder = require('plugins/ThingBuilder');
+
+  attributes = {
+    id: 'html',
+    title: 'HTML Fragment',
+    description: 'A well-formed HTML fragment (actually just a place-holder at the moment!)'
+  };
+
+  contentType = ThingBuilder.createThingType(attributes, ThisThing, ThisThingList, ThisThingListView, ThisThingInListView, ThisThingEditView);
+
+  plugins.registerContentType(contentType.id, contentType);
+
+}).call(this);
+}, "plugins/ThingBuilder": function(exports, require, module) {(function() {
+  var ContentType, plugins;
 
   plugins = require('plugins');
 
   ContentType = require('models/ContentType');
+
+  module.exports.createThingType = function(attributes, ThisThing, ThisThingList, ThisThingListView, ThisThingInListView, ThisThingEditView) {
+    var contentType, things;
+    things = null;
+    contentType = new ContentType(attributes);
+    ThisThing.contentType = contentType;
+    ThisThing.prototype.getContentType = function() {
+      return contentType;
+    };
+    contentType.getThingView = function(thing) {
+      return new ThisThingInListView({
+        model: thing
+      });
+    };
+    contentType.createView = function() {
+      var thingsView;
+      console.log("create " + contentType.id + " view");
+      things = new ThisThingList();
+      thingsView = new ThisThingListView({
+        model: things
+      });
+      thingsView.render();
+      things.fetch();
+      return thingsView;
+    };
+    contentType.createActionView = function(action, id) {
+      var thing;
+      if (action === 'edit') {
+        thing = things.get(id);
+        if (thing == null) {
+          alert("could not find " + contentType.id + " " + id);
+          return;
+        }
+        return new ThisThingEditView({
+          model: thing
+        });
+      } else if (action === 'add') {
+        thing = new ThisThing({
+          _id: contentType.id + ':' + uuid()
+        });
+        console.log("new id " + thing.id);
+        things.add(thing);
+        return new ThisThingEditView({
+          model: thing,
+          add: true,
+          things: things
+        });
+      } else {
+        return console.log("unknown " + contentType.id + " action " + action + " (id " + id + ")");
+      }
+    };
+    return contentType;
+  };
+
+}).call(this);
+}, "plugins/Track": function(exports, require, module) {(function() {
+  var File, FileEditView, FileInListView, FileList, FileListView, ThingBuilder, attributes, contentType, plugins, superCreateView, updateRatings;
+
+  plugins = require('plugins');
 
   File = require('models/File');
 
@@ -451,15 +590,17 @@
 
   FileListView = require('views/FileList');
 
+  FileInListView = require('views/FileInList');
+
   FileEditView = require('views/FileEdit');
 
-  files = null;
+  ThingBuilder = require('plugins/ThingBuilder');
 
-  trackType = new ContentType({
-    id: 'Track',
+  attributes = {
+    id: 'file',
     title: 'File/Track',
     description: 'Initial test/development content type - part file, part audio track'
-  });
+  };
 
   updateRatings = function(files, ratings) {
     var err, file, row, _i, _len, _ref, _results;
@@ -489,56 +630,27 @@
     return _results;
   };
 
-  trackType.createView = function() {
-    var filesView;
-    console.log("create Track view");
-    files = new FileList();
-    filesView = new FileListView({
-      model: files
-    });
-    filesView.render();
-    files.fetch();
-    files.ratings = {};
+  contentType = ThingBuilder.createThingType(attributes, File, FileList, FileListView, FileInListView, FileEditView);
+
+  superCreateView = contentType.createView;
+
+  contentType.createView = function() {
+    var thingsView;
+    thingsView = superCreateView();
+    thingsView.model.ratings = {};
     $.ajax(window.mediahubconfig.dburl + '/_design/app/_view/rating?group=true', {
       success: function(ratings) {
-        return updateRatings(files, ratings);
+        return updateRatings(thingsView.model, ratings);
       },
       dataType: "text",
       error: function(xhr, status, err) {
         return console.log("get ratings error " + xhr.status + ": " + err.message);
       }
     });
-    return filesView;
+    return thingsView;
   };
 
-  trackType.createActionView = function(action, id) {
-    var file;
-    if (action === 'edit') {
-      file = files.get(id);
-      if (file == null) {
-        alert("could not find Track " + id);
-        return;
-      }
-      return new FileEditView({
-        model: file
-      });
-    } else if (action === 'add') {
-      file = new File({
-        _id: 'file:' + uuid()
-      });
-      console.log("new id " + file.id);
-      files.add(file);
-      return new FileEditView({
-        model: file,
-        add: true,
-        files: files
-      });
-    } else {
-      return console.log("unknown Track action " + action + " (id " + id + ")");
-    }
-  };
-
-  plugins.registerContentType('Track', trackType);
+  plugins.registerContentType(contentType.id, contentType);
 
 }).call(this);
 }, "templates/ContentTypeInList": function(exports, require, module) {module.exports = function(__obj) {
@@ -639,60 +751,6 @@
   (function() {
     (function() {
       __out.push('\n<div class="columns small-12 large-12">\n  <h2>Content Types</h2>\n</div>\n\n');
-    
-    }).call(this);
-    
-  }).call(__obj);
-  __obj.safe = __objSafe, __obj.escape = __escape;
-  return __out.join('');
-}}, "templates/FileDeleteModal": function(exports, require, module) {module.exports = function(__obj) {
-  if (!__obj) __obj = {};
-  var __out = [], __capture = function(callback) {
-    var out = __out, result;
-    __out = [];
-    callback.call(this);
-    result = __out.join('');
-    __out = out;
-    return __safe(result);
-  }, __sanitize = function(value) {
-    if (value && value.ecoSafe) {
-      return value;
-    } else if (typeof value !== 'undefined' && value != null) {
-      return __escape(value);
-    } else {
-      return '';
-    }
-  }, __safe, __objSafe = __obj.safe, __escape = __obj.escape;
-  __safe = __obj.safe = function(value) {
-    if (value && value.ecoSafe) {
-      return value;
-    } else {
-      if (!(typeof value !== 'undefined' && value != null)) value = '';
-      var result = new String(value);
-      result.ecoSafe = true;
-      return result;
-    }
-  };
-  if (!__escape) {
-    __escape = __obj.escape = function(value) {
-      return ('' + value)
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;');
-    };
-  }
-  (function() {
-    (function() {
-      __out.push('\n');
-    
-      __out.push('\n  <h2>Permanently delete this file?</h2>\n  <p>Do you want to permanently delete ');
-    
-      __out.push(__sanitize(this.title));
-    
-      __out.push('?</p>\n  <a class="close-reveal-modal">&#215;</a>\n  <a class="button do-delete">Yes</a>\n  <a class="button do-close">No</a>\n');
-    
-      __out.push('\n\n');
     
     }).call(this);
     
@@ -907,7 +965,7 @@
   }).call(__obj);
   __obj.safe = __objSafe, __obj.escape = __escape;
   return __out.join('');
-}}, "templates/FileList": function(exports, require, module) {module.exports = function(__obj) {
+}}, "templates/ThingDeleteModal": function(exports, require, module) {module.exports = function(__obj) {
   if (!__obj) __obj = {};
   var __out = [], __capture = function(callback) {
     var out = __out, result;
@@ -946,14 +1004,222 @@
   }
   (function() {
     (function() {
-      __out.push('\n  <div class="column large-12 small-12">\n    <h2>File/Track List</h2>\n    <a href="#-add-file" class="button do-add-file">Add...</a>\n  </div>\n\n');
+      __out.push('\n');
+    
+      __out.push('\n  <h2>Permanently delete this item?</h2>\n  <p>Do you want to permanently delete ');
+    
+      __out.push(__sanitize(this.title));
+    
+      __out.push('?</p>\n  <a class="close-reveal-modal">&#215;</a>\n  <a class="button do-delete">Yes</a>\n  <a class="button do-close">No</a>\n');
+    
+      __out.push('\n\n');
     
     }).call(this);
     
   }).call(__obj);
   __obj.safe = __objSafe, __obj.escape = __escape;
   return __out.join('');
-}}, "views/ContentTypeInList": function(exports, require, module) {(function() {
+}}, "templates/ThingEdit": function(exports, require, module) {module.exports = function(__obj) {
+  if (!__obj) __obj = {};
+  var __out = [], __capture = function(callback) {
+    var out = __out, result;
+    __out = [];
+    callback.call(this);
+    result = __out.join('');
+    __out = out;
+    return __safe(result);
+  }, __sanitize = function(value) {
+    if (value && value.ecoSafe) {
+      return value;
+    } else if (typeof value !== 'undefined' && value != null) {
+      return __escape(value);
+    } else {
+      return '';
+    }
+  }, __safe, __objSafe = __obj.safe, __escape = __obj.escape;
+  __safe = __obj.safe = function(value) {
+    if (value && value.ecoSafe) {
+      return value;
+    } else {
+      if (!(typeof value !== 'undefined' && value != null)) value = '';
+      var result = new String(value);
+      result.ecoSafe = true;
+      return result;
+    }
+  };
+  if (!__escape) {
+    __escape = __obj.escape = function(value) {
+      return ('' + value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    };
+  }
+  (function() {
+    (function() {
+      __out.push('\n<div class="columns large-12">\n  <h2>');
+    
+      __out.push(__sanitize(this.add ? 'Add' : 'Edit'));
+    
+      __out.push(' ');
+    
+      __out.push(__sanitize(this.contentType.title));
+    
+      __out.push('</h2>\n</div>\n<form>\n  <div class="columns large-12">\n    <label>Title\n      <input type="text" name="title" placeholder="title" value="');
+    
+      __out.push(__sanitize(this.data.title));
+    
+      __out.push('"/>\n    </label>\n    <label>Description\n      <textarea name="description" placeholder="description" >');
+    
+      __out.push(__sanitize(this.data.description));
+    
+      __out.push('</textarea>\n    </label>\n    <input type="submit" value="');
+    
+      __out.push(__sanitize(this.add ? 'Add' : 'Save changes'));
+    
+      __out.push('"/>\n    <input type="reset" value="Clear"/>\n    <input type="button" value="Cancel" class="do-cancel"/>\n  </div>\n</form>\n\n');
+    
+    }).call(this);
+    
+  }).call(__obj);
+  __obj.safe = __objSafe, __obj.escape = __escape;
+  return __out.join('');
+}}, "templates/ThingInList": function(exports, require, module) {module.exports = function(__obj) {
+  if (!__obj) __obj = {};
+  var __out = [], __capture = function(callback) {
+    var out = __out, result;
+    __out = [];
+    callback.call(this);
+    result = __out.join('');
+    __out = out;
+    return __safe(result);
+  }, __sanitize = function(value) {
+    if (value && value.ecoSafe) {
+      return value;
+    } else if (typeof value !== 'undefined' && value != null) {
+      return __escape(value);
+    } else {
+      return '';
+    }
+  }, __safe, __objSafe = __obj.safe, __escape = __obj.escape;
+  __safe = __obj.safe = function(value) {
+    if (value && value.ecoSafe) {
+      return value;
+    } else {
+      if (!(typeof value !== 'undefined' && value != null)) value = '';
+      var result = new String(value);
+      result.ecoSafe = true;
+      return result;
+    }
+  };
+  if (!__escape) {
+    __escape = __obj.escape = function(value) {
+      return ('' + value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    };
+  }
+  (function() {
+    (function() {
+      __out.push('\n<h4 class="clearfix">');
+    
+      __out.push(__sanitize(this.title));
+    
+      __out.push('\n  <a href="#-delete-file" class="action-button do-delete-file right">Delete</a>\n  <a href="#-edit-file" class="action-button do-edit-file right">Edit</a>\n</h3>\n');
+    
+    }).call(this);
+    
+  }).call(__obj);
+  __obj.safe = __objSafe, __obj.escape = __escape;
+  return __out.join('');
+}}, "templates/ThingList": function(exports, require, module) {module.exports = function(__obj) {
+  if (!__obj) __obj = {};
+  var __out = [], __capture = function(callback) {
+    var out = __out, result;
+    __out = [];
+    callback.call(this);
+    result = __out.join('');
+    __out = out;
+    return __safe(result);
+  }, __sanitize = function(value) {
+    if (value && value.ecoSafe) {
+      return value;
+    } else if (typeof value !== 'undefined' && value != null) {
+      return __escape(value);
+    } else {
+      return '';
+    }
+  }, __safe, __objSafe = __obj.safe, __escape = __obj.escape;
+  __safe = __obj.safe = function(value) {
+    if (value && value.ecoSafe) {
+      return value;
+    } else {
+      if (!(typeof value !== 'undefined' && value != null)) value = '';
+      var result = new String(value);
+      result.ecoSafe = true;
+      return result;
+    }
+  };
+  if (!__escape) {
+    __escape = __obj.escape = function(value) {
+      return ('' + value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    };
+  }
+  (function() {
+    (function() {
+      __out.push('\n  <div class="column large-12 small-12">\n    <h2>');
+    
+      __out.push(__sanitize(this.contentType.title));
+    
+      __out.push(' List</h2>\n    <a href="#-add-thing" class="button do-add-thing">Add...</a>\n  </div>\n\n');
+    
+    }).call(this);
+    
+  }).call(__obj);
+  __obj.safe = __objSafe, __obj.escape = __escape;
+  return __out.join('');
+}}, "thingDeleter": function(exports, require, module) {(function() {
+  var currentModel, templateFileDeleteModal;
+
+  templateFileDeleteModal = require('templates/ThingDeleteModal');
+
+  currentModel = null;
+
+  $('#deleteModalHolder').on('closed', '[data-reveal]', function() {
+    console.log("deleteModalHolder closed");
+    return currentModel = null;
+  });
+
+  $('#deleteModalHolder').on('click', '.do-delete', function(ev) {
+    console.log("do-delete " + currentModel.id);
+    if (currentModel != null) {
+      currentModel.destroy();
+    }
+    return $('#deleteModalHolder').foundation('reveal', 'close');
+  });
+
+  $('#deleteModalHolder').on('click', '.do-close', function(ev) {
+    console.log("deleteModalHolder do-close");
+    currentModel = null;
+    return $('#deleteModalHolder').foundation('reveal', 'close');
+  });
+
+  module.exports["delete"] = function(model) {
+    console.log("delete " + model.attributes._id);
+    currentModel = model;
+    $('#deleteModalHolder').html(templateFileDeleteModal(model.attributes));
+    return $('#deleteModalHolder').foundation('reveal', 'open');
+  };
+
+}).call(this);
+}, "views/ContentTypeInList": function(exports, require, module) {(function() {
   var ContentTypeInListView, templateContentTypeInList,
     __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
     __hasProp = {}.hasOwnProperty,
@@ -1312,16 +1578,14 @@
 
 }).call(this);
 }, "views/FileInList": function(exports, require, module) {(function() {
-  var FileEditView, FileInListView, fileDeleter, offline, templateFileInList,
+  var FileInListView, ThingInListView, offline, templateFileInList,
     __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
   templateFileInList = require('templates/FileInList');
 
-  FileEditView = require('views/FileEdit');
-
-  fileDeleter = require('fileDeleter');
+  ThingInListView = require('views/ThingInList');
 
   offline = require('offline');
 
@@ -1331,30 +1595,12 @@
     function FileInListView() {
       this.testapp = __bind(this.testapp, this);
       this.save = __bind(this.save, this);
-      this["delete"] = __bind(this["delete"], this);
-      this.edit = __bind(this.edit, this);
-      this.render = __bind(this.render, this);
       this.template = __bind(this.template, this);
       return FileInListView.__super__.constructor.apply(this, arguments);
     }
 
-    FileInListView.prototype.tagName = 'div';
-
-    FileInListView.prototype.className = 'file-in-list';
-
-    FileInListView.prototype.initialize = function() {
-      this.listenTo(this.model, 'change', this.render);
-      return this.render();
-    };
-
     FileInListView.prototype.template = function(d) {
       return templateFileInList(d);
-    };
-
-    FileInListView.prototype.render = function() {
-      console.log("render FileInList " + this.model.attributes._id + ": " + this.model.attributes.title);
-      this.$el.html(this.template(this.model.attributes));
-      return this;
     };
 
     FileInListView.prototype.events = {
@@ -1362,20 +1608,6 @@
       "click .do-delete-file": "delete",
       "click .do-save": "save",
       "click .do-testapp": "testapp"
-    };
-
-    FileInListView.prototype.edit = function(ev) {
-      console.log("edit " + this.model.attributes._id);
-      ev.preventDefault();
-      return window.router.navigate("#ContentType/Track/edit/" + (encodeURIComponent(this.model.attributes._id)), {
-        trigger: true
-      });
-    };
-
-    FileInListView.prototype["delete"] = function(ev) {
-      fileDeleter["delete"](this.model);
-      ev.preventDefault();
-      return false;
     };
 
     FileInListView.prototype.save = function(ev) {
@@ -1389,61 +1621,26 @@
 
     return FileInListView;
 
-  })(Backbone.View);
+  })(ThingInListView);
 
 }).call(this);
 }, "views/FileList": function(exports, require, module) {(function() {
-  var File, FileEditView, FileInListView, FileListView, templateFileList,
+  var FileListView, ThingListView,
     __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
-  File = require('models/File');
-
-  FileInListView = require('views/FileInList');
-
-  FileEditView = require('views/FileEdit');
-
-  templateFileList = require('templates/FileList');
+  ThingListView = require('views/ThingList');
 
   module.exports = FileListView = (function(_super) {
     __extends(FileListView, _super);
 
     function FileListView() {
-      this.addFile = __bind(this.addFile, this);
-      this.remove = __bind(this.remove, this);
       this.add = __bind(this.add, this);
-      this.render = __bind(this.render, this);
-      this.template = __bind(this.template, this);
       return FileListView.__super__.constructor.apply(this, arguments);
     }
 
-    FileListView.prototype.tagName = 'div';
-
-    FileListView.prototype.className = 'row file-list top-level-view';
-
-    FileListView.prototype.initialize = function() {
-      this.listenTo(this.model, 'add', this.add);
-      return this.listenTo(this.model, 'remove', this.remove);
-    };
-
-    FileListView.prototype.template = function(d) {
-      return templateFileList(d);
-    };
-
-    FileListView.prototype.render = function() {
-      var views;
-      console.log("render FileList with template");
-      this.$el.html(this.template(this.model.attributes));
-      views = [];
-      this.model.forEach(this.add);
-      return this;
-    };
-
-    FileListView.prototype.views = [];
-
     FileListView.prototype.add = function(file) {
-      var view;
       console.log("FileListView add " + file.attributes._id);
       if (file.attributes.ratingCount === 0 && (this.model.ratings[file.id] != null)) {
         console.log("Set ratings on add " + file.id + " " + (JSON.stringify(this.model.ratings[file.id])));
@@ -1452,20 +1649,234 @@
           ratingCount: this.model.ratings[file.id][1]
         });
       }
-      view = new FileInListView({
-        model: file
+      return FileListView.__super__.add.call(this, file);
+    };
+
+    return FileListView;
+
+  })(ThingListView);
+
+}).call(this);
+}, "views/ThingEdit": function(exports, require, module) {(function() {
+  var ThingEditView, templateThingEdit,
+    __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
+    __hasProp = {}.hasOwnProperty,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+  templateThingEdit = require('templates/ThingEdit');
+
+  module.exports = ThingEditView = (function(_super) {
+    __extends(ThingEditView, _super);
+
+    function ThingEditView(options) {
+      this.close = __bind(this.close, this);
+      this.cancel = __bind(this.cancel, this);
+      this.submit = __bind(this.submit, this);
+      this.formToModel = __bind(this.formToModel, this);
+      this.render = __bind(this.render, this);
+      this.template = __bind(this.template, this);
+      this.add = options.add != null ? options.add : options.add = false;
+      this.things = options.things != null ? options.things : options.things = null;
+      ThingEditView.__super__.constructor.call(this, options);
+    }
+
+    ThingEditView.prototype.tagName = 'div';
+
+    ThingEditView.prototype.className = 'row thing-edit';
+
+    ThingEditView.prototype.cancelled = false;
+
+    ThingEditView.prototype.initialize = function() {
+      return this.render();
+    };
+
+    ThingEditView.prototype.template = function(d) {
+      return templateThingEdit(d);
+    };
+
+    ThingEditView.prototype.render = function() {
+      var f;
+      console.log("render ThingEdit " + this.model.attributes._id + ": " + this.model.attributes.title);
+      this.$el.html(this.template({
+        data: this.model.attributes,
+        add: this.add,
+        contentType: this.model.getContentType().attributes
+      }));
+      f = function() {
+        return $('input[name="title"]', this.$el).focus();
+      };
+      setTimeout(f, 0);
+      return this;
+    };
+
+    ThingEditView.prototype.events = {
+      "submit": "submit",
+      "click .do-cancel": "cancel",
+      "click .do-save": "save"
+    };
+
+    ThingEditView.prototype.formToModel = function() {
+      var description, title;
+      title = $('input[name="title"]', this.$el).val();
+      description = $(':input[name="description"]', this.$el).val();
+      console.log("title=" + title + ", description=" + description);
+      this.model.set('title', title);
+      return this.model.set('description', description);
+    };
+
+    ThingEditView.prototype.submit = function(ev) {
+      console.log("submit...");
+      ev.preventDefault();
+      this.formToModel();
+      this.model.save();
+      return this.close();
+    };
+
+    ThingEditView.prototype.cancel = function() {
+      console.log("cancel");
+      this.cancelled = true;
+      if ((this.model.id != null) && (this.things != null)) {
+        console.log("try remove on cancel for " + this.model.id);
+        this.things.remove(this.model);
+      }
+      return this.close();
+    };
+
+    ThingEditView.prototype.close = function() {
+      this.remove();
+      return window.history.back();
+    };
+
+    return ThingEditView;
+
+  })(Backbone.View);
+
+}).call(this);
+}, "views/ThingInList": function(exports, require, module) {(function() {
+  var ThingInListView, templateThingInList, thingDeleter,
+    __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
+    __hasProp = {}.hasOwnProperty,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+  templateThingInList = require('templates/ThingInList');
+
+  thingDeleter = require('thingDeleter');
+
+  module.exports = ThingInListView = (function(_super) {
+    __extends(ThingInListView, _super);
+
+    function ThingInListView() {
+      this["delete"] = __bind(this["delete"], this);
+      this.edit = __bind(this.edit, this);
+      this.render = __bind(this.render, this);
+      this.template = __bind(this.template, this);
+      return ThingInListView.__super__.constructor.apply(this, arguments);
+    }
+
+    ThingInListView.prototype.tagName = 'div';
+
+    ThingInListView.prototype.className = 'columns thing-in-list';
+
+    ThingInListView.prototype.initialize = function() {
+      this.listenTo(this.model, 'change', this.render);
+      return this.render();
+    };
+
+    ThingInListView.prototype.template = function(d) {
+      return templateThingInList(d);
+    };
+
+    ThingInListView.prototype.render = function() {
+      console.log("render ThingInList " + this.model.attributes._id + ": " + this.model.attributes.title);
+      this.$el.html(this.template(this.model.attributes));
+      return this;
+    };
+
+    ThingInListView.prototype.events = {
+      "click .do-edit-file": "edit",
+      "click .do-delete-file": "delete"
+    };
+
+    ThingInListView.prototype.edit = function(ev) {
+      console.log("edit " + this.model.attributes._id);
+      ev.preventDefault();
+      return window.router.navigate("#ContentType/" + (this.model.getContentType().id) + "/edit/" + (encodeURIComponent(this.model.attributes._id)), {
+        trigger: true
       });
+    };
+
+    ThingInListView.prototype["delete"] = function(ev) {
+      thingDeleter["delete"](this.model);
+      ev.preventDefault();
+      return false;
+    };
+
+    return ThingInListView;
+
+  })(Backbone.View);
+
+}).call(this);
+}, "views/ThingList": function(exports, require, module) {(function() {
+  var ThingListView, templateThingList,
+    __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
+    __hasProp = {}.hasOwnProperty,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+  templateThingList = require('templates/ThingList');
+
+  module.exports = ThingListView = (function(_super) {
+    __extends(ThingListView, _super);
+
+    function ThingListView() {
+      this.addThing = __bind(this.addThing, this);
+      this.remove = __bind(this.remove, this);
+      this.add = __bind(this.add, this);
+      this.render = __bind(this.render, this);
+      this.template = __bind(this.template, this);
+      return ThingListView.__super__.constructor.apply(this, arguments);
+    }
+
+    ThingListView.prototype.tagName = 'div';
+
+    ThingListView.prototype.className = 'row thing-list top-level-view';
+
+    ThingListView.prototype.initialize = function() {
+      this.listenTo(this.model, 'add', this.add);
+      return this.listenTo(this.model, 'remove', this.remove);
+    };
+
+    ThingListView.prototype.template = function(d) {
+      return templateThingList(d);
+    };
+
+    ThingListView.prototype.render = function() {
+      var views;
+      console.log("render ThingList, contentType=" + this.model.model.contentType.id);
+      this.$el.html(this.template({
+        contentType: this.model.model.contentType.attributes
+      }));
+      views = [];
+      this.model.forEach(this.add);
+      return this;
+    };
+
+    ThingListView.prototype.views = [];
+
+    ThingListView.prototype.add = function(thing) {
+      var view;
+      console.log("ThingListView add " + thing.id);
+      view = this.model.model.contentType.getThingView(thing);
       this.$el.append(view.$el);
       return this.views.push(view);
     };
 
-    FileListView.prototype.remove = function(file) {
+    ThingListView.prototype.remove = function(thing) {
       var i, view, _i, _len, _ref;
-      console.log("FileListView remove " + file.attributes._id);
+      console.log("ThingListView remove " + thing.id);
       _ref = this.views;
       for (i = _i = 0, _len = _ref.length; _i < _len; i = ++_i) {
         view = _ref[i];
-        if (!(view.model.id === file.id)) {
+        if (!(view.model.id === thing.id)) {
           continue;
         }
         console.log("remove view");
@@ -1475,19 +1886,19 @@
       }
     };
 
-    FileListView.prototype.events = {
-      "click .do-add-file": "addFile"
+    ThingListView.prototype.events = {
+      "click .do-add-thing": "addThing"
     };
 
-    FileListView.prototype.addFile = function(ev) {
-      console.log("addFile");
+    ThingListView.prototype.addThing = function(ev) {
+      console.log("addThing");
       ev.preventDefault();
-      return window.router.navigate("#ContentType/Track/add", {
+      return window.router.navigate("#ContentType/" + this.model.model.contentType.id + "/add", {
         trigger: true
       });
     };
 
-    return FileListView;
+    return ThingListView;
 
   })(Backbone.View);
 

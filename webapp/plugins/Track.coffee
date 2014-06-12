@@ -1,15 +1,15 @@
 # File/Track (initial) ContentType plugin
 plugins = require 'plugins'
-ContentType = require 'models/ContentType'
 File = require 'models/File'
 FileList = require 'models/FileList'
 FileListView = require 'views/FileList'
+FileInListView = require 'views/FileInList'
 FileEditView = require 'views/FileEdit'
 
-files = null
+ThingBuilder = require 'plugins/ThingBuilder'
 
-trackType = new ContentType 
-    id: 'Track'
+attributes =  
+    id: 'file'
     title: 'File/Track'
     description: 'Initial test/development content type - part file, part audio track'
 
@@ -29,41 +29,22 @@ updateRatings = (files, ratings) ->
         ratingSum: row.value[0]
         ratingCount: row.value[1]
 
-trackType.createView = () ->
-    console.log "create Track view"
-    files = new FileList()
-    filesView = new FileListView model:files
-    filesView.render()
-    #$('body').append filesView.el
+contentType = ThingBuilder.createThingType attributes, File, FileList, FileListView, FileInListView, FileEditView
 
-    #files.reset files.to_json 
-    files.fetch()
-    files.ratings = {}
-    # ratings, too
-    $.ajax window.mediahubconfig.dburl+'/_design/app/_view/rating?group=true',
-      success: (ratings) -> updateRatings files, ratings
+superCreateView = contentType.createView
+contentType.createView = () ->
+  thingsView = superCreateView()
+
+  thingsView.model.ratings = {}
+  # ratings, too
+  $.ajax window.mediahubconfig.dburl+'/_design/app/_view/rating?group=true',
+      success: (ratings) -> updateRatings thingsView.model, ratings
       dataType: "text"
       error: (xhr,status,err) ->
         console.log "get ratings error "+xhr.status+": "+err.message
 
-    return filesView
+  thingsView
 
-trackType.createActionView = (action,id) ->
-  if action=='edit'
-    file = files.get id
-    if not file?
-      alert "could not find Track #{id}"
-      return
-    return new FileEditView model: file
-  else if action=='add'
-    # work-around backbone-pouchdb attach presumes Math.uuid
-    file = new File _id: 'file:'+uuid()
-    console.log "new id #{file.id}"
-    files.add file
-    return new FileEditView {model: file, add: true, files: files}
-  else
-    console.log "unknown Track action #{action} (id #{id})"
+plugins.registerContentType contentType.id, contentType
 
-plugins.registerContentType 'Track', trackType
-  
   

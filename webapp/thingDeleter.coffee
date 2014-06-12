@@ -1,5 +1,5 @@
 # delete handler
-templateFileDeleteModal = require 'templates/FileDeleteModal'
+templateFileDeleteModal = require 'templates/ThingDeleteModal'
 
 currentModel = null
 

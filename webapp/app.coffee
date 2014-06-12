@@ -7,6 +7,7 @@ plugins = require 'plugins'
 
 # for registration of plugins
 require 'plugins/Track'
+require 'plugins/Html'
 
 config = window.mediahubconfig
 
