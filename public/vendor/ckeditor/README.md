@@ -1,6 +1,10 @@
 CKEditor 4
 ==========
 
+This is a variant built from https://github.com/cgreenhalgh/ckeditor-dev 
+branch `mediahub`, which basically customises the `filebrowser` plugin for 
+upload to use local Javascript `window.onCkeditorUpload`.
+
 Copyright (c) 2003-2014, CKSource - Frederico Knabben. All rights reserved.  
 http://ckeditor.com - See LICENSE.md for license information.
 
