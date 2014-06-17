@@ -797,7 +797,8 @@
     TrackReview.prototype.defaults = {
       rating: 0,
       comment: '',
-      editing: true
+      editing: true,
+      type: 'trackReview'
     };
 
     TrackReview.prototype.idAttribute = '_id';

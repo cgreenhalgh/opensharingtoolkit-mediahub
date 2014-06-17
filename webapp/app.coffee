@@ -8,6 +8,7 @@ plugins = require 'plugins'
 # for registration of plugins
 require 'plugins/Track'
 require 'plugins/Html'
+require 'plugins/Booklet'
 
 config = window.mediahubconfig
 
@@ -64,6 +65,8 @@ class Router extends Backbone.Router
       view.render()
       $('body').append view.el
       tempViews.push view
+    #else
+    #  window.history.back()
 
 # debug
 $( document ).ajaxError ( event, jqxhr, settings, exception ) ->

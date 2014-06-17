@@ -5,6 +5,7 @@ module.exports = class TrackReview extends Backbone.Model
     rating: 0
     comment: ''
     editing: true
+    type: 'trackReview'
 
   idAttribute: '_id'
   

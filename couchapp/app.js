@@ -113,6 +113,53 @@ ddoc.views.fileType = {
   }
 };
 
+// view of doc by type
+ddoc.views.type = {
+  map: function(doc) {
+    if (doc._id && doc.type) {
+      emit(doc.type, null);
+    }  
+  }
+};
+
+// filter type Booklet
+ddoc.filters.typeBooklet = {
+  map: function(doc) {
+    if (doc.type && doc.type === 'booklet') {
+      return true;
+    }
+    return false;
+  }
+};
+// filter type Html
+ddoc.filters.typeHtml = function(doc) {
+  if (doc.type && doc.type === 'html') {
+    return true;
+  }
+  return false;
+};
+// filter type File
+ddoc.filters.typeFile = function(doc) {
+  if (doc.type && doc.type === 'file') {
+    return true;
+  }
+  return false;
+};
+// filter type TrackReview
+ddoc.filters.typeTrackReview = function(doc) {
+  if (doc.type && doc.type === 'trackReview') {
+    return true;
+  }
+  return false;
+};
+// filter type Booklet
+ddoc.filters.typeBooklet = function(doc) {
+  if (doc.type && doc.type === 'booklet') {
+    return true;
+  }
+  return false;
+};
+
 ddoc.validate_doc_update = function (newDoc, oldDoc, userCtx) {
   function user_is(role) {
     return userCtx.roles.indexOf(role) >= 0;

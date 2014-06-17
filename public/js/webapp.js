@@ -65,6 +65,8 @@
 
   require('plugins/Html');
 
+  require('plugins/Booklet');
+
   config = window.mediahubconfig;
 
   tempViews = [];
@@ -243,6 +245,74 @@
   module.exports = getParams;
 
 }).call(this);
+}, "models/Booklet": function(exports, require, module) {(function() {
+  var Booklet,
+    __hasProp = {}.hasOwnProperty,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+  module.exports = Booklet = (function(_super) {
+    __extends(Booklet, _super);
+
+    function Booklet() {
+      return Booklet.__super__.constructor.apply(this, arguments);
+    }
+
+    Booklet.prototype.defaults = {
+      title: '',
+      description: '',
+      type: 'booklet',
+      coverurl: ''
+    };
+
+    return Booklet;
+
+  })(Backbone.Model);
+
+}).call(this);
+}, "models/BookletList": function(exports, require, module) {(function() {
+  var Booklet, BookletList,
+    __hasProp = {}.hasOwnProperty,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+  Booklet = require('models/Booklet');
+
+  module.exports = BookletList = (function(_super) {
+    __extends(BookletList, _super);
+
+    function BookletList() {
+      return BookletList.__super__.constructor.apply(this, arguments);
+    }
+
+    BookletList.prototype.model = Booklet;
+
+    BookletList.prototype.pouch = {
+      fetch: 'query',
+      listen: true,
+      options: {
+        query: {
+          include_docs: true,
+          startkey: 'booklet',
+          endkey: 'booklet',
+          fun: 'app/type'
+        },
+        changes: {
+          include_docs: true,
+          continuous: true,
+          filter: 'app/typeBooklet'
+        }
+      }
+    };
+
+    BookletList.prototype.parse = function(result) {
+      console.log("parse " + (JSON.stringify(result)));
+      return _.pluck(result.rows, 'doc');
+    };
+
+    return BookletList;
+
+  })(Backbone.Collection);
+
+}).call(this);
 }, "models/ContentType": function(exports, require, module) {(function() {
   var ContentType,
     __hasProp = {}.hasOwnProperty,
@@ -349,36 +419,25 @@
     FileList.prototype.model = File;
 
     FileList.prototype.pouch = {
-      fetch: 'allDocs',
+      fetch: 'query',
       error: function(err) {
         return console.log("ERROR(FileList) (sync): " + err);
       },
+      listen: true,
       options: {
         error: function(err) {
           return console.log("ERROR(FileList/options) (sync): " + err);
         },
-        listen: false,
-        allDocs: {
-          include_docs: true,
-          startkey: 'file:',
-          endkey: 'file;'
-        },
         query: {
           include_docs: true,
-          fun: {
-            map: function(doc) {
-              if (doc.type === 'file') {
-                return emit(doc.title, null);
-              }
-            }
-          }
+          fun: 'app/type',
+          startkey: 'file',
+          endkey: 'file'
         },
         changes: {
           include_docs: true,
           continuous: true,
-          filter: function(doc) {
-            return doc._deleted || doc.type === 'file';
-          }
+          filter: 'app/typeFile'
         }
       }
     };
@@ -433,36 +492,25 @@
     HtmlList.prototype.model = Html;
 
     HtmlList.prototype.pouch = {
-      fetch: 'allDocs',
+      fetch: 'query',
       error: function(err) {
         return console.log("ERROR(HtmlList) (sync): " + err);
       },
+      listen: true,
       options: {
         error: function(err) {
           return console.log("ERROR(HtmlList/options) (sync): " + err);
         },
-        listen: false,
-        allDocs: {
-          include_docs: true,
-          startkey: 'html:',
-          endkey: 'html;'
-        },
         query: {
           include_docs: true,
-          fun: {
-            map: function(doc) {
-              if (doc.type === 'html') {
-                return emit(doc.title, null);
-              }
-            }
-          }
+          fun: 'app/type',
+          startkey: 'html',
+          endkey: 'html'
         },
         changes: {
           include_docs: true,
           continuous: true,
-          filter: function(doc) {
-            return doc._deleted || doc.type === 'html';
-          }
+          filter: 'app/typeHtml'
         }
       }
     };
@@ -590,6 +638,36 @@
   };
 
 }).call(this);
+}, "plugins/Booklet": function(exports, require, module) {(function() {
+  var ThingBuilder, ThisThing, ThisThingEditView, ThisThingInListView, ThisThingList, ThisThingListView, ThisThingView, attributes, contentType, plugins;
+
+  plugins = require('plugins');
+
+  ThisThing = require('models/Booklet');
+
+  ThisThingList = require('models/BookletList');
+
+  ThisThingListView = require('views/ThingList');
+
+  ThisThingInListView = require('views/ThingInList');
+
+  ThisThingView = null;
+
+  ThisThingEditView = require('views/BookletEdit');
+
+  ThingBuilder = require('plugins/ThingBuilder');
+
+  attributes = {
+    id: 'booket',
+    title: 'Booklet',
+    description: 'A collection of related content for distribution as part of an app'
+  };
+
+  contentType = ThingBuilder.createThingType(attributes, ThisThing, ThisThingList, ThisThingListView, ThisThingInListView, ThisThingView, ThisThingEditView);
+
+  plugins.registerContentType(contentType.id, contentType);
+
+}).call(this);
 }, "plugins/Html": function(exports, require, module) {(function() {
   var ThingBuilder, ThisThing, ThisThingEditView, ThisThingInListView, ThisThingList, ThisThingListView, ThisThingView, attributes, contentType, plugins;
 
@@ -627,7 +705,7 @@
 
   ContentType = require('models/ContentType');
 
-  module.exports.createThingType = function(attributes, ThisThing, ThisThingList, ThisThingListView, ThisThingInListView, ThisThingView, ThisThingEditView, ThisThingSelectView) {
+  module.exports.createThingType = function(attributes, ThisThing, ThisThingList, ThisThingListView, ThisThingInListView, ThisThingView, ThisThingEditView) {
     var contentType, things;
     things = null;
     contentType = new ContentType(attributes);
@@ -654,6 +732,10 @@
     contentType.createActionView = function(action, id) {
       var thing;
       if (action === 'edit') {
+        if (ThisThingEditView == null) {
+          alert("Sorry, cannot edit this kind of thing");
+          return;
+        }
         thing = things.get(id);
         if (thing == null) {
           alert("could not find " + contentType.id + " " + id);
@@ -663,6 +745,10 @@
           model: thing
         });
       } else if (action === 'view') {
+        if (ThisThingView == null) {
+          alert("Sorry, cannot view this kind of thing");
+          return;
+        }
         thing = things.get(id);
         if (thing == null) {
           alert("could not find " + contentType.id + " " + id);
@@ -672,11 +758,14 @@
           model: thing
         });
       } else if (action === 'add') {
+        if (ThisThingEditView == null) {
+          alert("Sorry, cannot add this kind of thing");
+          return;
+        }
         thing = new ThisThing({
           _id: contentType.id + ':' + uuid()
         });
         console.log("new id " + thing.id);
-        things.add(thing);
         return new ThisThingEditView({
           model: thing,
           add: true,
@@ -766,7 +855,77 @@
   plugins.registerContentType(contentType.id, contentType);
 
 }).call(this);
-}, "templates/ContentTypeInList": function(exports, require, module) {module.exports = function(__obj) {
+}, "templates/BookletEdit": function(exports, require, module) {module.exports = function(__obj) {
+  if (!__obj) __obj = {};
+  var __out = [], __capture = function(callback) {
+    var out = __out, result;
+    __out = [];
+    callback.call(this);
+    result = __out.join('');
+    __out = out;
+    return __safe(result);
+  }, __sanitize = function(value) {
+    if (value && value.ecoSafe) {
+      return value;
+    } else if (typeof value !== 'undefined' && value != null) {
+      return __escape(value);
+    } else {
+      return '';
+    }
+  }, __safe, __objSafe = __obj.safe, __escape = __obj.escape;
+  __safe = __obj.safe = function(value) {
+    if (value && value.ecoSafe) {
+      return value;
+    } else {
+      if (!(typeof value !== 'undefined' && value != null)) value = '';
+      var result = new String(value);
+      result.ecoSafe = true;
+      return result;
+    }
+  };
+  if (!__escape) {
+    __escape = __obj.escape = function(value) {
+      return ('' + value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    };
+  }
+  (function() {
+    (function() {
+      __out.push('\n<div class="columns large-12">\n  <h2>');
+    
+      __out.push(__sanitize(this.add ? 'Add' : 'Edit'));
+    
+      __out.push(' ');
+    
+      __out.push(__sanitize(this.contentType.title));
+    
+      __out.push('</h2>\n</div>\n<form>\n  <div class="columns large-12">\n    <label>Title\n      <input type="text" name="title" placeholder="title" value="');
+    
+      __out.push(__sanitize(this.data.title));
+    
+      __out.push('"/>\n    </label>\n    <label>Description\n      <textarea name="description" placeholder="description" >');
+    
+      __out.push(__sanitize(this.data.description));
+    
+      __out.push('</textarea>\n    </label>\n    <label>Cover\n      <div class="row">\n        <div class="columns large-4 medium-6 small-12">\n          <div class="image-select-icon">\n            <div class="dummy"></div>\n            <img class="image-select-image" src="');
+    
+      __out.push(__sanitize(this.data.coverurl));
+    
+      __out.push('"/>\n          </div>\n        </div>\n        <div class="columns large-4 medium-6 small-12">\n          <a href="#" class="button do-select-cover">Browse server...</a> \n        </div>\n      </div>\n    </label>\n    <input type="submit" value="');
+    
+      __out.push(__sanitize(this.add ? 'Add' : 'Save changes'));
+    
+      __out.push('"/>\n    <input type="reset" value="Clear"/>\n    <input type="button" value="Cancel" class="do-cancel"/>\n  </div>\n</form>\n\n');
+    
+    }).call(this);
+    
+  }).call(__obj);
+  __obj.safe = __objSafe, __obj.escape = __escape;
+  return __out.join('');
+}}, "templates/ContentTypeInList": function(exports, require, module) {module.exports = function(__obj) {
   if (!__obj) __obj = {};
   var __out = [], __capture = function(callback) {
     var out = __out, result;
@@ -1624,6 +1783,84 @@
   };
 
 }).call(this);
+}, "views/BookletEdit": function(exports, require, module) {(function() {
+  var BookletEditView, ThingEditView, templateBookletEdit,
+    __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
+    __hasProp = {}.hasOwnProperty,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+  templateBookletEdit = require('templates/BookletEdit');
+
+  ThingEditView = require('views/ThingEdit');
+
+  window.mediahubCallbacks = {};
+
+  window.nextMediahubCallback = 1;
+
+  module.exports = BookletEditView = (function(_super) {
+    __extends(BookletEditView, _super);
+
+    function BookletEditView() {
+      this.remove = __bind(this.remove, this);
+      this.selectCover = __bind(this.selectCover, this);
+      this.formToModel = __bind(this.formToModel, this);
+      this.template = __bind(this.template, this);
+      return BookletEditView.__super__.constructor.apply(this, arguments);
+    }
+
+    BookletEditView.prototype.template = function(d) {
+      return templateBookletEdit(d);
+    };
+
+    BookletEditView.prototype.formToModel = function() {
+      var coverurl;
+      coverurl = $('.image-select-image', this.$el).attr('src');
+      console.log("coverurl = " + coverurl);
+      this.model.set({
+        coverurl: coverurl
+      });
+      return BookletEditView.__super__.formToModel.call(this);
+    };
+
+    BookletEditView.prototype.events = {
+      "submit": "submit",
+      "click .do-cancel": "cancel",
+      "click .do-save": "save",
+      "click .do-select-cover": "selectCover"
+    };
+
+    BookletEditView.prototype.selectCover = function(ev) {
+      var ix, path, self;
+      console.log("selectCover...");
+      ev.preventDefault();
+      path = window.location.pathname;
+      ix = path.lastIndexOf('/');
+      if (ix < 0) {
+        alert("Error in pathname: " + path);
+        return false;
+      }
+      path = path.substring(0, ix + 1);
+      this.callback = window.nextMediahubCallback++;
+      self = this;
+      window.mediahubCallbacks[this.callback] = function(url) {
+        console.log("set cover " + url);
+        return $('.image-select-image', self.$el).attr('src', url);
+      };
+      return window.open(path + ("filebrowse.html?type=image%2F&mediahubCallback=" + this.callback), '_blank', "width=" + (0.8 * screen.width) + ", height=" + (0.7 * screen.height) + ", menubar=no, location=no, status=no, toolbar=no");
+    };
+
+    BookletEditView.prototype.remove = function() {
+      if (this.callback != null) {
+        delete window.mediahubCallbacks[this.callback];
+      }
+      return BookletEditView.__super__.remove.call(this);
+    };
+
+    return BookletEditView;
+
+  })(ThingEditView);
+
+}).call(this);
 }, "views/ContentTypeInList": function(exports, require, module) {(function() {
   var ContentTypeInListView, templateContentTypeInList,
     __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
@@ -2214,16 +2451,27 @@
     };
 
     ImageSelectView.prototype.select = function(ev) {
-      var funcNum;
+      var err, funcNum, mediahubCallback, params;
       console.log("select " + this.model.attributes._id);
       ev.preventDefault();
-      funcNum = getParams()['CKEditorFuncNum'];
-      if (funcNum == null) {
-        return alert("Error: could not find parameter CKEditorFuncNum");
-      } else {
-        console.log("- fileUrl = " + this.fileUrl);
+      params = getParams();
+      mediahubCallback = params['mediahubCallback'];
+      funcNum = params['CKEditorFuncNum'];
+      if (mediahubCallback != null) {
+        console.log("- mediahubCallback " + mediahubCallback + " fileUrl = " + this.fileUrl);
+        try {
+          window.opener.mediahubCallbacks[mediahubCallback](this.fileUrl);
+        } catch (_error) {
+          err = _error;
+          console.log("error calling mediahubCallback: " + err.message);
+        }
+        return window.close();
+      } else if (funcNum != null) {
+        console.log("- ckeditor fileUrl = " + this.fileUrl);
         window.opener.CKEDITOR.tools.callFunction(funcNum, this.fileUrl);
         return window.close();
+      } else {
+        return alert("Error: could not find parameter CKEditorFuncNum or mediahubCallback");
       }
     };
 
@@ -2428,7 +2676,6 @@
       this.cancelled = true;
       if ((this.model.id != null) && (this.things != null)) {
         console.log("try remove on cancel for " + this.model.id);
-        this.things.remove(this.model);
       }
       return this.close();
     };

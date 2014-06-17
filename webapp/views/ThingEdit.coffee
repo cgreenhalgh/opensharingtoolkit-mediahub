@@ -52,7 +52,7 @@ module.exports = class ThingEditView extends Backbone.View
     @cancelled = true
     if @model.id? and @things?
       console.log "try remove on cancel for #{@model.id}"
-      @things.remove @model
+      #@things.remove @model
     @close()
 
   close: =>

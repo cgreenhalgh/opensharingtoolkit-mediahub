@@ -7,32 +7,23 @@ module.exports = class HtmlList extends Backbone.Collection
 
   # see https://github.com/jo/backbone-pouch
   # we get ids starting 'file:' or (hopefully equivalently) with type = 'file'
-  # NB fetch: query requires databse admin privileges. Listen requires query.
   pouch: 
-    fetch: 'allDocs' 
+    fetch: 'query' 
     error: (err)->
           console.log "ERROR(HtmlList) (sync): #{err}"
+    listen: true
     options:
       error: (err)->
           console.log "ERROR(HtmlList/options) (sync): #{err}"
-      listen: false
-      allDocs:
-        include_docs: true
-        startkey: 'html:'
-        endkey: 'html;'
       query: 
         include_docs: true
-        fun: 
-          map: (doc) ->
-            # runs on the server
-            if doc.type=='html'
-              emit doc.title, null 
+        fun: 'app/type'
+        startkey: 'html'
+        endkey: 'html'
       changes: 
         include_docs: true
         continuous: true
-        filter: (doc) -> 
-          # runs on the server
-          doc._deleted || doc.type=='html'
+        filter: 'app/typeHtml'
 
   parse: (result) ->
     console.log "parse #{JSON.stringify result}"
