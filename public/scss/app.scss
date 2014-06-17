@@ -80,6 +80,48 @@ $outline-color: $primary-color; //scale-color($primary-color, $lightness: -66%);
   }
 }
 
+.image-select {
+  @extend .columns;
+  @extend .large-4;
+  @extend .medium-6;
+  @extend .small-12;
+  border: 1px solid $outline-color;
+  padding: 0.2em;
+};
+
+.image-select-title-holder {
+  height: 1.1em;
+  margin: 0.2em;
+};
+.image-select-title {
+  position: relative;
+  background-color: rgba(255,255,255,0.5);
+  // Note: modal dialogs at 99
+  z-index: 5;
+};
+.image-select-icon {
+  // see http://ansciath.tumblr.com/post/7347495869/css-aspect-ratio
+  display: inline-block;
+  position: relative;
+  width: 90%;
+  // center?
+  left: 5%;
+  //height: 
+  overflow: hidden;
+  .dummy {
+    padding-top: 100%; //1:1 aspect
+  };
+  .image-select-image {
+    width: 100%;
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: auto;
+  } 
+};
+
 .drop-zone {
   border: 1px dashed $outline-color;
   text-align: center;

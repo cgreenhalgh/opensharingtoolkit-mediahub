@@ -2,7 +2,7 @@
 plugins = require 'plugins'
 ContentType = require 'models/ContentType'
 
-module.exports.createThingType = (attributes, ThisThing, ThisThingList, ThisThingListView, ThisThingInListView, ThisThingView, ThisThingEditView) ->
+module.exports.createThingType = (attributes, ThisThing, ThisThingList, ThisThingListView, ThisThingInListView, ThisThingView, ThisThingEditView, ThisThingSelectView) ->
   things = null
 
   contentType = new ContentType attributes

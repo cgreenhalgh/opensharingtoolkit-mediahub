@@ -104,6 +104,15 @@ ddoc.views.rating = {
   }
 };
 
+// view of file by mime type
+ddoc.views.fileType = {
+  map: function(doc) {
+    if (doc._id.indexOf('file:')===0 && doc.fileType) {
+      emit(doc.fileType.split('/'), {title:doc.title});
+    }  
+  }
+};
+
 ddoc.validate_doc_update = function (newDoc, oldDoc, userCtx) {
   function user_is(role) {
     return userCtx.roles.indexOf(role) >= 0;

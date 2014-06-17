@@ -182,6 +182,67 @@
   module.exports = App;
 
 }).call(this);
+}, "filebrowse": function(exports, require, module) {(function() {
+  var App, ImageList, ImageSelectListView, db, getParams;
+
+  ImageList = require('models/ImageList');
+
+  ImageSelectListView = require('views/ImageSelectList');
+
+  getParams = require('getParams');
+
+  db = require('mydb');
+
+  require('plugins/Track');
+
+  App = {
+    init: function() {
+      var err, fileList, fileListView, params, typePrefix;
+      console.log("filebrowse App starting...");
+      params = getParams();
+      typePrefix = params.type != null ? params.type : params.type = '';
+      Backbone.sync = BackbonePouch.sync({
+        db: db
+      });
+      Backbone.Model.prototype.idAttribute = '_id';
+      _.extend(Backbone.Model.prototype, BackbonePouch.attachments());
+      fileList = new ImageList();
+      try {
+        fileList.fetch();
+      } catch (_error) {
+        err = _error;
+        alert("Error getting files: " + err.message);
+      }
+      fileListView = new ImageSelectListView({
+        model: fileList
+      });
+      fileListView.render();
+      return $('body').append(fileListView.el);
+    }
+  };
+
+  module.exports = App;
+
+}).call(this);
+}, "getParams": function(exports, require, module) {(function() {
+  var getParams;
+
+  getParams = function() {
+    var key, params, query, raw_vars, v, val, _i, _len, _ref;
+    query = window.location.search.substring(1);
+    raw_vars = query.split("&");
+    params = {};
+    for (_i = 0, _len = raw_vars.length; _i < _len; _i++) {
+      v = raw_vars[_i];
+      _ref = v.split("="), key = _ref[0], val = _ref[1];
+      params[key] = decodeURIComponent(val);
+    }
+    return params;
+  };
+
+  module.exports = getParams;
+
+}).call(this);
 }, "models/ContentType": function(exports, require, module) {(function() {
   var ContentType,
     __hasProp = {}.hasOwnProperty,
@@ -416,6 +477,45 @@
   })(Backbone.Collection);
 
 }).call(this);
+}, "models/ImageList": function(exports, require, module) {(function() {
+  var File, ImageList,
+    __hasProp = {}.hasOwnProperty,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+  File = require('models/File');
+
+  module.exports = ImageList = (function(_super) {
+    __extends(ImageList, _super);
+
+    function ImageList() {
+      return ImageList.__super__.constructor.apply(this, arguments);
+    }
+
+    ImageList.prototype.model = File;
+
+    ImageList.prototype.pouch = {
+      fetch: 'query',
+      options: {
+        listen: false,
+        query: {
+          include_docs: true,
+          fun: 'app/fileType',
+          startkey: ['image', ''],
+          endkey: ['image ', '']
+        }
+      }
+    };
+
+    ImageList.prototype.parse = function(result) {
+      console.log("parse " + (JSON.stringify(result)));
+      return _.pluck(result.rows, 'doc');
+    };
+
+    return ImageList;
+
+  })(Backbone.Collection);
+
+}).call(this);
 }, "mydb": function(exports, require, module) {(function() {
   var config;
 
@@ -527,7 +627,7 @@
 
   ContentType = require('models/ContentType');
 
-  module.exports.createThingType = function(attributes, ThisThing, ThisThingList, ThisThingListView, ThisThingInListView, ThisThingView, ThisThingEditView) {
+  module.exports.createThingType = function(attributes, ThisThing, ThisThingList, ThisThingListView, ThisThingInListView, ThisThingView, ThisThingEditView, ThisThingSelectView) {
     var contentType, things;
     things = null;
     contentType = new ContentType(attributes);
@@ -1104,6 +1204,108 @@
       __out.push(__sanitize(this.add ? 'Add' : 'Save changes'));
     
       __out.push('"/>\n    <input type="reset" value="Clear"/>\n    <input type="button" value="Cancel" class="do-cancel"/>\n  </div>\n</form>\n\n');
+    
+    }).call(this);
+    
+  }).call(__obj);
+  __obj.safe = __objSafe, __obj.escape = __escape;
+  return __out.join('');
+}}, "templates/ImageSelect": function(exports, require, module) {module.exports = function(__obj) {
+  if (!__obj) __obj = {};
+  var __out = [], __capture = function(callback) {
+    var out = __out, result;
+    __out = [];
+    callback.call(this);
+    result = __out.join('');
+    __out = out;
+    return __safe(result);
+  }, __sanitize = function(value) {
+    if (value && value.ecoSafe) {
+      return value;
+    } else if (typeof value !== 'undefined' && value != null) {
+      return __escape(value);
+    } else {
+      return '';
+    }
+  }, __safe, __objSafe = __obj.safe, __escape = __obj.escape;
+  __safe = __obj.safe = function(value) {
+    if (value && value.ecoSafe) {
+      return value;
+    } else {
+      if (!(typeof value !== 'undefined' && value != null)) value = '';
+      var result = new String(value);
+      result.ecoSafe = true;
+      return result;
+    }
+  };
+  if (!__escape) {
+    __escape = __obj.escape = function(value) {
+      return ('' + value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    };
+  }
+  (function() {
+    (function() {
+      __out.push('\n<a href="#" class="do-select-file"><!-- do-preview-file -->\n  <div class="image-select-title-holder"><h4 class="image-select-title clearfix">');
+    
+      __out.push(__sanitize(this.title));
+    
+      __out.push('\n    <!-- <a href="#" class="action-button do-select-file right">Select</a> -->\n  </h4></div>\n  <div class="image-select-icon">\n    <div class="dummy"></div>');
+    
+      __out.push('\n    <img src="');
+    
+      __out.push(__sanitize(this.imageurl));
+    
+      __out.push('" class="image-select-image"/>\n  </div>\n</a>\n');
+    
+    }).call(this);
+    
+  }).call(__obj);
+  __obj.safe = __objSafe, __obj.escape = __escape;
+  return __out.join('');
+}}, "templates/ImageSelectList": function(exports, require, module) {module.exports = function(__obj) {
+  if (!__obj) __obj = {};
+  var __out = [], __capture = function(callback) {
+    var out = __out, result;
+    __out = [];
+    callback.call(this);
+    result = __out.join('');
+    __out = out;
+    return __safe(result);
+  }, __sanitize = function(value) {
+    if (value && value.ecoSafe) {
+      return value;
+    } else if (typeof value !== 'undefined' && value != null) {
+      return __escape(value);
+    } else {
+      return '';
+    }
+  }, __safe, __objSafe = __obj.safe, __escape = __obj.escape;
+  __safe = __obj.safe = function(value) {
+    if (value && value.ecoSafe) {
+      return value;
+    } else {
+      if (!(typeof value !== 'undefined' && value != null)) value = '';
+      var result = new String(value);
+      result.ecoSafe = true;
+      return result;
+    }
+  };
+  if (!__escape) {
+    __escape = __obj.escape = function(value) {
+      return ('' + value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    };
+  }
+  (function() {
+    (function() {
+      __out.push('\n  <div class="columns large-12 small-12">\n    <a href="#" class="button do-cancel">Cancel</a>\n  </div>\n\n');
     
     }).call(this);
     
@@ -1916,8 +2118,19 @@
       var replace;
       HtmlEditView.__super__.render.call(this);
       replace = function() {
+        var ckconfig, ix, path;
         console.log("Set up CKEditor...");
-        return CKEDITOR.replace('htmlfragment');
+        ckconfig = {};
+        path = window.location.pathname;
+        ix = path.lastIndexOf('/');
+        if (ix < 0) {
+          console.log("Location path not valid: " + path);
+        } else {
+          path = path.substring(0, ix + 1);
+          ckconfig.filebrowserBrowseUrl = path + 'filebrowse.html';
+          ckconfig.filebrowserImageBrowseUrl = path + 'filebrowse.html?type=image%2F';
+        }
+        return CKEDITOR.replace('htmlfragment', ckconfig);
       };
       return setTimeout(replace, 0);
     };
@@ -1943,6 +2156,129 @@
     return HtmlEditView;
 
   })(ThingEditView);
+
+}).call(this);
+}, "views/ImageSelect": function(exports, require, module) {(function() {
+  var ImageSelectView, getParams, templateImageSelect,
+    __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
+    __hasProp = {}.hasOwnProperty,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+  templateImageSelect = require('templates/ImageSelect');
+
+  getParams = require('getParams');
+
+  module.exports = ImageSelectView = (function(_super) {
+    __extends(ImageSelectView, _super);
+
+    function ImageSelectView() {
+      this.select = __bind(this.select, this);
+      this.preview = __bind(this.preview, this);
+      this.render = __bind(this.render, this);
+      this.template = __bind(this.template, this);
+      return ImageSelectView.__super__.constructor.apply(this, arguments);
+    }
+
+    ImageSelectView.prototype.tagName = 'div';
+
+    ImageSelectView.prototype.className = 'columns image-select';
+
+    ImageSelectView.prototype.initialize = function() {
+      var config;
+      config = window.mediahubconfig;
+      this.fileUrl = config.dburl + '/' + encodeURIComponent(this.model.id) + '/bytes';
+      this.listenTo(this.model, 'change', this.render);
+      return this.render();
+    };
+
+    ImageSelectView.prototype.template = function(d) {
+      return templateImageSelect(d);
+    };
+
+    ImageSelectView.prototype.render = function() {
+      console.log("render ImageSelect " + this.model.attributes._id + ": " + this.model.attributes.title);
+      this.$el.html(this.template(_.extend({}, this.model.attributes, {
+        imageurl: this.fileUrl
+      })));
+      return this;
+    };
+
+    ImageSelectView.prototype.events = {
+      "click .do-select-file": "select",
+      "click .do-preview-file": "preview"
+    };
+
+    ImageSelectView.prototype.preview = function(ev) {
+      console.log("preview " + this.model.attributes._id);
+      return ev.preventDefault();
+    };
+
+    ImageSelectView.prototype.select = function(ev) {
+      var funcNum;
+      console.log("select " + this.model.attributes._id);
+      ev.preventDefault();
+      funcNum = getParams()['CKEditorFuncNum'];
+      if (funcNum == null) {
+        return alert("Error: could not find parameter CKEditorFuncNum");
+      } else {
+        console.log("- fileUrl = " + this.fileUrl);
+        window.opener.CKEDITOR.tools.callFunction(funcNum, this.fileUrl);
+        return window.close();
+      }
+    };
+
+    return ImageSelectView;
+
+  })(Backbone.View);
+
+}).call(this);
+}, "views/ImageSelectList": function(exports, require, module) {(function() {
+  var ImageSelectListView, ImageSelectView, ThingListView, templateImageSelectList,
+    __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
+    __hasProp = {}.hasOwnProperty,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+  templateImageSelectList = require('templates/ImageSelectList');
+
+  ThingListView = require('views/ThingList');
+
+  ImageSelectView = require('views/ImageSelect');
+
+  module.exports = ImageSelectListView = (function(_super) {
+    __extends(ImageSelectListView, _super);
+
+    function ImageSelectListView() {
+      this.add = __bind(this.add, this);
+      this.template = __bind(this.template, this);
+      return ImageSelectListView.__super__.constructor.apply(this, arguments);
+    }
+
+    ImageSelectListView.prototype.template = function(d) {
+      return templateImageSelectList(d);
+    };
+
+    ImageSelectListView.prototype.add = function(thing) {
+      var view;
+      console.log("ImageSelectListView add " + thing.id);
+      view = new ImageSelectView({
+        model: thing
+      });
+      this.$el.append(view.$el);
+      return this.views.push(view);
+    };
+
+    ImageSelectListView.prototype.events = {
+      "click .do-cancel": "closeWindow"
+    };
+
+    ImageSelectListView.prototype.closeWindow = function() {
+      console.log("Cancel = close");
+      return window.close();
+    };
+
+    return ImageSelectListView;
+
+  })(ThingListView);
 
 }).call(this);
 }, "views/Thing": function(exports, require, module) {(function() {

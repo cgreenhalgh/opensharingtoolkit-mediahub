@@ -1,0 +1,43 @@
+<!doctype html>
+<html class="no-js" lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MediaHub File Browser</title>
+    <link rel="stylesheet" href="stylesheets/app.css" />
+    <script src="vendor/modernizr/modernizr.js"></script>
+  </head>
+  <body>
+    <nav class="top-bar" data-topbar>
+      <ul class="title-area">
+        <li class="name">
+          <h1><a href="#">Select File</a></h1>
+        </li>
+      </ul>
+    </nav>
+ 
+    <script src="vendor/jquery/dist/jquery.min.js"></script>
+    <script src="vendor/foundation/js/foundation.min.js"></script>
+    <script src="vendor/foundation/js/foundation/foundation.reveal.js"></script>
+    <script src="vendor/foundation/js/foundation/foundation.topbar.js"></script>
+    <script src="vendor/underscore/underscore.js"></script>
+    <script src="vendor/backbone/backbone.js"></script>
+    <script src="vendor/pouchdb/dist/pouchdb-nightly.js"></script>
+    <script src="vendor/backbone-pouchdb/dist/backbone-pouch.js"></script>
+    <script src="vendor/filesaver/FileSaver.js"></script>
+    <script src="vendor/node-uuid/uuid.js"></script>
+    <script src="js/config.js"></script>
+    <script src="js/webapp.js"></script>
+    <script src="vendor/ckeditor/ckeditor.js"></script>
+    <script type="text/javascript" charset="utf-8">
+    $(document).ready(function() 
+    {
+      // general start-up
+      $(document).foundation();
+      console.log("Running filebrowse app...");
+      var App = require("filebrowse");
+      App.init();
+    });
+    </script>
+  </body>
+</html>

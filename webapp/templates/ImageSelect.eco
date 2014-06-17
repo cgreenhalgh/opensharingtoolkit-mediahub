@@ -1,0 +1,10 @@
+<%# Image (File) in Image Select List, takes Thing as data (title, description, ...) %>
+<a href="#" class="do-select-file"><!-- do-preview-file -->
+  <div class="image-select-title-holder"><h4 class="image-select-title clearfix"><%= @title %>
+    <!-- <a href="#" class="action-button do-select-file right">Select</a> -->
+  </h4></div>
+  <div class="image-select-icon">
+    <div class="dummy"></div><%# required for CSS aspect ratio - see css %>
+    <img src="<%= @imageurl %>" class="image-select-image"/>
+  </div>
+</a>
