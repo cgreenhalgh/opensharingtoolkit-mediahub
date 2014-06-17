@@ -2,8 +2,14 @@
 <div class="columns large-12">
   <h2><%= if @add then 'Add' else 'Edit' %> <%= @contentType.title %></h2>
 </div>
+
 <form>
   <div class="columns large-12">
+
+    <input type="submit" value="<%= if @add then 'Add' else 'Save changes' %>"/>
+    <input type="reset" value="Clear"/>
+    <input type="button" value="Cancel" class="do-cancel"/>
+
     <label>Title
       <input type="text" name="title" placeholder="title" value="<%= @data.title %>"/>
     </label>
@@ -23,9 +29,11 @@
         </div>
       </div>
     </label>
-    <input type="submit" value="<%= if @add then 'Add' else 'Save changes' %>"/>
-    <input type="reset" value="Clear"/>
-    <input type="button" value="Cancel" class="do-cancel"/>
+
+    <label>Content
+      <textarea name="htmlcontent"><%= @content %></textarea>
+    </label>
+
   </div>
 </form>
 

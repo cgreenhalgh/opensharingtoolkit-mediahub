@@ -5,4 +5,4 @@ module.exports = class Booklet extends Backbone.Model
     description: ''
     type: 'booklet'
     coverurl: ''
-    
+    columns: []

@@ -261,7 +261,8 @@
       title: '',
       description: '',
       type: 'booklet',
-      coverurl: ''
+      coverurl: '',
+      columns: []
     };
 
     return Booklet;
@@ -902,7 +903,11 @@
     
       __out.push(__sanitize(this.contentType.title));
     
-      __out.push('</h2>\n</div>\n<form>\n  <div class="columns large-12">\n    <label>Title\n      <input type="text" name="title" placeholder="title" value="');
+      __out.push('</h2>\n</div>\n\n<form>\n  <div class="columns large-12">\n\n    <input type="submit" value="');
+    
+      __out.push(__sanitize(this.add ? 'Add' : 'Save changes'));
+    
+      __out.push('"/>\n    <input type="reset" value="Clear"/>\n    <input type="button" value="Cancel" class="do-cancel"/>\n\n    <label>Title\n      <input type="text" name="title" placeholder="title" value="');
     
       __out.push(__sanitize(this.data.title));
     
@@ -914,11 +919,11 @@
     
       __out.push(__sanitize(this.data.coverurl));
     
-      __out.push('"/>\n          </div>\n        </div>\n        <div class="columns large-4 medium-6 small-12">\n          <a href="#" class="button do-select-cover">Browse server...</a> \n        </div>\n      </div>\n    </label>\n    <input type="submit" value="');
+      __out.push('"/>\n          </div>\n        </div>\n        <div class="columns large-4 medium-6 small-12">\n          <a href="#" class="button do-select-cover">Browse server...</a> \n        </div>\n      </div>\n    </label>\n\n    <label>Content\n      <textarea name="htmlcontent">');
     
-      __out.push(__sanitize(this.add ? 'Add' : 'Save changes'));
+      __out.push(__sanitize(this.content));
     
-      __out.push('"/>\n    <input type="reset" value="Clear"/>\n    <input type="button" value="Cancel" class="do-cancel"/>\n  </div>\n</form>\n\n');
+      __out.push('</textarea>\n    </label>\n\n  </div>\n</form>\n\n');
     
     }).call(this);
     
@@ -1803,13 +1808,32 @@
     function BookletEditView() {
       this.remove = __bind(this.remove, this);
       this.selectCover = __bind(this.selectCover, this);
+      this.remove = __bind(this.remove, this);
       this.formToModel = __bind(this.formToModel, this);
+      this.render = __bind(this.render, this);
       this.template = __bind(this.template, this);
       return BookletEditView.__super__.constructor.apply(this, arguments);
     }
 
     BookletEditView.prototype.template = function(d) {
-      return templateBookletEdit(d);
+      return templateBookletEdit(_.extend({
+        content: ""
+      }, d));
+    };
+
+    BookletEditView.prototype.render = function() {
+      var replace;
+      BookletEditView.__super__.render.call(this);
+      replace = function() {
+        var ckconfig, ix, path;
+        console.log("Set up CKEditor...");
+        path = window.location.pathname;
+        ix = path.lastIndexOf('/');
+        ckconfig = {};
+        ckconfig.extraPlugins = 'widget,mediahubcolumn';
+        return CKEDITOR.replace('htmlcontent', ckconfig);
+      };
+      return setTimeout(replace, 0);
     };
 
     BookletEditView.prototype.formToModel = function() {
@@ -1820,6 +1844,16 @@
         coverurl: coverurl
       });
       return BookletEditView.__super__.formToModel.call(this);
+    };
+
+    BookletEditView.prototype.remove = function() {
+      var editor;
+      editor = CKEDITOR.instances['htmlcontent'];
+      if (editor) {
+        console.log("destroy ckeditor");
+        editor.destroy(true);
+      }
+      return BookletEditView.__super__.remove.call(this);
     };
 
     BookletEditView.prototype.events = {
