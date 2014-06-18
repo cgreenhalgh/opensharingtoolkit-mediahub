@@ -33,7 +33,7 @@ CKEDITOR.editorConfig = function( config ) {
 
 	// not enough: undo,toolbar,
 	// basic: about,basicstyles,clipboard,toolbar,enterkey,entities,floatingspace,wysiwygarea,indentlist,link,list
-	config.plugins = "toolbar,enterkey,floatingspace,wysiwygarea,magicline,contextmenu,elementspath,sourcearea,basicstyles,format";
+	config.plugins = "toolbar,enterkey,floatingspace,wysiwygarea,magicline,contextmenu,elementspath,sourcearea,basicstyles,format,undo";
         config.extraPlugins = "widget,mediahubcolumn,mediahubcomment";
         config.allowedContent = "div(mediahubcolumn); h1; h2; div(mediahubcomment); div(html)";
 };
