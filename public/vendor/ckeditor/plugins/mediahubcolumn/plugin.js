@@ -4,7 +4,21 @@ CKEDITOR.plugins.add( 'mediahubcolumn', {
 
     icons: 'mediahubcolumn',
     hidpi: false,
-
+    onLoad: function() {
+	console.log( "mediahubcolumn.onLoad - addCss" );
+	CKEDITOR.addCss(
+		'.mediahubcolumn {'+
+		'  border-top-style: solid;'+
+		'  border-top-width: 1px;'+
+		'  border-left-style: solid;'+
+		'  border-left-width: 1px;'+
+		'  background-image: url("vendor/ckeditor/plugins/mediahubcolumn/icons/mediahubcolumn.png");'+
+		'  background-repeat: no-repeat;'+
+		'  height: 1em;'+
+                '  margin: 0.2em;'+
+		'};'
+	);
+    },
     init: function( editor ) {
 
 	editor.widgets.add( 'mediahubcolumn', {
@@ -12,14 +26,14 @@ CKEDITOR.plugins.add( 'mediahubcolumn', {
 	    button: 'Insert a Column',
   
 	    template:
-        	'<div class="column"></div>',
+        	'<div class="mediahubcolumn"></div>',
             allowedContent:
-                'div(!column)',
+                'div(!mediahubcolumn)',
 
-            requiredContent: 'div(column)',
+            requiredContent: 'div(mediahubcolumn)',
 
             upcast: function( element ) {
-                return element.name == 'div' && element.hasClass( 'column' );
+                return element.name == 'div' && element.hasClass( 'mediahubcolumn' );
             },
 
 	    init: function() {

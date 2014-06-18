@@ -9,9 +9,31 @@ CKEDITOR.editorConfig = function( config ) {
 	// http://docs.ckeditor.com/#!/api/CKEDITOR.config
 
 	// The toolbar groups arrangement, optimized for two toolbar rows.
-	config.toolbar = [
-		{ name: 'clipboard',   items: [ 'Undo', 'Redo' ] }
+	config.toolbarGroups = [
+		{ name: 'clipboard',   groups: [ 'clipboard', 'undo' ] },
+		{ name: 'editing',     groups: [ 'find', 'selection' ] }, //, 'spellchecker'
+		{ name: 'links' },
+		{ name: 'insert' },
+		{ name: 'forms' },
+		{ name: 'tools' },
+		{ name: 'document',	   groups: [ 'mode', 'document', 'doctools' ] },
+		{ name: 'others' },
+		'/',
+		{ name: 'basicstyles', groups: [ 'basicstyles', 'cleanup' ] },
+		{ name: 'paragraph',   groups: [ 'list', 'indent', 'blocks', 'align', 'bidi' ] },
+		{ name: 'styles' },
+		{ name: 'colors' },
+		{ name: 'about' }
 	];
-        config.plugins = "undo,toolbar,widget,mediahubcolumn";
-        config.allowedContent = "div(column); h1; div(html); div(*)";
+
+	/*config.toolbar = [
+		{ name: 'clipboard',   items: [ 'Undo', 'Redo' ] },
+                { name: 'insert', items: [ 'Insert a Column' ] }
+	];*/
+
+	// not enough: undo,toolbar,
+	// basic: about,basicstyles,clipboard,toolbar,enterkey,entities,floatingspace,wysiwygarea,indentlist,link,list
+	config.plugins = "toolbar,enterkey,floatingspace,wysiwygarea,magicline,contextmenu,elementspath,sourcearea,basicstyles,format";
+        config.extraPlugins = "widget,mediahubcolumn,mediahubcomment";
+        config.allowedContent = "div(mediahubcolumn); h1; h2; div(mediahubcomment); div(html)";
 };

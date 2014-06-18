@@ -7,9 +7,18 @@ window.nextMediahubCallback = 1
 
 module.exports = class BookletEditView extends ThingEditView
 
+  contentToHtml: (content) ->
+    if content?
+      content
+    else
+      ''
+
+  htmlToContent: (html) ->
+    html
+
   # syntax ok?? or (x...) -> 
   template: (d) =>
-    templateBookletEdit _.extend { content: "" }, d
+    templateBookletEdit _.extend { content: @contentToHtml @model.attributes.content }, d
 
   render: =>
     super()
@@ -18,8 +27,8 @@ module.exports = class BookletEditView extends ThingEditView
       path = window.location.pathname
       ix = path.lastIndexOf '/'
       ckconfig = {}
-      #ckconfig.customConfig = path.substring(0,ix+1)+'ckeditor_config_booklet.js'
-      ckconfig.extraPlugins = 'widget,mediahubcolumn'
+      ckconfig.customConfig = path.substring(0,ix+1)+'ckeditor_config_booklet.js'
+      #ckconfig.extraPlugins = 'widget,mediahubcolumn'
       CKEDITOR.replace 'htmlcontent', ckconfig
     setTimeout replace,0
 
@@ -27,6 +36,9 @@ module.exports = class BookletEditView extends ThingEditView
     coverurl = $('.image-select-image', @$el).attr 'src'
     console.log "coverurl = #{coverurl}"
     @model.set coverurl: coverurl
+    html = $(':input[name="htmlcontent"]', @$el).val()
+    console.log "contenthtml = #{html}"
+    @model.set 'content', @htmlToContent html
     super()
 
   remove: () =>

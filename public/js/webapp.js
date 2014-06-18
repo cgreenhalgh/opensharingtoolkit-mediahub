@@ -1815,9 +1815,21 @@
       return BookletEditView.__super__.constructor.apply(this, arguments);
     }
 
+    BookletEditView.prototype.contentToHtml = function(content) {
+      if (content != null) {
+        return content;
+      } else {
+        return '';
+      }
+    };
+
+    BookletEditView.prototype.htmlToContent = function(html) {
+      return html;
+    };
+
     BookletEditView.prototype.template = function(d) {
       return templateBookletEdit(_.extend({
-        content: ""
+        content: this.contentToHtml(this.model.attributes.content)
       }, d));
     };
 
@@ -1830,19 +1842,22 @@
         path = window.location.pathname;
         ix = path.lastIndexOf('/');
         ckconfig = {};
-        ckconfig.extraPlugins = 'widget,mediahubcolumn';
+        ckconfig.customConfig = path.substring(0, ix + 1) + 'ckeditor_config_booklet.js';
         return CKEDITOR.replace('htmlcontent', ckconfig);
       };
       return setTimeout(replace, 0);
     };
 
     BookletEditView.prototype.formToModel = function() {
-      var coverurl;
+      var coverurl, html;
       coverurl = $('.image-select-image', this.$el).attr('src');
       console.log("coverurl = " + coverurl);
       this.model.set({
         coverurl: coverurl
       });
+      html = $(':input[name="htmlcontent"]', this.$el).val();
+      console.log("contenthtml = " + html);
+      this.model.set('content', this.htmlToContent(html));
       return BookletEditView.__super__.formToModel.call(this);
     };
 
