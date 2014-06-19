@@ -619,6 +619,61 @@
     });
   };
 
+  module.exports.testBooklet = function(booklet) {
+    var clientid;
+    console.log("Offline test with booklet " + booklet.id);
+    clientid = window.clientid;
+    if (clientid.indexOf('client:') !== 0) {
+      clientid = 'client:' + clientid;
+    }
+    return db.get(clientid, function(err, client) {
+      var content, coverurl, m, src, srcs;
+      if (err != null) {
+        console.log("error getting client " + err + " - new?");
+        client = {
+          _id: clientid
+        };
+      } else {
+        console.log("got client " + client._id + " " + client._rev);
+      }
+      client.files = [];
+      coverurl = booklet.attributes.coverurl;
+      if ((coverurl != null) && coverurl !== '') {
+        client.files.push({
+          url: coverurl,
+          title: 'cover'
+        });
+      }
+      content = booklet.attributes.content;
+      if (content != null) {
+        srcs = /<[iI][mM][gG][^>]+src="?([^"\s>]+)"?[^>]*\/>/g;
+        while (m = srcs.exec(content)) {
+          src = m[1];
+          if (src.length > 0) {
+            client.files.push({
+              url: src,
+              title: 'img'
+            });
+          }
+        }
+      }
+      client.items = [];
+      client.items.push({
+        id: booklet.id,
+        type: 'booklet',
+        url: config.dburl + "/" + booklet.id
+      });
+      return db.put(client, function(err, response) {
+        if (err != null) {
+          return console.log("error setting client " + err);
+        } else {
+          console.log("set client " + clientid);
+          return window.open(config.dburl + "/_design/app/_show/index/" + clientid, '_self');
+        }
+      });
+    });
+  };
+
 }).call(this);
 }, "plugins": function(exports, require, module) {(function() {
   var contentTypes;
@@ -650,7 +705,7 @@
 
   ThisThingListView = require('views/ThingList');
 
-  ThisThingInListView = require('views/ThingInList');
+  ThisThingInListView = require('views/BookletInList');
 
   ThisThingView = null;
 
@@ -924,6 +979,56 @@
       __out.push(__sanitize(this.content));
     
       __out.push('</textarea>\n    </label>\n\n  </div>\n</form>\n\n');
+    
+    }).call(this);
+    
+  }).call(__obj);
+  __obj.safe = __objSafe, __obj.escape = __escape;
+  return __out.join('');
+}}, "templates/BookletInList": function(exports, require, module) {module.exports = function(__obj) {
+  if (!__obj) __obj = {};
+  var __out = [], __capture = function(callback) {
+    var out = __out, result;
+    __out = [];
+    callback.call(this);
+    result = __out.join('');
+    __out = out;
+    return __safe(result);
+  }, __sanitize = function(value) {
+    if (value && value.ecoSafe) {
+      return value;
+    } else if (typeof value !== 'undefined' && value != null) {
+      return __escape(value);
+    } else {
+      return '';
+    }
+  }, __safe, __objSafe = __obj.safe, __escape = __obj.escape;
+  __safe = __obj.safe = function(value) {
+    if (value && value.ecoSafe) {
+      return value;
+    } else {
+      if (!(typeof value !== 'undefined' && value != null)) value = '';
+      var result = new String(value);
+      result.ecoSafe = true;
+      return result;
+    }
+  };
+  if (!__escape) {
+    __escape = __obj.escape = function(value) {
+      return ('' + value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    };
+  }
+  (function() {
+    (function() {
+      __out.push('\n<h4 class="clearfix">');
+    
+      __out.push(__sanitize(this.title));
+    
+      __out.push('\n  <a href="#" class="action-button do-delete-file right">Delete</a>\n  <a href="#" class="action-button do-edit-file right">Edit</a>\n  <a href="#" class="action-button do-view-file right">View</a>\n  <a href="#" class="action-button do-testapp right">Test Offline</a>\n</h3>\n');
     
     }).call(this);
     
@@ -1843,6 +1948,15 @@
         ix = path.lastIndexOf('/');
         ckconfig = {};
         ckconfig.customConfig = path.substring(0, ix + 1) + 'ckeditor_config_booklet.js';
+        path = window.location.pathname;
+        ix = path.lastIndexOf('/');
+        if (ix < 0) {
+          console.log("Location path not valid: " + path);
+        } else {
+          path = path.substring(0, ix + 1);
+          ckconfig.filebrowserBrowseUrl = path + 'filebrowse.html';
+          ckconfig.filebrowserImageBrowseUrl = path + 'filebrowse.html?type=image%2F';
+        }
         return CKEDITOR.replace('htmlcontent', ckconfig);
       };
       return setTimeout(replace, 0);
@@ -1908,6 +2022,48 @@
     return BookletEditView;
 
   })(ThingEditView);
+
+}).call(this);
+}, "views/BookletInList": function(exports, require, module) {(function() {
+  var BookletInListView, ThingInListView, offline, templateBookletInList,
+    __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
+    __hasProp = {}.hasOwnProperty,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+  templateBookletInList = require('templates/BookletInList');
+
+  ThingInListView = require('views/ThingInList');
+
+  offline = require('offline');
+
+  module.exports = BookletInListView = (function(_super) {
+    __extends(BookletInListView, _super);
+
+    function BookletInListView() {
+      this.testapp = __bind(this.testapp, this);
+      this.template = __bind(this.template, this);
+      return BookletInListView.__super__.constructor.apply(this, arguments);
+    }
+
+    BookletInListView.prototype.template = function(d) {
+      return templateBookletInList(d);
+    };
+
+    BookletInListView.prototype.events = {
+      "click .do-edit-file": "edit",
+      "click .do-delete-file": "delete",
+      "click .do-save": "save",
+      "click .do-testapp": "testapp"
+    };
+
+    BookletInListView.prototype.testapp = function(ev) {
+      ev.preventDefault();
+      return offline.testBooklet(this.model);
+    };
+
+    return BookletInListView;
+
+  })(ThingInListView);
 
 }).call(this);
 }, "views/ContentTypeInList": function(exports, require, module) {(function() {

@@ -49,7 +49,7 @@
   }
   return this.require.define;
 }).call(this)({"app": function(exports, require, module) {(function() {
-  var App, CacheStateWidgetView, LocaldbStateListView, Router, SyncState, SyncStateWidgetView, Track, TrackReview, TrackReviewList, TrackView, appcache, checkConfig, checkTrack, clientid, dburl, itemViews, loadItems, loadTrack, localdb, refresh, syncState,
+  var App, BookletView, CacheStateWidgetView, LocaldbStateListView, Router, SyncState, SyncStateWidgetView, Track, TrackReview, TrackReviewList, TrackView, appcache, checkConfig, checkItem, clientid, dburl, itemViews, loadItem, loadItems, localdb, makeBooklet, makeTrack, refresh, syncState,
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
@@ -71,6 +71,8 @@
 
   SyncStateWidgetView = require('views/SyncStateWidget');
 
+  BookletView = require('views/BookletCover');
+
   localdb = require('localdb');
 
   itemViews = [];
@@ -89,26 +91,26 @@
     }
 
     Router.prototype.routes = {
-      "": "entries"
+      "": "entries",
+      "#": "entries",
+      "booklet/:id": "booklet"
     };
 
     Router.prototype.entries = function() {
       return console.log("router: entries");
     };
 
+    Router.prototype.booklet = function(id) {
+      return console.log("show booklet " + id);
+    };
+
     return Router;
 
   })(Backbone.Router);
 
-  checkTrack = function(instanceid, data) {
+  makeTrack = function(data) {
     var cid, err, reviewid, track, trackView, trackid;
-    if (instanceid !== localdb.currentInstanceid()) {
-      console.log("Ignore track on load; old instanceid " + instanceid + " vs " + (localdb.currentInstanceid()));
-      return;
-    }
-    console.log("track: " + data);
     try {
-      data = JSON.parse(data);
       data.url = dburl + "/" + data._id + "/bytes";
       track = new Track(data);
       trackid = data._id.indexOf(':') >= 0 ? data._id.substring(data._id.indexOf(':') + 1) : data._id;
@@ -146,21 +148,58 @@
       return $('body').append(trackView.el);
     } catch (_error) {
       err = _error;
-      return console.log("error parsing track: " + err.message + ": " + data);
+      return console.log("error making track: " + err.message + ": " + data);
     }
   };
 
-  loadTrack = function(instanceid, item) {
+  makeBooklet = function(data) {
+    var booklet, err, view;
+    try {
+      booklet = new Backbone.Model(data);
+      view = new BookletView({
+        model: booklet
+      });
+      itemViews.push(view);
+      return $('body').append(view.el);
+    } catch (_error) {
+      err = _error;
+      return console.log("error making booklet: " + err.message + ": " + data);
+    }
+  };
+
+  checkItem = function(instanceid, item, data) {
+    var err;
+    if (instanceid !== localdb.currentInstanceid()) {
+      console.log("Ignore item on load; old instanceid " + instanceid + " vs " + (localdb.currentInstanceid()));
+      return;
+    }
+    console.log("" + item.type + ": " + data);
+    try {
+      data = JSON.parse(data);
+      if (item.type === 'track') {
+        return makeTrack(data);
+      } else if (item.type === 'booklet') {
+        return makeBooklet(data);
+      } else {
+        return console.log("unknown item type " + item.type + " - ignored");
+      }
+    } catch (_error) {
+      err = _error;
+      return console.log("error parsing item: " + err.message + ": " + data);
+    }
+  };
+
+  loadItem = function(instanceid, item) {
     console.log("load track " + item.id);
     return $.ajax(dburl + "/" + item.id, {
       success: function(data) {
-        return checkTrack(instanceid, data);
+        return checkItem(instanceid, item, data);
       },
       dataType: "text",
       error: function(xhr, status, err) {
         console.log("get track error " + xhr.status + ": " + err.message);
         if (xhr.status === 0 && xhr.responseText) {
-          return checkTrack(instanceid, xhr.responseText);
+          return checkItem(instanceid, item, xhr.responseText);
         }
       }
     });
@@ -172,8 +211,8 @@
     _results = [];
     for (_i = 0, _len = _ref.length; _i < _len; _i++) {
       item = _ref[_i];
-      if (item.type === 'track') {
-        _results.push(loadTrack(instanceid, item));
+      if (item.type != null) {
+        _results.push(loadItem(instanceid, item));
       } else {
         _results.push(void 0);
       }
@@ -227,7 +266,7 @@
 
   App = {
     init: function() {
-      var appcacheWidget, localdbStateListView, router, syncStateWidgetView;
+      var appcacheWidget, ix, localdbStateListView, path, router, syncStateWidgetView;
       clientid = $('meta[name="mediahub-clientid"]').attr('content');
       console.log("OfflineApp starting... clientid=" + clientid);
       dburl = location.href;
@@ -249,7 +288,15 @@
       Backbone.Model.prototype.idAttribute = '_id';
       _.extend(Backbone.Model.prototype, BackbonePouch.attachments());
       router = new Router;
-      Backbone.history.start();
+      window.router = router;
+      path = window.location.pathname;
+      ix = path.lastIndexOf('/');
+      if (ix >= 0) {
+        path = path.substring(0, ix + 1);
+      }
+      Backbone.history.start({
+        root: path
+      });
       $('body').append('<p id="initialising">initialising</p>');
       return localdb.init(function() {
         $('#initialising').remove();
@@ -860,7 +907,69 @@
   })(Backbone.Collection);
 
 }).call(this);
-}, "templates/CacheStateWidget": function(exports, require, module) {module.exports = function(__obj) {
+}, "templates/BookletCover": function(exports, require, module) {module.exports = function(__obj) {
+  if (!__obj) __obj = {};
+  var __out = [], __capture = function(callback) {
+    var out = __out, result;
+    __out = [];
+    callback.call(this);
+    result = __out.join('');
+    __out = out;
+    return __safe(result);
+  }, __sanitize = function(value) {
+    if (value && value.ecoSafe) {
+      return value;
+    } else if (typeof value !== 'undefined' && value != null) {
+      return __escape(value);
+    } else {
+      return '';
+    }
+  }, __safe, __objSafe = __obj.safe, __escape = __obj.escape;
+  __safe = __obj.safe = function(value) {
+    if (value && value.ecoSafe) {
+      return value;
+    } else {
+      if (!(typeof value !== 'undefined' && value != null)) value = '';
+      var result = new String(value);
+      result.ecoSafe = true;
+      return result;
+    }
+  };
+  if (!__escape) {
+    __escape = __obj.escape = function(value) {
+      return ('' + value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    };
+  }
+  (function() {
+    (function() {
+      __out.push('\n<div class="columns small-12 medium-6 large-4">\n  <h1>');
+    
+      __out.push(__sanitize(this.title));
+    
+      __out.push('</h1>\n  ');
+    
+      if (this.coverurl != null) {
+        __out.push('\n    <p><a href="#" class="do-open">\n      <img src="');
+        __out.push(__sanitize(this.coverurl));
+        __out.push('" width="80%" height="auto"/>\n    </a></p>\n  ');
+      }
+    
+      __out.push('\n  <p><a href="#" class="button do-open">Open...</a></p>\n  <p>');
+    
+      __out.push(__sanitize(this.description));
+    
+      __out.push('</p>\n</div>\n\n');
+    
+    }).call(this);
+    
+  }).call(__obj);
+  __obj.safe = __objSafe, __obj.escape = __escape;
+  return __out.join('');
+}}, "templates/CacheStateWidget": function(exports, require, module) {module.exports = function(__obj) {
   if (!__obj) __obj = {};
   var __out = [], __capture = function(callback) {
     var out = __out, result;
@@ -1300,7 +1409,60 @@
   }).call(__obj);
   __obj.safe = __objSafe, __obj.escape = __escape;
   return __out.join('');
-}}, "views/CacheStateWidget": function(exports, require, module) {(function() {
+}}, "views/BookletCover": function(exports, require, module) {(function() {
+  var BookletCoverView, templateBookletCover,
+    __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
+    __hasProp = {}.hasOwnProperty,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+  templateBookletCover = require('templates/BookletCover');
+
+  module.exports = BookletCoverView = (function(_super) {
+    __extends(BookletCoverView, _super);
+
+    function BookletCoverView() {
+      this.open = __bind(this.open, this);
+      this.render = __bind(this.render, this);
+      this.template = __bind(this.template, this);
+      return BookletCoverView.__super__.constructor.apply(this, arguments);
+    }
+
+    BookletCoverView.prototype.tagName = 'div';
+
+    BookletCoverView.prototype.className = 'row';
+
+    BookletCoverView.prototype.initialize = function() {
+      this.listenTo(this.model, 'change', this.render);
+      return this.render();
+    };
+
+    BookletCoverView.prototype.template = function(d) {
+      return templateBookletCover(d);
+    };
+
+    BookletCoverView.prototype.render = function() {
+      this.$el.html(this.template(this.model.attributes));
+      return this;
+    };
+
+    BookletCoverView.prototype.events = {
+      'click .do-open': 'open'
+    };
+
+    BookletCoverView.prototype.open = function(ev) {
+      console.log("open booklet " + this.model.id);
+      ev.preventDefault();
+      return window.router.navigate('#booklet/' + encodeURIComponent(this.model.id), {
+        trigger: true
+      });
+    };
+
+    return BookletCoverView;
+
+  })(Backbone.View);
+
+}).call(this);
+}, "views/CacheStateWidget": function(exports, require, module) {(function() {
   var CacheStateWidget, templateCacheStateWidget,
     __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
     __hasProp = {}.hasOwnProperty,

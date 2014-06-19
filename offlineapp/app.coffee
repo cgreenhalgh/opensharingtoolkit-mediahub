@@ -10,6 +10,9 @@ LocaldbStateListView = require 'views/LocaldbStateList'
 SyncState = require 'models/SyncState'
 SyncStateWidgetView = require 'views/SyncStateWidget'
 
+#Booklet = require 'models/Booklet'
+BookletView = require 'views/BookletCover'
+
 localdb = require 'localdb'
 
 #config = window.mediahubconfig
@@ -22,17 +25,19 @@ syncState = new SyncState()
 class Router extends Backbone.Router
   routes: 
     "" : "entries"
+    "#" : "entries"
+    "booklet/:id": "booklet"
 
   entries: ->
     console.log "router: entries"
+    # TODO
 
-checkTrack = (instanceid, data) ->
-  if instanceid isnt localdb.currentInstanceid()
-    console.log "Ignore track on load; old instanceid #{instanceid} vs #{localdb.currentInstanceid()}"
-    return
-  console.log "track: #{data}"
-  try 
-    data = JSON.parse data
+  booklet: (id) ->
+    console.log "show booklet #{id}"
+    # TODO 
+
+makeTrack = (data) ->
+  try
     data.url = dburl+"/"+data._id+"/bytes"
     track = new Track data
     trackid = if data._id.indexOf(':')>=0 then data._id.substring(data._id.indexOf(':')+1) else data._id
@@ -61,26 +66,51 @@ checkTrack = (instanceid, data) ->
     itemViews.push trackView
     $('body').append trackView.el
   catch err
-    console.log "error parsing track: #{err.message}: #{data}"
+    console.log "error making track: #{err.message}: #{data}"
 
 
-loadTrack = (instanceid,item) ->
+makeBooklet = (data) ->
+  try
+    booklet = new Backbone.Model data
+    view = new BookletView model:booklet
+    itemViews.push view
+    $('body').append view.el
+  catch err
+    console.log "error making booklet: #{err.message}: #{data}"
+
+checkItem = (instanceid, item, data) ->
+  if instanceid isnt localdb.currentInstanceid()
+    console.log "Ignore item on load; old instanceid #{instanceid} vs #{localdb.currentInstanceid()}"
+    return
+  console.log "#{item.type}: #{data}"
+  try 
+    data = JSON.parse data
+    if item.type=='track'
+      makeTrack data
+    else if item.type=='booklet'
+      makeBooklet data
+    else
+      console.log "unknown item type #{item.type} - ignored"
+  catch err
+    console.log "error parsing item: #{err.message}: #{data}"
+
+loadItem = (instanceid,item) ->
   console.log "load track #{item.id}"
   $.ajax dburl+"/"+item.id,
     success: (data)->
-      checkTrack instanceid, data
+      checkItem instanceid, item, data
     dataType: "text"
     error: (xhr,status,err) ->
       console.log "get track error "+xhr.status+": "+err.message
       # on android (at least) files from cache sometimes have status 0!!
       if xhr.status==0 && xhr.responseText
-        checkTrack instanceid, xhr.responseText
+        checkItem instanceid, item, xhr.responseText
 
 loadItems = (instanceid, data) ->
   for item in data.items
     # id, url, type
-    if item.type=='track'
-      loadTrack instanceid,item
+    if item.type?
+      loadItem instanceid,item
 
 checkConfig = (data) ->
   console.log  "config: "+data 
@@ -147,9 +177,15 @@ App =
 
     # in-app virtual pages
     router = new Router
-    #window.router = router
+    window.router = router
     
-    Backbone.history.start()
+    path = window.location.pathname
+    ix = path.lastIndexOf '/'
+    if ix>=0
+      path = path.substring 0,(ix+1)
+    if not Backbone.history.start root:path
+      console.log "invalid initial route"
+      router.navigate '#', trigger:true
 
     # wait for localdb initialisation
     $('body').append '<p id="initialising">initialising</p>'

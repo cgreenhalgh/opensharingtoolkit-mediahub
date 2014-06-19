@@ -44,7 +44,7 @@ CKEDITOR.plugins.add( 'mediahubcomment', {
 
             upcast: function( element ) {
                 // eat top-level <p>s?
-		if (element.name == 'p' ) {
+		if (CKEDITOR.config.mediahubcomment_replaceParagraphs && element.name == 'p' ) {
 		    var div = element.getAscendant( 'div' );
 		    // wrapper?
 		    while ( div && div.hasClass( 'cke_widget_wrapper' ))
@@ -77,4 +77,14 @@ CKEDITOR.plugins.add( 'mediahubcomment', {
     }
 
 } );
+
+/**
+ * Whether to replace paragraph elements with mediahubcomments (default: false). 
+ *
+ *		config.mediahubcomment_replaceParagraphs = true;
+ *
+ * @cfg {Boolean} [mediahubcomment_replaceParagraphs=true]
+ * @member CKEDITOR.config
+ */
+CKEDITOR.config.mediahubcomment_replaceParagraphs = false;
 

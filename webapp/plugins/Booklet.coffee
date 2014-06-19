@@ -3,7 +3,7 @@ plugins = require 'plugins'
 ThisThing = require 'models/Booklet'
 ThisThingList = require 'models/BookletList'
 ThisThingListView = require 'views/ThingList'
-ThisThingInListView = require 'views/ThingInList'
+ThisThingInListView = require 'views/BookletInList'
 ThisThingView = null; #require 'views/Booket'
 ThisThingEditView = require 'views/BookletEdit'
 

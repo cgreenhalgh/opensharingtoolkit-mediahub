@@ -33,7 +33,10 @@ CKEDITOR.editorConfig = function( config ) {
 
 	// not enough: undo,toolbar,
 	// basic: about,basicstyles,clipboard,toolbar,enterkey,entities,floatingspace,wysiwygarea,indentlist,link,list
-	config.plugins = "toolbar,enterkey,floatingspace,wysiwygarea,magicline,contextmenu,elementspath,sourcearea,basicstyles,format,undo";
+	//config.plugins = "toolbar,enterkey,floatingspace,wysiwygarea,magicline,contextmenu,elementspath,sourcearea,basicstyles,format,undo";
+	// default to standard build
         config.extraPlugins = "widget,mediahubcolumn,mediahubcomment";
-        config.allowedContent = "div(mediahubcolumn); h1; h2; div(mediahubcomment); div(html)";
+	// config.mediahubcomment_replaceParagraphs = true;
+        config.allowedContent = "div(mediahubcolumn); h1; h2; div(mediahubcomment); h3; h4; p; li; ul; ol; img[alt,src,width,height]; a[href,id]; strong; em; b; i";
 };
+
