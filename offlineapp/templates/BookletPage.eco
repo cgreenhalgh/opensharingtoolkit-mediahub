@@ -1,0 +1,13 @@
+<nav class="top-bar" data-topbar>
+  <ul class="title-area">
+    <li class="name">
+      <h1><a href="#"><%= @booklet.title %></a></h1>
+    </li>
+  </ul>
+</nav>
+<div class="row">
+  <div class="columns large-6 medium-4 small-12">
+    <h2>TOC...</h2>
+  </div>
+  <div class="contentholder columns large-6 medium-8 small-12"></div>
+</div>

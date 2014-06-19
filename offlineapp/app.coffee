@@ -1,6 +1,7 @@
 # offline app
 
 appcache = require 'appcache'
+HomeView = require 'views/Home'
 CacheStateWidgetView = require 'views/CacheStateWidget'
 Track = require 'models/Track'
 TrackView = require 'views/Track'
@@ -10,8 +11,8 @@ LocaldbStateListView = require 'views/LocaldbStateList'
 SyncState = require 'models/SyncState'
 SyncStateWidgetView = require 'views/SyncStateWidget'
 
-#Booklet = require 'models/Booklet'
-BookletView = require 'views/BookletCover'
+BookletCoverView = require 'views/BookletCover'
+BookletView = require 'views/Booklet'
 
 localdb = require 'localdb'
 
@@ -22,24 +23,57 @@ dburl = null
 clientid = null
 syncState = new SyncState()
 
+items = {}
+currentView = null
+
 class Router extends Backbone.Router
   routes: 
     "" : "entries"
     "#" : "entries"
     "booklet/:id": "booklet"
+    "booklet/:id/:page": "bookletPage"
+
+  removeCurrentView: ->
+    if currentView?
+      try 
+        currentView.remove()
+      catch err
+        console.log "error removing current view: #{err.message}"
+      currentView = null
 
   entries: ->
     console.log "router: entries"
+    @removeCurrentView()
+    $('#home').show()
     # TODO
 
   booklet: (id) ->
     console.log "show booklet #{id}"
-    # TODO 
+    @removeCurrentView()
+    $('#home').hide()
+    booklet = items[id]
+    if not booklet?
+      alert "Sorry, could not find booklet #{id}"
+      @navigate '#', { trigger:true, replace:true }
+      return false
+
+    currentView = new BookletView model: booklet
+    $('body').append currentView.el
+    true
+
+  bookletPage: (id,page) ->
+    if not currentView? or currentView.model.id != id
+      if not @booklet id
+        return
+    currentView.showPage page
 
 makeTrack = (data) ->
   try
     data.url = dburl+"/"+data._id+"/bytes"
     track = new Track data
+    if track.id
+      items[track.id] = track
+
     trackid = if data._id.indexOf(':')>=0 then data._id.substring(data._id.indexOf(':')+1) else data._id
     cid = if clientid.indexOf(':')>=0 then clientid.substring(clientid.indexOf(':')+1) else clientid
     reviewid = 'trackreview:'+trackid+':'+cid
@@ -64,7 +98,7 @@ makeTrack = (data) ->
 
     trackView = new TrackView model:track
     itemViews.push trackView
-    $('body').append trackView.el
+    $('#home').append trackView.el
   catch err
     console.log "error making track: #{err.message}: #{data}"
 
@@ -72,9 +106,11 @@ makeTrack = (data) ->
 makeBooklet = (data) ->
   try
     booklet = new Backbone.Model data
-    view = new BookletView model:booklet
+    if booklet.id
+      items[booklet.id] = booklet
+    view = new BookletCoverView model:booklet
     itemViews.push view
-    $('body').append view.el
+    $('#home').append view.el
   catch err
     console.log "error making booklet: #{err.message}: #{data}"
 
@@ -120,14 +156,14 @@ checkConfig = (data) ->
     instanceid = data._id+':'+data._rev
     localdb.swapdb dburl, data
     # wait for localdb sync
-    $('body').append '<p id="syncing">synchronizing</p>'
+    $('#home').append '<p id="syncing">synchronizing</p>'
     syncState.doSync (success) ->
       if success
         $('#syncing').remove()
         loadItems instanceid, data
       else
         console.log "Error doing initial synchronization"
-        $('body').replace '<p id="syncing">Error doing initial synchronization - try reloading this page</p>'
+        $('#home').replace '<p id="syncing">Error doing initial synchronization - try reloading this page</p>'
 
   catch err
     console.log "error parsing client config: #{err.message}: #{data} - #{err.stack}"
@@ -149,6 +185,11 @@ refresh = ()->
 
 App = 
   init: ->
+
+    home = new HomeView model:{}
+    home.el.id = 'home'
+    $('body').append home.el
+
     clientid = $('meta[name="mediahub-clientid"]').attr('content')
     console.log "OfflineApp starting... clientid=#{clientid}"
     # presume index is served by couchdb .../_design/app/_show/...
@@ -156,13 +197,13 @@ App =
     if dburl.indexOf('/_design/')>=0
       dburl = dburl.substring 0,dburl.indexOf('/_design/')
     appcacheWidget = new CacheStateWidgetView model: appcache.state
-    $('body').append appcacheWidget.el
+    $('#home').append appcacheWidget.el
 
     localdbStateListView = new LocaldbStateListView model: localdb.localdbStateList
-    $('body').append localdbStateListView.el
+    $('#home').append localdbStateListView.el
 
     syncStateWidgetView = new SyncStateWidgetView model: syncState
-    $('body').append syncStateWidgetView.el   
+    $('#home').append syncStateWidgetView.el   
 
     #Backbone.sync =  BackbonePouch.sync
     #  db: db
@@ -183,12 +224,12 @@ App =
     ix = path.lastIndexOf '/'
     if ix>=0
       path = path.substring 0,(ix+1)
-    if not Backbone.history.start root:path
+    if not Backbone.history.start( root:path )
       console.log "invalid initial route"
       router.navigate '#', trigger:true
 
     # wait for localdb initialisation
-    $('body').append '<p id="initialising">initialising</p>'
+    $('#home').append '<p id="initialising">initialising</p>'
 
     localdb.init ()->
       $('#initialising').remove()

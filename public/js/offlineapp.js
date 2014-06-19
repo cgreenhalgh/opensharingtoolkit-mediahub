@@ -49,11 +49,13 @@
   }
   return this.require.define;
 }).call(this)({"app": function(exports, require, module) {(function() {
-  var App, BookletView, CacheStateWidgetView, LocaldbStateListView, Router, SyncState, SyncStateWidgetView, Track, TrackReview, TrackReviewList, TrackView, appcache, checkConfig, checkItem, clientid, dburl, itemViews, loadItem, loadItems, localdb, makeBooklet, makeTrack, refresh, syncState,
+  var App, BookletCoverView, BookletView, CacheStateWidgetView, HomeView, LocaldbStateListView, Router, SyncState, SyncStateWidgetView, Track, TrackReview, TrackReviewList, TrackView, appcache, checkConfig, checkItem, clientid, currentView, dburl, itemViews, items, loadItem, loadItems, localdb, makeBooklet, makeTrack, refresh, syncState,
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
   appcache = require('appcache');
+
+  HomeView = require('views/Home');
 
   CacheStateWidgetView = require('views/CacheStateWidget');
 
@@ -71,7 +73,9 @@
 
   SyncStateWidgetView = require('views/SyncStateWidget');
 
-  BookletView = require('views/BookletCover');
+  BookletCoverView = require('views/BookletCover');
+
+  BookletView = require('views/Booklet');
 
   localdb = require('localdb');
 
@@ -83,6 +87,10 @@
 
   syncState = new SyncState();
 
+  items = {};
+
+  currentView = null;
+
   Router = (function(_super) {
     __extends(Router, _super);
 
@@ -93,15 +101,57 @@
     Router.prototype.routes = {
       "": "entries",
       "#": "entries",
-      "booklet/:id": "booklet"
+      "booklet/:id": "booklet",
+      "booklet/:id/:page": "bookletPage"
+    };
+
+    Router.prototype.removeCurrentView = function() {
+      var err;
+      if (currentView != null) {
+        try {
+          currentView.remove();
+        } catch (_error) {
+          err = _error;
+          console.log("error removing current view: " + err.message);
+        }
+        return currentView = null;
+      }
     };
 
     Router.prototype.entries = function() {
-      return console.log("router: entries");
+      console.log("router: entries");
+      this.removeCurrentView();
+      return $('#home').show();
     };
 
     Router.prototype.booklet = function(id) {
-      return console.log("show booklet " + id);
+      var booklet;
+      console.log("show booklet " + id);
+      this.removeCurrentView();
+      $('#home').hide();
+      booklet = items[id];
+      if (booklet == null) {
+        alert("Sorry, could not find booklet " + id);
+        this.navigate('#', {
+          trigger: true,
+          replace: true
+        });
+        return false;
+      }
+      currentView = new BookletView({
+        model: booklet
+      });
+      $('body').append(currentView.el);
+      return true;
+    };
+
+    Router.prototype.bookletPage = function(id, page) {
+      if ((currentView == null) || currentView.model.id !== id) {
+        if (!this.booklet(id)) {
+          return;
+        }
+      }
+      return currentView.showPage(page);
     };
 
     return Router;
@@ -113,6 +163,9 @@
     try {
       data.url = dburl + "/" + data._id + "/bytes";
       track = new Track(data);
+      if (track.id) {
+        items[track.id] = track;
+      }
       trackid = data._id.indexOf(':') >= 0 ? data._id.substring(data._id.indexOf(':') + 1) : data._id;
       cid = clientid.indexOf(':') >= 0 ? clientid.substring(clientid.indexOf(':') + 1) : clientid;
       reviewid = 'trackreview:' + trackid + ':' + cid;
@@ -145,7 +198,7 @@
         model: track
       });
       itemViews.push(trackView);
-      return $('body').append(trackView.el);
+      return $('#home').append(trackView.el);
     } catch (_error) {
       err = _error;
       return console.log("error making track: " + err.message + ": " + data);
@@ -156,11 +209,14 @@
     var booklet, err, view;
     try {
       booklet = new Backbone.Model(data);
-      view = new BookletView({
+      if (booklet.id) {
+        items[booklet.id] = booklet;
+      }
+      view = new BookletCoverView({
         model: booklet
       });
       itemViews.push(view);
-      return $('body').append(view.el);
+      return $('#home').append(view.el);
     } catch (_error) {
       err = _error;
       return console.log("error making booklet: " + err.message + ": " + data);
@@ -227,14 +283,14 @@
       data = JSON.parse(data);
       instanceid = data._id + ':' + data._rev;
       localdb.swapdb(dburl, data);
-      $('body').append('<p id="syncing">synchronizing</p>');
+      $('#home').append('<p id="syncing">synchronizing</p>');
       return syncState.doSync(function(success) {
         if (success) {
           $('#syncing').remove();
           return loadItems(instanceid, data);
         } else {
           console.log("Error doing initial synchronization");
-          return $('body').replace('<p id="syncing">Error doing initial synchronization - try reloading this page</p>');
+          return $('#home').replace('<p id="syncing">Error doing initial synchronization - try reloading this page</p>');
         }
       });
     } catch (_error) {
@@ -266,7 +322,12 @@
 
   App = {
     init: function() {
-      var appcacheWidget, ix, localdbStateListView, path, router, syncStateWidgetView;
+      var appcacheWidget, home, ix, localdbStateListView, path, router, syncStateWidgetView;
+      home = new HomeView({
+        model: {}
+      });
+      home.el.id = 'home';
+      $('body').append(home.el);
       clientid = $('meta[name="mediahub-clientid"]').attr('content');
       console.log("OfflineApp starting... clientid=" + clientid);
       dburl = location.href;
@@ -276,15 +337,15 @@
       appcacheWidget = new CacheStateWidgetView({
         model: appcache.state
       });
-      $('body').append(appcacheWidget.el);
+      $('#home').append(appcacheWidget.el);
       localdbStateListView = new LocaldbStateListView({
         model: localdb.localdbStateList
       });
-      $('body').append(localdbStateListView.el);
+      $('#home').append(localdbStateListView.el);
       syncStateWidgetView = new SyncStateWidgetView({
         model: syncState
       });
-      $('body').append(syncStateWidgetView.el);
+      $('#home').append(syncStateWidgetView.el);
       Backbone.Model.prototype.idAttribute = '_id';
       _.extend(Backbone.Model.prototype, BackbonePouch.attachments());
       router = new Router;
@@ -294,10 +355,15 @@
       if (ix >= 0) {
         path = path.substring(0, ix + 1);
       }
-      Backbone.history.start({
+      if (!Backbone.history.start({
         root: path
-      });
-      $('body').append('<p id="initialising">initialising</p>');
+      })) {
+        console.log("invalid initial route");
+        router.navigate('#', {
+          trigger: true
+        });
+      }
+      $('#home').append('<p id="initialising">initialising</p>');
       return localdb.init(function() {
         $('#initialising').remove();
         appcache.onUpdate(function() {
@@ -969,6 +1035,56 @@
   }).call(__obj);
   __obj.safe = __objSafe, __obj.escape = __escape;
   return __out.join('');
+}}, "templates/BookletPage": function(exports, require, module) {module.exports = function(__obj) {
+  if (!__obj) __obj = {};
+  var __out = [], __capture = function(callback) {
+    var out = __out, result;
+    __out = [];
+    callback.call(this);
+    result = __out.join('');
+    __out = out;
+    return __safe(result);
+  }, __sanitize = function(value) {
+    if (value && value.ecoSafe) {
+      return value;
+    } else if (typeof value !== 'undefined' && value != null) {
+      return __escape(value);
+    } else {
+      return '';
+    }
+  }, __safe, __objSafe = __obj.safe, __escape = __obj.escape;
+  __safe = __obj.safe = function(value) {
+    if (value && value.ecoSafe) {
+      return value;
+    } else {
+      if (!(typeof value !== 'undefined' && value != null)) value = '';
+      var result = new String(value);
+      result.ecoSafe = true;
+      return result;
+    }
+  };
+  if (!__escape) {
+    __escape = __obj.escape = function(value) {
+      return ('' + value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    };
+  }
+  (function() {
+    (function() {
+      __out.push('<nav class="top-bar" data-topbar>\n  <ul class="title-area">\n    <li class="name">\n      <h1><a href="#">');
+    
+      __out.push(__sanitize(this.booklet.title));
+    
+      __out.push('</a></h1>\n    </li>\n  </ul>\n</nav>\n<div class="row">\n  <div class="columns large-6 medium-4 small-12">\n    <h2>TOC...</h2>\n  </div>\n  <div class="contentholder columns large-6 medium-8 small-12"></div>\n</div>\n');
+    
+    }).call(this);
+    
+  }).call(__obj);
+  __obj.safe = __objSafe, __obj.escape = __escape;
+  return __out.join('');
 }}, "templates/CacheStateWidget": function(exports, require, module) {module.exports = function(__obj) {
   if (!__obj) __obj = {};
   var __out = [], __capture = function(callback) {
@@ -1037,6 +1153,52 @@
       }
     
       __out.push('\n    </div>\n  </div>\n\n\n');
+    
+    }).call(this);
+    
+  }).call(__obj);
+  __obj.safe = __objSafe, __obj.escape = __escape;
+  return __out.join('');
+}}, "templates/Home": function(exports, require, module) {module.exports = function(__obj) {
+  if (!__obj) __obj = {};
+  var __out = [], __capture = function(callback) {
+    var out = __out, result;
+    __out = [];
+    callback.call(this);
+    result = __out.join('');
+    __out = out;
+    return __safe(result);
+  }, __sanitize = function(value) {
+    if (value && value.ecoSafe) {
+      return value;
+    } else if (typeof value !== 'undefined' && value != null) {
+      return __escape(value);
+    } else {
+      return '';
+    }
+  }, __safe, __objSafe = __obj.safe, __escape = __obj.escape;
+  __safe = __obj.safe = function(value) {
+    if (value && value.ecoSafe) {
+      return value;
+    } else {
+      if (!(typeof value !== 'undefined' && value != null)) value = '';
+      var result = new String(value);
+      result.ecoSafe = true;
+      return result;
+    }
+  };
+  if (!__escape) {
+    __escape = __obj.escape = function(value) {
+      return ('' + value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    };
+  }
+  (function() {
+    (function() {
+      __out.push('  <nav class="top-bar" data-topbar>\n    <ul class="title-area">\n      <li class="name">\n        <h1><a href="#">OfflineApp</a></h1>\n      </li>\n      <!-- Remove the class "menu-icon" to get rid of menu icon. Take out "Menu" to just have icon alone -->\n      <!-- <li class="toggle-topbar menu-icon"><a href="#"><span>Menu</span></a></li> -->\n    </ul>\n  </nav>\n\n');
     
     }).call(this);
     
@@ -1409,7 +1571,130 @@
   }).call(__obj);
   __obj.safe = __objSafe, __obj.escape = __escape;
   return __out.join('');
-}}, "views/BookletCover": function(exports, require, module) {(function() {
+}}, "views/Booklet": function(exports, require, module) {(function() {
+  var BookletView, templateBookletPage,
+    __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
+    __hasProp = {}.hasOwnProperty,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+  templateBookletPage = require('templates/BookletPage');
+
+  module.exports = BookletView = (function(_super) {
+    __extends(BookletView, _super);
+
+    function BookletView() {
+      this.showPage = __bind(this.showPage, this);
+      this.render = __bind(this.render, this);
+      return BookletView.__super__.constructor.apply(this, arguments);
+    }
+
+    BookletView.prototype.tagName = 'div';
+
+    BookletView.prototype.initialize = function() {
+      return this.render();
+    };
+
+    BookletView.prototype.render = function() {
+      var $el, ahtml, anchor, el, els, err, html, i, page, pages, title, toc, _i, _j, _len, _len1;
+      pages = [];
+      toc = [];
+      try {
+        console.log("Booklet: " + this.model.attributes.content);
+        html = $.parseHTML(this.model.attributes.content);
+        page = [];
+        anchor = 0;
+        for (_i = 0, _len = html.length; _i < _len; _i++) {
+          el = html[_i];
+          $el = $(el);
+          if (el.nodeType === 1 && el.nodeName === 'div' && $el.hasClass('mediahubcolumn')) {
+            if (page.length > 0) {
+              pages.push(page);
+              page = [];
+            }
+          } else if (el.nodeType === 1 && el.nodeName === 'div' && $el.hasClass('mediahubcomment')) {
+
+          } else if (el.nodeType === 1 && el.nodeName === 'h1') {
+            title = $el.html();
+            anchor = encodeURIComponent(this.model.id) + '%2Fa' + (anchor++);
+            toc.push({
+              level: 1,
+              title: title,
+              page: pages.length,
+              anchor: anchor
+            });
+            ahtml = $.parseHTML("<a id='" + anchor + "'><h1>" + title + "</h1></a>");
+            page.push(ahtml[0]);
+          } else if (el.nodeType === 1 && el.nodeName === 'h2') {
+            title = $el.html();
+            anchor = encodeURIComponent(this.model.id) + '%2Fa' + (anchor++);
+            toc.push({
+              level: 2,
+              title: title,
+              page: pages.length,
+              anchor: anchor
+            });
+            ahtml = $.parseHTML("<a id='" + anchor + "'><h2>" + title + "</h2></a>");
+            page.push(ahtml[0]);
+          } else {
+            if (page.length === 0) {
+              title = "page " + (pages.length + 1);
+              anchor = encodeURIComponent(this.model.id) + '%2Fa' + (anchor++);
+              toc.push({
+                level: 0,
+                title: title,
+                page: pages.length,
+                anchor: anchor
+              });
+              ahtml = $.parseHTML("<a id='" + anchor + "'><h1>" + title + "</h1></a>");
+              page.push(ahtml[0]);
+            }
+            page.push(el);
+          }
+        }
+        if (page.length > 0) {
+          pages.push(page);
+          page = [];
+        }
+      } catch (_error) {
+        err = _error;
+        console.log("Error building booklet: " + err.message);
+        if (pages.length === 0) {
+          pages.push($.parseHTML("<p>Sorry, there was a problem viewing this book; please try downloading it again.</p>"));
+        }
+      }
+      if (pages.length === 0) {
+        pages.push($.parseHTML("<p>This booklet has no pages.</p>"));
+      }
+      for (i = _j = 0, _len1 = pages.length; _j < _len1; i = ++_j) {
+        page = pages[i];
+        els = templateBookletPage({
+          booklet: this.model.attributes,
+          toc: toc
+        });
+        el = document.createElement('div');
+        $el = $(el);
+        el.id = "" + (encodeURIComponent(this.model.id)) + "%2Fp" + (i + 1);
+        if (i > 0) {
+          $el.addClass('hide');
+        }
+        $el.append(els);
+        $('.contentholder', $el).append(page);
+        console.log("adding page " + $el);
+        this.$el.append($el);
+      }
+      return this;
+    };
+
+    BookletView.prototype.showPage = function(page) {
+      return console.log("Booklet " + this.model.id + " showPage " + page);
+    };
+
+    return BookletView;
+
+  })(Backbone.View);
+
+}).call(this);
+}, "views/BookletCover": function(exports, require, module) {(function() {
   var BookletCoverView, templateBookletCover,
     __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
     __hasProp = {}.hasOwnProperty,
@@ -1511,6 +1796,43 @@
     };
 
     return CacheStateWidget;
+
+  })(Backbone.View);
+
+}).call(this);
+}, "views/Home": function(exports, require, module) {(function() {
+  var HomeView, templateHome,
+    __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
+    __hasProp = {}.hasOwnProperty,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+  templateHome = require('templates/Home');
+
+  module.exports = HomeView = (function(_super) {
+    __extends(HomeView, _super);
+
+    function HomeView() {
+      this.render = __bind(this.render, this);
+      this.template = __bind(this.template, this);
+      return HomeView.__super__.constructor.apply(this, arguments);
+    }
+
+    HomeView.prototype.tagName = 'div';
+
+    HomeView.prototype.initialize = function() {
+      return this.render();
+    };
+
+    HomeView.prototype.template = function(d) {
+      return templateHome(d);
+    };
+
+    HomeView.prototype.render = function() {
+      this.$el.html(this.template(this.model));
+      return this;
+    };
+
+    return HomeView;
 
   })(Backbone.View);
 
