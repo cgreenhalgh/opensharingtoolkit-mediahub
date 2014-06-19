@@ -16,33 +16,41 @@ module.exports = class BookletView extends Backbone.View
       console.log "Booklet: #{@model.attributes.content}"
       html = $.parseHTML @model.attributes.content
       page = []
-      anchor = 0
-      for el in html
+      nextAnchor = 0
+      anchorPrefix = @model.id.replace( ':', '_')+'_'
+      for el,ei in html
         $el = $(el)
+        #console.log "Element #{ei}: #{el.nodeType} #{el.nodeName}"
+        nodeName = if el.nodeName? 
+          String(el.nodeName).toLowerCase()
+        else
+          el.nodeName
         # div element
-        if el.nodeType == 1 and el.nodeName == 'div' and $el.hasClass( 'mediahubcolumn' )
+        if el.nodeType == 1 and nodeName == 'div' and $el.hasClass( 'mediahubcolumn' )
           if page.length>0
             pages.push page
             page = []
-        else if el.nodeType == 1 and el.nodeName == 'div' and $el.hasClass( 'mediahubcomment' )
+        else if el.nodeType == 1 and nodeName == 'div' and $el.hasClass( 'mediahubcomment' )
           # ignore
-        else if el.nodeType == 1 and el.nodeName == 'h1'
+        else if el.nodeType == 1 and nodeName == 'h1'
           title = $el.html()
-          anchor = encodeURIComponent(@model.id)+'%2Fa'+(anchor++)
+          anchor = anchorPrefix+(pages.length+1)+'_'+(nextAnchor++)
           toc.push { level: 1, title: title, page: pages.length, anchor: anchor }
           ahtml = $.parseHTML "<a id='#{anchor}'><h1>#{title}</h1></a>"
           page.push ahtml[0]
-        else if el.nodeType == 1 and el.nodeName == 'h2'
+        else if el.nodeType == 1 and nodeName == 'h2'
           title = $el.html()
-          anchor = encodeURIComponent(@model.id)+'%2Fa'+(anchor++)
+          anchor = anchorPrefix+(pages.length+1)+'_'+(nextAnchor++)
           toc.push { level: 2, title: title, page: pages.length, anchor: anchor }
           ahtml = $.parseHTML "<a id='#{anchor}'><h2>#{title}</h2></a>"
           page.push ahtml[0]
+        else if el.nodeType == 3 and el.data? and el.data.trim().length==0
+          # ignore
         else
           if page.length==0
             # extra toc entry
             title = "page #{pages.length+1}"
-            anchor = encodeURIComponent(@model.id)+'%2Fa'+(anchor++)
+            anchor = anchorPrefix+(pages.length+1)+'_'
             toc.push { level: 0, title: title, page: pages.length, anchor: anchor }
             ahtml = $.parseHTML "<a id='#{anchor}'><h1>#{title}</h1></a>"
             page.push ahtml[0]
@@ -61,10 +69,15 @@ module.exports = class BookletView extends Backbone.View
       pages.push ($.parseHTML "<p>This booklet has no pages.</p>")
 
     for page, i in pages
-      els = templateBookletPage { booklet: @model.attributes, toc: toc }
+      els = templateBookletPage 
+        booklet: @model.attributes
+        toc: toc
+        next: if i+1<pages.length then i+2 else null
+        prev: if i>0 then i else null 
       el = document.createElement 'div'
       $el = $(el)
-      el.id = "#{encodeURIComponent(@model.id)}%2Fp#{i+1}"
+      el.id = "#{@model.id.replace( ':', '_' )}_p#{i+1}"
+      $el.addClass 'booklet-page'
       if i>0 
        $el.addClass 'hide'
       $el.append els
@@ -73,8 +86,49 @@ module.exports = class BookletView extends Backbone.View
       @$el.append $el
     @
 
-  showPage: (page) =>
-    console.log "Booklet #{@model.id} showPage #{page}"
+  events:
+    "click .toc-link" : "tocLink"
+    "click .do-next" : "nextPrev"
+    "click .do-prev" : "nextPrev"
+    "click .do-back" : "back"
+    "click .do-toc" : "showHideToc"
+
+  tocLink: (ev) =>
+    ev.preventDefault()
+    href = $(ev.currentTarget).attr 'href' 
+    console.log "toc link #{href}"
+    parts = href.split '_'
+    # booklet id pN a[N]
+    if parts.length==4
+      window.router.navigate 'booklet/'+encodeURIComponent(@model.id)+'/'+parts[2]+'/'+parts[3], trigger:true
+    else
+      console.log "error: badly formed booklet anchor #{href} - #{parts.length} parts"
+
+  nextPrev: (ev) =>
+    page = $(ev.currentTarget).attr 'data-page'
+    if page? 
+      window.router.navigate 'booklet/'+encodeURIComponent(@model.id)+'/'+page, trigger:true
+      @showPage page
+    else
+      console.log "next/prev but can't find data-page attribute"
+
+  showHideToc: =>
+    console.log "show/hide TOC"
+    $('.toc', @$el).toggleClass 'toc-toggle'
+
+  back: =>
+    console.log "back"
+    window.history.back()
+
+  showPage: (page,anchor) =>
+    console.log "Booklet #{@model.id} showPage #{page} #{anchor}"
+    $('.booklet-page', @$el).addClass 'hide'
+    $('#'+"#{@model.id.replace(':','_')}_p#{page}", @$el).removeClass 'hide'
+    if anchor?
+      $('html, body').animate { scrollTop: $('#'+"#{@model.id.replace(':','_')}_#{page}_#{anchor}", @$el).offset().top }, 500
+    else 
+      $('html, body').animate { scrollTop: 0 }, 500
+
     # TODO show/hide
 
   # TODO TOC navigation

@@ -102,7 +102,9 @@
       "": "entries",
       "#": "entries",
       "booklet/:id": "booklet",
-      "booklet/:id/:page": "bookletPage"
+      "booklet/:id/:page": "bookletPage",
+      "booklet/:id/:page/": "bookletPage",
+      "booklet/:id/:page/:anchor": "bookletPage"
     };
 
     Router.prototype.removeCurrentView = function() {
@@ -145,13 +147,13 @@
       return true;
     };
 
-    Router.prototype.bookletPage = function(id, page) {
+    Router.prototype.bookletPage = function(id, page, anchor) {
       if ((currentView == null) || currentView.model.id !== id) {
         if (!this.booklet(id)) {
           return;
         }
       }
-      return currentView.showPage(page);
+      return currentView.showPage(page, anchor);
     };
 
     return Router;
@@ -1074,11 +1076,43 @@
   }
   (function() {
     (function() {
+      var item, _i, _len, _ref;
+    
       __out.push('<nav class="top-bar" data-topbar>\n  <ul class="title-area">\n    <li class="name">\n      <h1><a href="#">');
     
       __out.push(__sanitize(this.booklet.title));
     
-      __out.push('</a></h1>\n    </li>\n  </ul>\n</nav>\n<div class="row">\n  <div class="columns large-6 medium-4 small-12">\n    <h2>TOC...</h2>\n  </div>\n  <div class="contentholder columns large-6 medium-8 small-12"></div>\n</div>\n');
+      __out.push('</a></h1>\n    </li>\n  </ul>\n</nav>\n<div class="row">\n  <div class="columns large-6 medium-8 small-12 toc">\n    <div class="toc-header"><!--\n      --><div class="toc-button do-back">Back<br></div><!--\n      --><div class="toc-button ');
+    
+      __out.push(__sanitize(this.prev != null ? "do-prev" : 'disabled'));
+    
+      __out.push('" ');
+    
+      __out.push(__sanitize(this.prev != null ? "data-page=" + this.prev : void 0));
+    
+      __out.push('>Previous<br></div><!--\n      --><div class="toc-button do-toc">Contents<br><div class="toc-hide">Hide</div><div class="toc-show">Show</div></div><!--\n      --><div class="toc-button ');
+    
+      __out.push(__sanitize(this.next != null ? "do-next" : 'disabled'));
+    
+      __out.push('" ');
+    
+      __out.push(__sanitize(this.next != null ? "data-page=" + this.next : void 0));
+    
+      __out.push('>Next<br></div><!--\n    --></div>\n    <div class="toc-body">\n      ');
+    
+      _ref = this.toc;
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        item = _ref[_i];
+        __out.push('\n        <a href="#');
+        __out.push(__sanitize(item.anchor));
+        __out.push('" class="toc-link"><p class="toc-level-');
+        __out.push(__sanitize(item.level));
+        __out.push('">');
+        __out.push(__sanitize(item.title));
+        __out.push('</p></a>\n      ');
+      }
+    
+      __out.push('\n    </div>\n  </div>\n  <div class="contentholder columns large-6 medium-8 small-12"></div>\n</div>\n');
     
     }).call(this);
     
@@ -1584,6 +1618,10 @@
 
     function BookletView() {
       this.showPage = __bind(this.showPage, this);
+      this.back = __bind(this.back, this);
+      this.showHideToc = __bind(this.showHideToc, this);
+      this.nextPrev = __bind(this.nextPrev, this);
+      this.tocLink = __bind(this.tocLink, this);
       this.render = __bind(this.render, this);
       return BookletView.__super__.constructor.apply(this, arguments);
     }
@@ -1595,27 +1633,29 @@
     };
 
     BookletView.prototype.render = function() {
-      var $el, ahtml, anchor, el, els, err, html, i, page, pages, title, toc, _i, _j, _len, _len1;
+      var $el, ahtml, anchor, anchorPrefix, ei, el, els, err, html, i, nextAnchor, nodeName, page, pages, title, toc, _i, _j, _len, _len1;
       pages = [];
       toc = [];
       try {
         console.log("Booklet: " + this.model.attributes.content);
         html = $.parseHTML(this.model.attributes.content);
         page = [];
-        anchor = 0;
-        for (_i = 0, _len = html.length; _i < _len; _i++) {
-          el = html[_i];
+        nextAnchor = 0;
+        anchorPrefix = this.model.id.replace(':', '_') + '_';
+        for (ei = _i = 0, _len = html.length; _i < _len; ei = ++_i) {
+          el = html[ei];
           $el = $(el);
-          if (el.nodeType === 1 && el.nodeName === 'div' && $el.hasClass('mediahubcolumn')) {
+          nodeName = el.nodeName != null ? String(el.nodeName).toLowerCase() : el.nodeName;
+          if (el.nodeType === 1 && nodeName === 'div' && $el.hasClass('mediahubcolumn')) {
             if (page.length > 0) {
               pages.push(page);
               page = [];
             }
-          } else if (el.nodeType === 1 && el.nodeName === 'div' && $el.hasClass('mediahubcomment')) {
+          } else if (el.nodeType === 1 && nodeName === 'div' && $el.hasClass('mediahubcomment')) {
 
-          } else if (el.nodeType === 1 && el.nodeName === 'h1') {
+          } else if (el.nodeType === 1 && nodeName === 'h1') {
             title = $el.html();
-            anchor = encodeURIComponent(this.model.id) + '%2Fa' + (anchor++);
+            anchor = anchorPrefix + (pages.length + 1) + '_' + (nextAnchor++);
             toc.push({
               level: 1,
               title: title,
@@ -1624,9 +1664,9 @@
             });
             ahtml = $.parseHTML("<a id='" + anchor + "'><h1>" + title + "</h1></a>");
             page.push(ahtml[0]);
-          } else if (el.nodeType === 1 && el.nodeName === 'h2') {
+          } else if (el.nodeType === 1 && nodeName === 'h2') {
             title = $el.html();
-            anchor = encodeURIComponent(this.model.id) + '%2Fa' + (anchor++);
+            anchor = anchorPrefix + (pages.length + 1) + '_' + (nextAnchor++);
             toc.push({
               level: 2,
               title: title,
@@ -1635,10 +1675,12 @@
             });
             ahtml = $.parseHTML("<a id='" + anchor + "'><h2>" + title + "</h2></a>");
             page.push(ahtml[0]);
+          } else if (el.nodeType === 3 && (el.data != null) && el.data.trim().length === 0) {
+
           } else {
             if (page.length === 0) {
               title = "page " + (pages.length + 1);
-              anchor = encodeURIComponent(this.model.id) + '%2Fa' + (anchor++);
+              anchor = anchorPrefix + (pages.length + 1) + '_';
               toc.push({
                 level: 0,
                 title: title,
@@ -1669,11 +1711,14 @@
         page = pages[i];
         els = templateBookletPage({
           booklet: this.model.attributes,
-          toc: toc
+          toc: toc,
+          next: i + 1 < pages.length ? i + 2 : null,
+          prev: i > 0 ? i : null
         });
         el = document.createElement('div');
         $el = $(el);
-        el.id = "" + (encodeURIComponent(this.model.id)) + "%2Fp" + (i + 1);
+        el.id = "" + (this.model.id.replace(':', '_')) + "_p" + (i + 1);
+        $el.addClass('booklet-page');
         if (i > 0) {
           $el.addClass('hide');
         }
@@ -1685,8 +1730,65 @@
       return this;
     };
 
-    BookletView.prototype.showPage = function(page) {
-      return console.log("Booklet " + this.model.id + " showPage " + page);
+    BookletView.prototype.events = {
+      "click .toc-link": "tocLink",
+      "click .do-next": "nextPrev",
+      "click .do-prev": "nextPrev",
+      "click .do-back": "back",
+      "click .do-toc": "showHideToc"
+    };
+
+    BookletView.prototype.tocLink = function(ev) {
+      var href, parts;
+      ev.preventDefault();
+      href = $(ev.currentTarget).attr('href');
+      console.log("toc link " + href);
+      parts = href.split('_');
+      if (parts.length === 4) {
+        return window.router.navigate('booklet/' + encodeURIComponent(this.model.id) + '/' + parts[2] + '/' + parts[3], {
+          trigger: true
+        });
+      } else {
+        return console.log("error: badly formed booklet anchor " + href + " - " + parts.length + " parts");
+      }
+    };
+
+    BookletView.prototype.nextPrev = function(ev) {
+      var page;
+      page = $(ev.currentTarget).attr('data-page');
+      if (page != null) {
+        window.router.navigate('booklet/' + encodeURIComponent(this.model.id) + '/' + page, {
+          trigger: true
+        });
+        return this.showPage(page);
+      } else {
+        return console.log("next/prev but can't find data-page attribute");
+      }
+    };
+
+    BookletView.prototype.showHideToc = function() {
+      console.log("show/hide TOC");
+      return $('.toc', this.$el).toggleClass('toc-toggle');
+    };
+
+    BookletView.prototype.back = function() {
+      console.log("back");
+      return window.history.back();
+    };
+
+    BookletView.prototype.showPage = function(page, anchor) {
+      console.log("Booklet " + this.model.id + " showPage " + page + " " + anchor);
+      $('.booklet-page', this.$el).addClass('hide');
+      $('#' + ("" + (this.model.id.replace(':', '_')) + "_p" + page), this.$el).removeClass('hide');
+      if (anchor != null) {
+        return $('html, body').animate({
+          scrollTop: $('#' + ("" + (this.model.id.replace(':', '_')) + "_" + page + "_" + anchor), this.$el).offset().top
+        }, 500);
+      } else {
+        return $('html, body').animate({
+          scrollTop: 0
+        }, 500);
+      }
     };
 
     return BookletView;

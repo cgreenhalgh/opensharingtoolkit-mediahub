@@ -6,8 +6,18 @@
   </ul>
 </nav>
 <div class="row">
-  <div class="columns large-6 medium-4 small-12">
-    <h2>TOC...</h2>
+  <div class="columns large-6 medium-8 small-12 toc">
+    <div class="toc-header"><!--
+      --><div class="toc-button do-back">Back<br></div><!--
+      --><div class="toc-button <%= if @prev? then "do-prev" else 'disabled' %>" <%= if @prev? then "data-page=#{@prev}" %>>Previous<br></div><!--
+      --><div class="toc-button do-toc">Contents<br><div class="toc-hide">Hide</div><div class="toc-show">Show</div></div><!--
+      --><div class="toc-button <%= if @next? then "do-next" else 'disabled' %>" <%= if @next? then "data-page=#{@next}" %>>Next<br></div><!--
+    --></div>
+    <div class="toc-body">
+      <% for item in @toc: %>
+        <a href="#<%= item.anchor %>" class="toc-link"><p class="toc-level-<%= item.level %>"><%= item.title %></p></a>
+      <% end %>
+    </div>
   </div>
   <div class="contentholder columns large-6 medium-8 small-12"></div>
 </div>

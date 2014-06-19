@@ -32,6 +32,8 @@ class Router extends Backbone.Router
     "#" : "entries"
     "booklet/:id": "booklet"
     "booklet/:id/:page": "bookletPage"
+    "booklet/:id/:page/": "bookletPage"
+    "booklet/:id/:page/:anchor": "bookletPage"
 
   removeCurrentView: ->
     if currentView?
@@ -61,11 +63,11 @@ class Router extends Backbone.Router
     $('body').append currentView.el
     true
 
-  bookletPage: (id,page) ->
+  bookletPage: (id,page,anchor) ->
     if not currentView? or currentView.model.id != id
       if not @booklet id
         return
-    currentView.showPage page
+    currentView.showPage page,anchor
 
 makeTrack = (data) ->
   try
