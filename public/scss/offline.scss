@@ -38,12 +38,22 @@
   overflow: hidden;
   cursor: $cursor-pointer-value;
   @include single-transition(background-color);
+
   &.disabled {
     cursor: $cursor-default-value;
     opacity: $button-disabled-opacity;
     box-shadow: none;
     &:hover,
     &:focus { background-color: scale-color($primary-color, $lightness:50%); }
+  };
+  &.do-toc {
+    @media #{$medium-up} {
+      cursor: $cursor-default-value;
+      opacity: $button-disabled-opacity;
+      box-shadow: none;
+      &:hover,
+      &:focus { background-color: scale-color($primary-color, $lightness:50%); }
+    };
   };
   &:hover,
   &:focus { background-color: scale-color($primary-color, $lightness: 70% ); }
@@ -76,9 +86,9 @@
       display: none; 
     }
   }
-  @media #{$medium-up} {
+  @media #{$large-up} {
     .toc-hide {
-      display: initial; 
+      display: none; 
     }
     .toc-body {
       display: initial; 
@@ -91,10 +101,10 @@
         display: none; 
       }
       .toc-body {
-        display: none; 
+        display: initial; 
       }
       .toc-show {
-        display: initial; 
+        display: none; 
       }
     }
   }

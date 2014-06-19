@@ -92,6 +92,10 @@ module.exports = class BookletView extends Backbone.View
     "click .do-prev" : "nextPrev"
     "click .do-back" : "back"
     "click .do-toc" : "showHideToc"
+    "click a" : "anyLink"
+
+  anyLink: (ev) =>
+    console.log "anyLink #{$(ev.currentTarget).attr 'href'}"
 
   tocLink: (ev) =>
     ev.preventDefault()
@@ -100,14 +104,19 @@ module.exports = class BookletView extends Backbone.View
     parts = href.split '_'
     # booklet id pN a[N]
     if parts.length==4
-      window.router.navigate 'booklet/'+encodeURIComponent(@model.id)+'/'+parts[2]+'/'+parts[3], trigger:true
+      hash = '#booklet/'+encodeURIComponent(@model.id)+'/'+parts[2]+'/'+parts[3]
+      if location.hash == hash
+        # force scroll
+        @showPage parts[2],parts[3]
+      else
+        window.router.navigate hash, trigger:true
     else
       console.log "error: badly formed booklet anchor #{href} - #{parts.length} parts"
 
   nextPrev: (ev) =>
     page = $(ev.currentTarget).attr 'data-page'
     if page? 
-      window.router.navigate 'booklet/'+encodeURIComponent(@model.id)+'/'+page, trigger:true
+      window.router.navigate '#booklet/'+encodeURIComponent(@model.id)+'/'+page, trigger:true
       @showPage page
     else
       console.log "next/prev but can't find data-page attribute"

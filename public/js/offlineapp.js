@@ -1622,6 +1622,7 @@
       this.showHideToc = __bind(this.showHideToc, this);
       this.nextPrev = __bind(this.nextPrev, this);
       this.tocLink = __bind(this.tocLink, this);
+      this.anyLink = __bind(this.anyLink, this);
       this.render = __bind(this.render, this);
       return BookletView.__super__.constructor.apply(this, arguments);
     }
@@ -1735,19 +1736,29 @@
       "click .do-next": "nextPrev",
       "click .do-prev": "nextPrev",
       "click .do-back": "back",
-      "click .do-toc": "showHideToc"
+      "click .do-toc": "showHideToc",
+      "click a": "anyLink"
+    };
+
+    BookletView.prototype.anyLink = function(ev) {
+      return console.log("anyLink " + ($(ev.currentTarget).attr('href')));
     };
 
     BookletView.prototype.tocLink = function(ev) {
-      var href, parts;
+      var hash, href, parts;
       ev.preventDefault();
       href = $(ev.currentTarget).attr('href');
       console.log("toc link " + href);
       parts = href.split('_');
       if (parts.length === 4) {
-        return window.router.navigate('booklet/' + encodeURIComponent(this.model.id) + '/' + parts[2] + '/' + parts[3], {
-          trigger: true
-        });
+        hash = '#booklet/' + encodeURIComponent(this.model.id) + '/' + parts[2] + '/' + parts[3];
+        if (location.hash === hash) {
+          return this.showPage(parts[2], parts[3]);
+        } else {
+          return window.router.navigate(hash, {
+            trigger: true
+          });
+        }
       } else {
         return console.log("error: badly formed booklet anchor " + href + " - " + parts.length + " parts");
       }
@@ -1757,7 +1768,7 @@
       var page;
       page = $(ev.currentTarget).attr('data-page');
       if (page != null) {
-        window.router.navigate('booklet/' + encodeURIComponent(this.model.id) + '/' + page, {
+        window.router.navigate('#booklet/' + encodeURIComponent(this.model.id) + '/' + page, {
           trigger: true
         });
         return this.showPage(page);
