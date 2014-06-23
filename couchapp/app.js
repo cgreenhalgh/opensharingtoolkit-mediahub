@@ -159,6 +159,13 @@ ddoc.filters.typeBooklet = function(doc) {
   }
   return false;
 };
+// filter type Place
+ddoc.filters.typePlace = function(doc) {
+  if (doc.type && doc.type === 'place') {
+    return true;
+  }
+  return false;
+};
 
 ddoc.validate_doc_update = function (newDoc, oldDoc, userCtx) {
   function user_is(role) {

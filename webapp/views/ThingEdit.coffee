@@ -1,6 +1,11 @@
 # ThingEdit View
 templateThingEdit = require 'templates/ThingEdit'
 
+# ckeditor image select callback handling
+window.mediahubCallbacks = {}
+window.nextMediahubCallback = 1
+
+
 module.exports = class ThingEditView extends Backbone.View
 
   constructor:(options)->
@@ -24,7 +29,14 @@ module.exports = class ThingEditView extends Backbone.View
     console.log "render ThingEdit #{@model.attributes._id}: #{ @model.attributes.title }"
     # TODO edit?
     @$el.html @template { data: @model.attributes, add: @add, contentType: @model.getContentType().attributes }
-    f = () -> $('input[name="title"]', @$el).focus()
+    f = () -> 
+      $('input[name="title"]', @$el).focus()
+      console.log "Set up CKEditor 'description'..."
+      path = window.location.pathname
+      ix = path.lastIndexOf '/'
+      ckconfig = {}
+      ckconfig.customConfig = path.substring(0,ix+1)+'ckeditor_config_description.js'
+      CKEDITOR.replace 'description', ckconfig
     setTimeout f, 0
     @
 
@@ -59,4 +71,30 @@ module.exports = class ThingEditView extends Backbone.View
     @remove()
     window.history.back()
 
+  selectImage: (ev, selector) =>
+    console.log "selectImage #{selector}..."
+    ev.preventDefault()
+    path = window.location.pathname
+    ix = path.lastIndexOf '/'
+    if ix < 0
+      alert "Error in pathname: #{path}"
+      return false
+    path = path.substring 0,(ix+1)
+    @callback = window.nextMediahubCallback++
+    self = @
+    window.mediahubCallbacks[@callback] = ( url ) ->
+      console.log "set image #{url}"
+      $(selector, self.$el).attr 'src', url
+
+    window.open path+"filebrowse.html?type=image%2F&mediahubCallback=#{@callback}", '_blank', "width=#{0.8*screen.width}, height=#{0.7*screen.height}, menubar=no, location=no, status=no, toolbar=no"
+
+
+  remove: () =>
+    if @callback?
+      delete window.mediahubCallbacks[@callback]
+    editor = CKEDITOR.instances['description']
+    if editor 
+      console.log "destroy ckeditor 'description'"
+      editor.destroy(true)
+    super()
 

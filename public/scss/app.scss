@@ -139,3 +139,10 @@ $outline-color: $primary-color; //scale-color($primary-color, $lightness: -66%);
   padding: 0.2em;
 }
 
+.map {
+  border: 1px solid $outline-color;
+  width: 400px;
+  height: 400px;
+}
+
+

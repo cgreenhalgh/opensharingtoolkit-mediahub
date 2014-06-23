@@ -1,0 +1,63 @@
+<%# Place add or edit, takes { data: Thing, add: true|false } as data (title, description, ...); parent is a row %>
+<div class="columns large-12">
+  <h2><%= if @add then 'Add' else 'Edit' %> <%= @contentType.title %></h2>
+</div>
+
+<form>
+  <div class="columns large-12">
+
+    <input type="submit" value="<%= if @add then 'Add' else 'Save changes' %>"/>
+    <input type="reset" value="Clear"/>
+    <input type="button" value="Cancel" class="do-cancel"/>
+
+    <label>Title
+      <input type="text" name="title" placeholder="title" value="<%= @data.title %>"/>
+    </label>
+    <label>Description
+      <textarea name="description" placeholder="description" ><%= @data.description %></textarea>
+    </label>
+    <label>Address
+      <input type="text" name="address" placeholder="address" value="<%= @data.address %>"/>
+      <a href="#" class="button small do-lookup-address disabled">Lookup address...</a>
+    </label>
+    <label>Lat/Lon
+      <input type="number" name="lat" placeholder="latitude" value="<%= @data.lat %>" min="-90" max="90" step="0.000001" />
+      <input type="number" name="lon" placeholder="longitude" value="<%= @data.lon %>" min="-180" max="180" step="0.000001" />
+      <input type="number" name="zoom" placeholder="zoom" value="<%= @data.zoom %>" min="0" max="17" step="1" />
+      <a href="#" class="button small do-show-latlon">Show on map</a>
+    </label>
+      <!-- map -->
+    <label>Map
+      <a id="map"><div class="map" tabindex="0"></div></a> 
+    </label>
+    
+    <label>Image
+      <div class="row">
+        <div class="columns large-4 medium-6 small-12">
+          <div class="image-select-icon">
+            <div class="dummy"></div>
+            <img class="image-select-image image-image" src="<%= @data.imageurl %>"/>
+          </div>
+        </div>
+        <div class="columns large-4 medium-6 small-12">
+          <a href="#" class="button small do-select-image">Browse server...</a> 
+        </div>
+      </div>
+    </label>
+    <label>Icon
+      <div class="row">
+        <div class="columns large-4 medium-6 small-12">
+          <div class="image-select-icon">
+            <div class="dummy"></div>
+            <img class="image-select-image image-icon" src="<%= @data.iconurl %>"/>
+          </div>
+        </div>
+        <div class="columns large-4 medium-6 small-12">
+          <a href="#" class="button do-select-icon">Browse server...</a> 
+        </div>
+      </div>
+    </label>
+
+  </div>
+</form>
+

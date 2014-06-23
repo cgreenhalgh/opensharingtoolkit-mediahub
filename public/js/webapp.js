@@ -67,6 +67,8 @@
 
   require('plugins/Booklet');
 
+  require('plugins/Place');
+
   config = window.mediahubconfig;
 
   tempViews = [];
@@ -565,6 +567,79 @@
   })(Backbone.Collection);
 
 }).call(this);
+}, "models/Place": function(exports, require, module) {(function() {
+  var Place,
+    __hasProp = {}.hasOwnProperty,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+  module.exports = Place = (function(_super) {
+    __extends(Place, _super);
+
+    function Place() {
+      return Place.__super__.constructor.apply(this, arguments);
+    }
+
+    Place.prototype.defaults = {
+      title: '',
+      description: '',
+      type: 'place',
+      imageurl: '',
+      iconurl: '',
+      lat: 0,
+      lon: 0,
+      address: '',
+      zoom: 0
+    };
+
+    return Place;
+
+  })(Backbone.Model);
+
+}).call(this);
+}, "models/PlaceList": function(exports, require, module) {(function() {
+  var Place, PlaceList,
+    __hasProp = {}.hasOwnProperty,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+  Place = require('models/Place');
+
+  module.exports = PlaceList = (function(_super) {
+    __extends(PlaceList, _super);
+
+    function PlaceList() {
+      return PlaceList.__super__.constructor.apply(this, arguments);
+    }
+
+    PlaceList.prototype.model = Place;
+
+    PlaceList.prototype.pouch = {
+      fetch: 'query',
+      listen: true,
+      options: {
+        query: {
+          include_docs: true,
+          startkey: 'place',
+          endkey: 'place',
+          fun: 'app/type'
+        },
+        changes: {
+          include_docs: true,
+          continuous: true,
+          filter: 'app/typePlace'
+        }
+      }
+    };
+
+    PlaceList.prototype.parse = function(result) {
+      console.log("parse " + (JSON.stringify(result)));
+      return _.pluck(result.rows, 'doc');
+    };
+
+    return PlaceList;
+
+  })(Backbone.Collection);
+
+}).call(this);
 }, "mydb": function(exports, require, module) {(function() {
   var config;
 
@@ -747,6 +822,36 @@
     id: 'html',
     title: 'HTML Fragment',
     description: 'A well-formed HTML fragment (actually just a place-holder at the moment!)'
+  };
+
+  contentType = ThingBuilder.createThingType(attributes, ThisThing, ThisThingList, ThisThingListView, ThisThingInListView, ThisThingView, ThisThingEditView);
+
+  plugins.registerContentType(contentType.id, contentType);
+
+}).call(this);
+}, "plugins/Place": function(exports, require, module) {(function() {
+  var ThingBuilder, ThisThing, ThisThingEditView, ThisThingInListView, ThisThingList, ThisThingListView, ThisThingView, attributes, contentType, plugins;
+
+  plugins = require('plugins');
+
+  ThisThing = require('models/Place');
+
+  ThisThingList = require('models/PlaceList');
+
+  ThisThingListView = require('views/ThingList');
+
+  ThisThingInListView = require('views/ThingInList');
+
+  ThisThingView = null;
+
+  ThisThingEditView = require('views/PlaceEdit');
+
+  ThingBuilder = require('plugins/ThingBuilder');
+
+  attributes = {
+    id: 'place',
+    title: 'Place',
+    description: 'A place or location, i.e. somewhere in the world'
   };
 
   contentType = ThingBuilder.createThingType(attributes, ThisThing, ThisThingList, ThisThingListView, ThisThingInListView, ThisThingView, ThisThingEditView);
@@ -1028,7 +1133,7 @@
     
       __out.push(__sanitize(this.title));
     
-      __out.push('\n  <a href="#" class="action-button do-delete-file right">Delete</a>\n  <a href="#" class="action-button do-edit-file right">Edit</a>\n  <a href="#" class="action-button do-view-file right">View</a>\n  <a href="#" class="action-button do-testapp right">Test Offline</a>\n</h3>\n');
+      __out.push('\n  <a href="#" class="action-button do-delete-file right">Delete</a>\n  <a href="#" class="action-button do-edit-file right">Edit</a>\n  <!-- <a href="#" class="action-button do-view-file right">View</a> -->\n  <a href="#" class="action-button do-testapp right">Test Offline</a>\n</h3>\n');
     
     }).call(this);
     
@@ -1581,6 +1686,96 @@
   }).call(__obj);
   __obj.safe = __objSafe, __obj.escape = __escape;
   return __out.join('');
+}}, "templates/PlaceEdit": function(exports, require, module) {module.exports = function(__obj) {
+  if (!__obj) __obj = {};
+  var __out = [], __capture = function(callback) {
+    var out = __out, result;
+    __out = [];
+    callback.call(this);
+    result = __out.join('');
+    __out = out;
+    return __safe(result);
+  }, __sanitize = function(value) {
+    if (value && value.ecoSafe) {
+      return value;
+    } else if (typeof value !== 'undefined' && value != null) {
+      return __escape(value);
+    } else {
+      return '';
+    }
+  }, __safe, __objSafe = __obj.safe, __escape = __obj.escape;
+  __safe = __obj.safe = function(value) {
+    if (value && value.ecoSafe) {
+      return value;
+    } else {
+      if (!(typeof value !== 'undefined' && value != null)) value = '';
+      var result = new String(value);
+      result.ecoSafe = true;
+      return result;
+    }
+  };
+  if (!__escape) {
+    __escape = __obj.escape = function(value) {
+      return ('' + value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    };
+  }
+  (function() {
+    (function() {
+      __out.push('\n<div class="columns large-12">\n  <h2>');
+    
+      __out.push(__sanitize(this.add ? 'Add' : 'Edit'));
+    
+      __out.push(' ');
+    
+      __out.push(__sanitize(this.contentType.title));
+    
+      __out.push('</h2>\n</div>\n\n<form>\n  <div class="columns large-12">\n\n    <input type="submit" value="');
+    
+      __out.push(__sanitize(this.add ? 'Add' : 'Save changes'));
+    
+      __out.push('"/>\n    <input type="reset" value="Clear"/>\n    <input type="button" value="Cancel" class="do-cancel"/>\n\n    <label>Title\n      <input type="text" name="title" placeholder="title" value="');
+    
+      __out.push(__sanitize(this.data.title));
+    
+      __out.push('"/>\n    </label>\n    <label>Description\n      <textarea name="description" placeholder="description" >');
+    
+      __out.push(__sanitize(this.data.description));
+    
+      __out.push('</textarea>\n    </label>\n    <label>Address\n      <input type="text" name="address" placeholder="address" value="');
+    
+      __out.push(__sanitize(this.data.address));
+    
+      __out.push('"/>\n      <a href="#" class="button small do-lookup-address">Lookup address...</a>\n    </label>\n    <label>Lat/Lon\n      <input type="number" name="lat" placeholder="latitude" value="');
+    
+      __out.push(__sanitize(this.data.lat));
+    
+      __out.push('" min="-90" max="90" step="0.000001" />\n      <input type="number" name="lon" placeholder="longitude" value="');
+    
+      __out.push(__sanitize(this.data.lon));
+    
+      __out.push('" min="-180" max="180" step="0.000001" />\n      <input type="number" name="zoom" placeholder="zoom" value="');
+    
+      __out.push(__sanitize(this.data.zoom));
+    
+      __out.push('" min="0" max="17" step="1" />\n      <a href="#" class="button small do-show-latlon">Show on map</a>\n    </label>\n      <!-- map -->\n    <label>Map\n      <a id="map"><div class="map" tabindex="0"></div></a> \n    </label>\n    \n    <label>Image\n      <div class="row">\n        <div class="columns large-4 medium-6 small-12">\n          <div class="image-select-icon">\n            <div class="dummy"></div>\n            <img class="image-select-image image-image" src="');
+    
+      __out.push(__sanitize(this.data.imageurl));
+    
+      __out.push('"/>\n          </div>\n        </div>\n        <div class="columns large-4 medium-6 small-12">\n          <a href="#" class="button small do-select-image">Browse server...</a> \n        </div>\n      </div>\n    </label>\n    <label>Icon\n      <div class="row">\n        <div class="columns large-4 medium-6 small-12">\n          <div class="image-select-icon">\n            <div class="dummy"></div>\n            <img class="image-select-image image-icon" src="');
+    
+      __out.push(__sanitize(this.data.iconurl));
+    
+      __out.push('"/>\n          </div>\n        </div>\n        <div class="columns large-4 medium-6 small-12">\n          <a href="#" class="button do-select-icon">Browse server...</a> \n        </div>\n      </div>\n    </label>\n\n  </div>\n</form>\n\n');
+    
+    }).call(this);
+    
+  }).call(__obj);
+  __obj.safe = __objSafe, __obj.escape = __escape;
+  return __out.join('');
 }}, "templates/Thing": function(exports, require, module) {module.exports = function(__obj) {
   if (!__obj) __obj = {};
   var __out = [], __capture = function(callback) {
@@ -1903,15 +2098,10 @@
 
   ThingEditView = require('views/ThingEdit');
 
-  window.mediahubCallbacks = {};
-
-  window.nextMediahubCallback = 1;
-
   module.exports = BookletEditView = (function(_super) {
     __extends(BookletEditView, _super);
 
     function BookletEditView() {
-      this.remove = __bind(this.remove, this);
       this.selectCover = __bind(this.selectCover, this);
       this.remove = __bind(this.remove, this);
       this.formToModel = __bind(this.formToModel, this);
@@ -1943,17 +2133,15 @@
       BookletEditView.__super__.render.call(this);
       replace = function() {
         var ckconfig, ix, path;
-        console.log("Set up CKEditor...");
-        path = window.location.pathname;
-        ix = path.lastIndexOf('/');
+        console.log("Set up CKEditor 'htmlcontent'...");
         ckconfig = {};
-        ckconfig.customConfig = path.substring(0, ix + 1) + 'ckeditor_config_booklet.js';
         path = window.location.pathname;
         ix = path.lastIndexOf('/');
         if (ix < 0) {
           console.log("Location path not valid: " + path);
         } else {
           path = path.substring(0, ix + 1);
+          ckconfig.customConfig = path + 'ckeditor_config_booklet.js';
           ckconfig.filebrowserBrowseUrl = path + 'filebrowse.html';
           ckconfig.filebrowserImageBrowseUrl = path + 'filebrowse.html?type=image%2F';
         }
@@ -1979,7 +2167,7 @@
       var editor;
       editor = CKEDITOR.instances['htmlcontent'];
       if (editor) {
-        console.log("destroy ckeditor");
+        console.log("destroy ckeditor 'htmlcontent'");
         editor.destroy(true);
       }
       return BookletEditView.__super__.remove.call(this);
@@ -1993,30 +2181,7 @@
     };
 
     BookletEditView.prototype.selectCover = function(ev) {
-      var ix, path, self;
-      console.log("selectCover...");
-      ev.preventDefault();
-      path = window.location.pathname;
-      ix = path.lastIndexOf('/');
-      if (ix < 0) {
-        alert("Error in pathname: " + path);
-        return false;
-      }
-      path = path.substring(0, ix + 1);
-      this.callback = window.nextMediahubCallback++;
-      self = this;
-      window.mediahubCallbacks[this.callback] = function(url) {
-        console.log("set cover " + url);
-        return $('.image-select-image', self.$el).attr('src', url);
-      };
-      return window.open(path + ("filebrowse.html?type=image%2F&mediahubCallback=" + this.callback), '_blank', "width=" + (0.8 * screen.width) + ", height=" + (0.7 * screen.height) + ", menubar=no, location=no, status=no, toolbar=no");
-    };
-
-    BookletEditView.prototype.remove = function() {
-      if (this.callback != null) {
-        delete window.mediahubCallbacks[this.callback];
-      }
-      return BookletEditView.__super__.remove.call(this);
+      return selectImage(ev, '.image-select-image');
     };
 
     return BookletEditView;
@@ -2734,6 +2899,186 @@
   })(ThingListView);
 
 }).call(this);
+}, "views/PlaceEdit": function(exports, require, module) {(function() {
+  var PlaceEditView, ThingEditView, templatePlaceEdit,
+    __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
+    __hasProp = {}.hasOwnProperty,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+  templatePlaceEdit = require('templates/PlaceEdit');
+
+  ThingEditView = require('views/ThingEdit');
+
+  module.exports = PlaceEditView = (function(_super) {
+    __extends(PlaceEditView, _super);
+
+    function PlaceEditView() {
+      this.remove = __bind(this.remove, this);
+      this.showLatlon = __bind(this.showLatlon, this);
+      this.lookupAddress = __bind(this.lookupAddress, this);
+      this.selectIcon = __bind(this.selectIcon, this);
+      this.selectPlaceImage = __bind(this.selectPlaceImage, this);
+      this.formToModel = __bind(this.formToModel, this);
+      this.render = __bind(this.render, this);
+      this.template = __bind(this.template, this);
+      return PlaceEditView.__super__.constructor.apply(this, arguments);
+    }
+
+    PlaceEditView.prototype.template = function(d) {
+      return templatePlaceEdit(d);
+    };
+
+    PlaceEditView.prototype.render = function() {
+      var err, f;
+      PlaceEditView.__super__.render.call(this);
+      f = (function(_this) {
+        return function() {
+          var layer, mapEl;
+          mapEl = $('.map', _this.$el).get(0);
+          _this.map = L.map(mapEl).setView([_this.model.attributes.lat, _this.model.attributes.lon], _this.model.attributes.zoom);
+          layer = L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
+            attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>',
+            maxZoom: 17,
+            keyboard: false
+          });
+          layer.addTo(_this.map);
+          _this.marker = L.marker([_this.model.attributes.lat, _this.model.attributes.lon]);
+          _this.marker.addTo(_this.map);
+          _this.map.on('mousedown', function() {
+            console.log("try to focus map");
+            return $(mapEl).focus();
+          });
+          _this.map.on('click', function(ev) {
+            console.log("clicked the map at " + String(ev.latlng.lat) + "," + String(ev.latlng.lng));
+            _this.marker.setLatLng(ev.latlng);
+            $('input[name=lat]', _this.$el).val(Number(ev.latlng.lat).toFixed(6));
+            $('input[name=lon]', _this.$el).val(Number(ev.latlng.lng).toFixed(6));
+            return $('input[name=zoom]', _this.$el).val(String(_this.map.getZoom()));
+          });
+          return console.log("(hopefully) created map");
+        };
+      })(this);
+      if (this.map) {
+        try {
+          this.map.remove();
+          this.map = null;
+        } catch (_error) {
+          err = _error;
+          console.log("error removing place map: " + err.message);
+        }
+      }
+      return setTimeout(f, 0);
+    };
+
+    PlaceEditView.prototype.formToModel = function() {
+      var address, err, iconurl, imageurl, lat, lon, zoom;
+      imageurl = $('.image-image', this.$el).attr('src');
+      iconurl = $('.image-icon', this.$el).attr('src');
+      address = $('input[name=address]', this.$el).val();
+      lat = $('input[name=lat]', this.$el).val();
+      try {
+        lat = Number(lat);
+      } catch (_error) {
+        err = _error;
+        console.log("Error in lat as Number: " + lat + " " + err.message);
+      }
+      lon = $('input[name=lon]', this.$el).val();
+      try {
+        lon = Number(lon);
+      } catch (_error) {
+        err = _error;
+        console.log("Error in lon as Number: " + lon + " " + err.message);
+      }
+      console.log("imageurl = " + imageurl + ", iconurl = " + iconurl + ", address=" + address + ", lat=" + lat + ", lon=" + lon);
+      this.model.set({
+        imageurl: imageurl,
+        iconurl: iconurl,
+        address: address,
+        lat: lat,
+        lon: lon
+      });
+      if (this.map != null) {
+        zoom = this.map.getZoom();
+        if (zoom != null) {
+          console.log("zoom = " + zoom);
+          this.model.set({
+            zoom: zoom
+          });
+        }
+      }
+      return PlaceEditView.__super__.formToModel.call(this);
+    };
+
+    PlaceEditView.prototype.events = {
+      "submit": "submit",
+      "click .do-cancel": "cancel",
+      "click .do-save": "save",
+      "click .do-select-image": "selectPlaceImage",
+      "click .do-select-icon": "selectIcon",
+      "click .do-lookup-address": "lookupAddress",
+      "click .do-show-latlon": "showLatlon"
+    };
+
+    PlaceEditView.prototype.selectPlaceImage = function(ev) {
+      return selectImage(ev, '.image-image');
+    };
+
+    PlaceEditView.prototype.selectIcon = function(ev) {
+      return selectImage(ev, '.image-icon');
+    };
+
+    PlaceEditView.prototype.lookupAddress = function(ev) {
+      return ev.preventDefault();
+    };
+
+    PlaceEditView.prototype.showLatlon = function(ev) {
+      var err, lat, lon, zoom;
+      ev.preventDefault();
+      lat = $('input[name=lat]', this.$el).val();
+      try {
+        lat = Number(lat);
+      } catch (_error) {
+        err = _error;
+        console.log("Error in lat as Number: " + lat + " " + err.message);
+      }
+      lon = $('input[name=lon]', this.$el).val();
+      try {
+        lon = Number(lon);
+      } catch (_error) {
+        err = _error;
+        console.log("Error in lon as Number: " + lon + " " + err.message);
+      }
+      zoom = $('input[name=zoom]', this.$el).val();
+      try {
+        zoom = Number(zoom);
+      } catch (_error) {
+        err = _error;
+        console.log("Error in zoom as Number: " + zoom + " " + err.message);
+      }
+      if (this.map != null) {
+        return this.map.setView([lat, lon], zoom);
+      }
+    };
+
+    PlaceEditView.prototype.remove = function() {
+      var err;
+      if (this.map) {
+        try {
+          this.map.remove();
+          this.map = null;
+        } catch (_error) {
+          err = _error;
+          console.log("error removing place map: " + err.message);
+        }
+      }
+      return PlaceEditView.__super__.remove.call(this);
+    };
+
+    return PlaceEditView;
+
+  })(ThingEditView);
+
+}).call(this);
 }, "views/Thing": function(exports, require, module) {(function() {
   var ThingView, templateThing,
     __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
@@ -2811,10 +3156,16 @@
 
   templateThingEdit = require('templates/ThingEdit');
 
+  window.mediahubCallbacks = {};
+
+  window.nextMediahubCallback = 1;
+
   module.exports = ThingEditView = (function(_super) {
     __extends(ThingEditView, _super);
 
     function ThingEditView(options) {
+      this.remove = __bind(this.remove, this);
+      this.selectImage = __bind(this.selectImage, this);
       this.close = __bind(this.close, this);
       this.cancel = __bind(this.cancel, this);
       this.submit = __bind(this.submit, this);
@@ -2847,7 +3198,14 @@
         contentType: this.model.getContentType().attributes
       }));
       f = function() {
-        return $('input[name="title"]', this.$el).focus();
+        var ckconfig, ix, path;
+        $('input[name="title"]', this.$el).focus();
+        console.log("Set up CKEditor 'description'...");
+        path = window.location.pathname;
+        ix = path.lastIndexOf('/');
+        ckconfig = {};
+        ckconfig.customConfig = path.substring(0, ix + 1) + 'ckeditor_config_description.js';
+        return CKEDITOR.replace('description', ckconfig);
       };
       setTimeout(f, 0);
       return this;
@@ -2888,6 +3246,39 @@
     ThingEditView.prototype.close = function() {
       this.remove();
       return window.history.back();
+    };
+
+    ThingEditView.prototype.selectImage = function(ev, selector) {
+      var ix, path, self;
+      console.log("selectImage " + selector + "...");
+      ev.preventDefault();
+      path = window.location.pathname;
+      ix = path.lastIndexOf('/');
+      if (ix < 0) {
+        alert("Error in pathname: " + path);
+        return false;
+      }
+      path = path.substring(0, ix + 1);
+      this.callback = window.nextMediahubCallback++;
+      self = this;
+      window.mediahubCallbacks[this.callback] = function(url) {
+        console.log("set image " + url);
+        return $(selector, self.$el).attr('src', url);
+      };
+      return window.open(path + ("filebrowse.html?type=image%2F&mediahubCallback=" + this.callback), '_blank', "width=" + (0.8 * screen.width) + ", height=" + (0.7 * screen.height) + ", menubar=no, location=no, status=no, toolbar=no");
+    };
+
+    ThingEditView.prototype.remove = function() {
+      var editor;
+      if (this.callback != null) {
+        delete window.mediahubCallbacks[this.callback];
+      }
+      editor = CKEDITOR.instances['description'];
+      if (editor) {
+        console.log("destroy ckeditor 'description'");
+        editor.destroy(true);
+      }
+      return ThingEditView.__super__.remove.call(this);
     };
 
     return ThingEditView;
