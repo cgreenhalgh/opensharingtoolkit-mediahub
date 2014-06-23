@@ -1741,15 +1741,11 @@
     
       __out.push(__sanitize(this.data.title));
     
-      __out.push('"/>\n    </label>\n    <label>Description\n      <textarea name="description" placeholder="description" >');
-    
-      __out.push(__sanitize(this.data.description));
-    
-      __out.push('</textarea>\n    </label>\n    <label>Address\n      <input type="text" name="address" placeholder="address" value="');
+      __out.push('"/>\n    </label>\n  </div>\n  <div class="columns large-6 small-12">\n\n    <label>Address\n      <input type="text" name="address" placeholder="address" value="');
     
       __out.push(__sanitize(this.data.address));
     
-      __out.push('"/>\n      <a href="#" class="button small do-lookup-address">Lookup address...</a>\n    </label>\n    <label>Lat/Lon\n      <input type="number" name="lat" placeholder="latitude" value="');
+      __out.push('"/>\n      <a href="#" class="button small do-lookup-address">Lookup address</a><a href="#" class="button small do-clear-map disabled">Clear map</a>\n    </label>\n    <label>Lat/Lon\n      <input type="number" name="lat" placeholder="latitude" value="');
     
       __out.push(__sanitize(this.data.lat));
     
@@ -1761,15 +1757,19 @@
     
       __out.push(__sanitize(this.data.zoom));
     
-      __out.push('" min="0" max="17" step="1" />\n      <a href="#" class="button small do-show-latlon">Show on map</a>\n    </label>\n      <!-- map -->\n    <label>Map\n      <a id="map"><div class="map" tabindex="0"></div></a> \n    </label>\n    \n    <label>Image\n      <div class="row">\n        <div class="columns large-4 medium-6 small-12">\n          <div class="image-select-icon">\n            <div class="dummy"></div>\n            <img class="image-select-image image-image" src="');
+      __out.push('" min="0" max="19" step="1" />\n      <a href="#" class="button small do-show-latlon">Show on map</a>\n    </label>\n\n  </div>\n  <div class="columns large-6 small-12">\n    <label>Map\n      <a id="map"><div class="map" tabindex="0"></div></a> \n    </label>\n\n  </div>\n  <div class="columns large-12">\n\n    <label>Description\n      <textarea name="description" placeholder="description" >');
+    
+      __out.push(__sanitize(this.data.description));
+    
+      __out.push('</textarea>\n    </label>\n\n    <div class="row">\n      <div class="columns large-4 medium-6 small-12">\n        <label>Image\n          <div>\n            <div class="image-select-icon">\n              <div class="dummy"></div>\n              <img class="image-select-image image-image" src="');
     
       __out.push(__sanitize(this.data.imageurl));
     
-      __out.push('"/>\n          </div>\n        </div>\n        <div class="columns large-4 medium-6 small-12">\n          <a href="#" class="button small do-select-image">Browse server...</a> \n        </div>\n      </div>\n    </label>\n    <label>Icon\n      <div class="row">\n        <div class="columns large-4 medium-6 small-12">\n          <div class="image-select-icon">\n            <div class="dummy"></div>\n            <img class="image-select-image image-icon" src="');
+      __out.push('"/>\n            </div>\n          </div>\n          <div>\n            <a href="#" class="button small do-select-image">Browse server...</a> \n          </div>\n        </label>\n      </div>\n      <div class="columns large-4 medium-6 small-12">    \n        <label>Icon\n          <div>\n            <div class="image-select-icon">\n              <div class="dummy"></div>\n              <img class="image-select-image image-icon" src="');
     
       __out.push(__sanitize(this.data.iconurl));
     
-      __out.push('"/>\n          </div>\n        </div>\n        <div class="columns large-4 medium-6 small-12">\n          <a href="#" class="button do-select-icon">Browse server...</a> \n        </div>\n      </div>\n    </label>\n\n  </div>\n</form>\n\n');
+      __out.push('"/>\n            </div>\n          </div>\n          <div>\n            <a href="#" class="button do-select-icon">Browse server...</a> \n          </div>\n        </label>\n      </div>\n    </div>\n  </div>\n</form>\n\n');
     
     }).call(this);
     
@@ -2900,7 +2900,7 @@
 
 }).call(this);
 }, "views/PlaceEdit": function(exports, require, module) {(function() {
-  var PlaceEditView, ThingEditView, templatePlaceEdit,
+  var PlaceEditView, ThingEditView, geocoder, maxZoom, myIcon, templatePlaceEdit,
     __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -2909,13 +2909,32 @@
 
   ThingEditView = require('views/ThingEdit');
 
+  window.lastGeocodeCallback = 0;
+
+  geocoder = new google.maps.Geocoder();
+
+  myIcon = L.icon({
+    iconUrl: 'vendor/leaflet/images/my-icon.png',
+    iconRetinaUrl: 'vendor/leaflet/images/my-icon-2x.png',
+    iconSize: [25, 41],
+    iconAnchor: [12, 41],
+    popupAnchor: [1, -34],
+    shadowSize: [41, 41],
+    shadowUrl: 'vendor/leaflet/images/marker-shadow.png'
+  });
+
+  maxZoom = 19;
+
   module.exports = PlaceEditView = (function(_super) {
     __extends(PlaceEditView, _super);
 
     function PlaceEditView() {
       this.remove = __bind(this.remove, this);
       this.showLatlon = __bind(this.showLatlon, this);
+      this.useLatlon = __bind(this.useLatlon, this);
+      this.useAddress = __bind(this.useAddress, this);
       this.lookupAddress = __bind(this.lookupAddress, this);
+      this.clearMap = __bind(this.clearMap, this);
       this.selectIcon = __bind(this.selectIcon, this);
       this.selectPlaceImage = __bind(this.selectPlaceImage, this);
       this.formToModel = __bind(this.formToModel, this);
@@ -2938,22 +2957,26 @@
           _this.map = L.map(mapEl).setView([_this.model.attributes.lat, _this.model.attributes.lon], _this.model.attributes.zoom);
           layer = L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
             attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>',
-            maxZoom: 17,
+            maxZoom: maxZoom,
             keyboard: false
           });
           layer.addTo(_this.map);
-          _this.marker = L.marker([_this.model.attributes.lat, _this.model.attributes.lon]);
-          _this.marker.addTo(_this.map);
-          _this.map.on('mousedown', function() {
-            console.log("try to focus map");
-            return $(mapEl).focus();
+          _this.marker = L.marker([_this.model.attributes.lat, _this.model.attributes.lon], {
+            icon: myIcon
           });
+          _this.marker.bindPopup("Current Lat/Lon");
+          _this.marker.addTo(_this.map);
+          _this.addressMarkers = [];
           _this.map.on('click', function(ev) {
+            var lat, lon;
             console.log("clicked the map at " + String(ev.latlng.lat) + "," + String(ev.latlng.lng));
-            _this.marker.setLatLng(ev.latlng);
-            $('input[name=lat]', _this.$el).val(Number(ev.latlng.lat).toFixed(6));
-            $('input[name=lon]', _this.$el).val(Number(ev.latlng.lng).toFixed(6));
-            return $('input[name=zoom]', _this.$el).val(String(_this.map.getZoom()));
+            lat = Number(ev.latlng.lat).toFixed(6);
+            lon = Number(ev.latlng.lng).toFixed(6);
+            if (_this.latlonPopup == null) {
+              _this.latlonPopup = L.popup();
+            }
+            _this.latlonPopup.setLatLng(ev.latlng).setContent("" + lat + "," + lon + "<br/><a href='#' class='button tiny do-use-latlon' data-latlon='" + lat + "," + lon + "' >Use</a>");
+            return _this.latlonPopup.openOn(_this.map);
           });
           return console.log("(hopefully) created map");
         };
@@ -3016,19 +3039,124 @@
       "click .do-select-image": "selectPlaceImage",
       "click .do-select-icon": "selectIcon",
       "click .do-lookup-address": "lookupAddress",
-      "click .do-show-latlon": "showLatlon"
+      "click .do-clear-map": "clearMap",
+      "click .do-show-latlon": "showLatlon",
+      "click .do-use-address": "useAddress",
+      "click .do-use-latlon": "useLatlon"
     };
 
     PlaceEditView.prototype.selectPlaceImage = function(ev) {
-      return selectImage(ev, '.image-image');
+      return this.selectImage(ev, '.image-image');
     };
 
     PlaceEditView.prototype.selectIcon = function(ev) {
-      return selectImage(ev, '.image-icon');
+      return this.selectImage(ev, '.image-icon');
+    };
+
+    PlaceEditView.prototype.clearMap = function(ev) {
+      var marker, _i, _len, _ref;
+      console.log("clear map");
+      ev.preventDefault();
+      $('.do-clear-map', this.$el).addClass('disabled');
+      _ref = this.addressMarkers;
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        marker = _ref[_i];
+        this.map.removeLayer(marker);
+      }
+      return this.addressMarkers = [];
     };
 
     PlaceEditView.prototype.lookupAddress = function(ev) {
-      return ev.preventDefault();
+      var address, geocodeCallback;
+      ev.preventDefault();
+      address = $('input[name=address]', this.$el).val().trim();
+      if (address.length === 0) {
+        console.log("lookupAddress with empty address");
+        return;
+      }
+      this.clearMap(ev);
+      window.lastGeocodeCallback++;
+      geocodeCallback = window.lastGeocodeCallback;
+      console.log("lookupAddress " + address + "... (request " + geocodeCallback + ")");
+      $('.do-lookup-address', this.$el).addClass('disabled');
+      return geocoder.geocode({
+        'address': address
+      }, (function(_this) {
+        return function(results, status) {
+          var bounds, err, i, marker, result, _i, _len;
+          if (geocodeCallback !== window.lastGeocodeCallback) {
+            console.log("ignore old geocode response " + geocodeCallback);
+            return;
+          }
+          $('.do-lookup-address', _this.$el).removeClass('disabled');
+          $('.do-clear-map', _this.$el).removeClass('disabled');
+          console.log("geocode result " + status + " " + results);
+          if (status === google.maps.GeocoderStatus.OK) {
+            bounds = null;
+            for (i = _i = 0, _len = results.length; _i < _len; i = ++_i) {
+              result = results[i];
+              try {
+                marker = L.marker([result.geometry.location.lat(), result.geometry.location.lng()]);
+                if (bounds != null) {
+                  bounds.extend(marker.getLatLng());
+                } else {
+                  bounds = L.latLngBounds(marker.getLatLng(), marker.getLatLng());
+                }
+                marker.addTo(_this.map);
+                console.log("added marker " + marker);
+                marker.bindPopup("" + result.formatted_address + "<br/><a href='#' class='button tiny do-use-address' data-address-marker='" + i + "' >Use</a>");
+                _this.addressMarkers.push(marker);
+              } catch (_error) {
+                err = _error;
+                alert("Sorry, did not get find any matching addresses (" + err.message + ")");
+              }
+            }
+            if (bounds != null) {
+              _this.map.fitBounds(bounds);
+            }
+            return $('.map', _this.$el).focus();
+          } else {
+            return console.log("Geocode was not successful for the following reason: " + status);
+          }
+        };
+      })(this));
+    };
+
+    PlaceEditView.prototype.useAddress = function(ev) {
+      var i, latLng, marker;
+      ev.preventDefault();
+      console.log("use address " + ($(ev.target).attr('data-address-marker')));
+      i = $(ev.target).attr('data-address-marker');
+      if (i != null) {
+        i = Number(i);
+      }
+      marker = this.addressMarkers[i];
+      if (marker == null) {
+        console.log("Could not find address marker " + i + " - should have " + this.addressMarker.length);
+        return;
+      }
+      marker.closePopup();
+      latLng = marker.getLatLng();
+      this.marker.setLatLng(latLng);
+      $('input[name=lat]', this.$el).val(Number(latLng.lat).toFixed(6));
+      $('input[name=lon]', this.$el).val(Number(latLng.lng).toFixed(6));
+      $('input[name=zoom]', this.$el).val(String(this.map.getZoom()));
+      return this.clearMap(ev);
+    };
+
+    PlaceEditView.prototype.useLatlon = function(ev) {
+      var latlon, ll;
+      ev.preventDefault();
+      console.log("use latlon " + ($(ev.target).attr('data-latlon')));
+      if (this.latlonPopup != null) {
+        this.map.closePopup(this.latlonPopup);
+      }
+      latlon = $(ev.target).attr('data-latlon');
+      ll = latlon.split(',');
+      this.marker.setLatLng([ll[0], ll[1]]);
+      $('input[name=lat]', this.$el).val(ll[0]);
+      $('input[name=lon]', this.$el).val(ll[1]);
+      return $('input[name=zoom]', this.$el).val(String(this.map.getZoom()));
     };
 
     PlaceEditView.prototype.showLatlon = function(ev) {
@@ -3062,6 +3190,7 @@
 
     PlaceEditView.prototype.remove = function() {
       var err;
+      window.lastGeocodeCallback++;
       if (this.map) {
         try {
           this.map.remove();

@@ -13,51 +13,61 @@
     <label>Title
       <input type="text" name="title" placeholder="title" value="<%= @data.title %>"/>
     </label>
-    <label>Description
-      <textarea name="description" placeholder="description" ><%= @data.description %></textarea>
-    </label>
+  </div>
+  <div class="columns large-6 small-12">
+
     <label>Address
       <input type="text" name="address" placeholder="address" value="<%= @data.address %>"/>
-      <a href="#" class="button small do-lookup-address disabled">Lookup address...</a>
+      <a href="#" class="button small do-lookup-address">Lookup address</a><a href="#" class="button small do-clear-map disabled">Clear map</a>
     </label>
     <label>Lat/Lon
       <input type="number" name="lat" placeholder="latitude" value="<%= @data.lat %>" min="-90" max="90" step="0.000001" />
       <input type="number" name="lon" placeholder="longitude" value="<%= @data.lon %>" min="-180" max="180" step="0.000001" />
-      <input type="number" name="zoom" placeholder="zoom" value="<%= @data.zoom %>" min="0" max="17" step="1" />
+      <input type="number" name="zoom" placeholder="zoom" value="<%= @data.zoom %>" min="0" max="19" step="1" />
       <a href="#" class="button small do-show-latlon">Show on map</a>
     </label>
-      <!-- map -->
+
+  </div>
+  <div class="columns large-6 small-12">
     <label>Map
       <a id="map"><div class="map" tabindex="0"></div></a> 
     </label>
-    
-    <label>Image
-      <div class="row">
-        <div class="columns large-4 medium-6 small-12">
-          <div class="image-select-icon">
-            <div class="dummy"></div>
-            <img class="image-select-image image-image" src="<%= @data.imageurl %>"/>
-          </div>
-        </div>
-        <div class="columns large-4 medium-6 small-12">
-          <a href="#" class="button small do-select-image">Browse server...</a> 
-        </div>
-      </div>
-    </label>
-    <label>Icon
-      <div class="row">
-        <div class="columns large-4 medium-6 small-12">
-          <div class="image-select-icon">
-            <div class="dummy"></div>
-            <img class="image-select-image image-icon" src="<%= @data.iconurl %>"/>
-          </div>
-        </div>
-        <div class="columns large-4 medium-6 small-12">
-          <a href="#" class="button do-select-icon">Browse server...</a> 
-        </div>
-      </div>
+
+  </div>
+  <div class="columns large-12">
+
+    <label>Description
+      <textarea name="description" placeholder="description" ><%= @data.description %></textarea>
     </label>
 
+    <div class="row">
+      <div class="columns large-4 medium-6 small-12">
+        <label>Image
+          <div>
+            <div class="image-select-icon">
+              <div class="dummy"></div>
+              <img class="image-select-image image-image" src="<%= @data.imageurl %>"/>
+            </div>
+          </div>
+          <div>
+            <a href="#" class="button small do-select-image">Browse server...</a> 
+          </div>
+        </label>
+      </div>
+      <div class="columns large-4 medium-6 small-12">    
+        <label>Icon
+          <div>
+            <div class="image-select-icon">
+              <div class="dummy"></div>
+              <img class="image-select-image image-icon" src="<%= @data.iconurl %>"/>
+            </div>
+          </div>
+          <div>
+            <a href="#" class="button do-select-icon">Browse server...</a> 
+          </div>
+        </label>
+      </div>
+    </div>
   </div>
 </form>
 
