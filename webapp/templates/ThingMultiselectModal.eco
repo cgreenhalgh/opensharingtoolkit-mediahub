@@ -1,0 +1,12 @@
+<%# add thing (refs) modal %>
+<%# <div class="reveal-modal" id="add-thingrefs-modal" data-reveal> %>
+  <h2>Select items to add</h2>
+  <div>
+    <a class="button do-ok disabled">OK</a><!--
+    --><a class="button do-close">Cancel</a>
+  </div>
+
+  <div class="thing-list row"></div>
+
+  <a class="close-reveal-modal">&#215;</a>
+<%# </div> %>

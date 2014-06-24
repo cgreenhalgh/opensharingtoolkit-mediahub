@@ -9,8 +9,8 @@ module.exports = class LocaldbStateListView extends Backbone.View
   className: 'localdb-state-list row'
 
   initialize: ->
-    @listenTo @model, 'add', @add
-    @listenTo @model, 'remove', @remove
+    @listenTo @model, 'add', @addItem
+    @listenTo @model, 'remove', @removeItem
 
   template: (d) =>
     #templateLocaldbStateList d
@@ -18,19 +18,19 @@ module.exports = class LocaldbStateListView extends Backbone.View
   render: =>
     #@$el.html @template @model.attributes
     views = []
-    @model.forEach @add
+    @model.forEach @addItem
     @
 
   views: []
 
-  add: (file) =>
+  addItem: (file) =>
     console.log "LocaldbStateListView add #{file.attributes._id}"
     view = new LocaldbStateInListView model: file
     # TODO add in order / filter
     @$el.append view.$el
     @views.push view
     
-  remove: (file) =>
+  removeItem: (file) =>
     console.log "LocaldbStateListView remove #{file.attributes._id}"
     for view, i in @views when view.model.id == file.id
       console.log "remove view" 

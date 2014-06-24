@@ -1,0 +1,88 @@
+# Thing multi-select Modal View
+templateThingMultiselectModal = require 'templates/ThingMultiselectModal'
+ThingInMultiselectView = require 'views/ThingInMultiselect'
+
+module.exports = class ThingMultiselectModalView extends Backbone.View
+
+  id: 'ThingMultiselectModalView'
+  tagName: 'div'
+  className: 'reveal-modal add-thingrefs-modal'
+  # NB must provide data-options to work around bug , 'data-options':"close_on_background_click: false;" 
+  attributes: { 'data-reveal':'' }
+
+  initialize: ->
+    @listenTo @model, 'add', @addItem
+    @listenTo @model, 'remove', @removeItem
+
+  # syntax ok?? or (x...) -> 
+  template: (d) =>
+    templateThingMultiselectModal d
+
+  render: =>
+    @$el.html @template {}
+    @views = []
+    @model.forEach @addItem
+    @
+
+  inited: false
+
+  events:
+    'click .do-ok': 'doOk'
+    'click .do-close': 'doClose'
+    'change input[type=checkbox]' : 'checkSelect'
+
+  checkSelect: (ev) =>
+    console.log "checkSelect..."
+    selected = $('input:checked', @$el).length > 0
+    if selected
+      $('.do-ok', @$el).removeClass 'disabled'
+    else
+      $('.do-ok', @$el).addClass 'disabled'
+
+  doOk: (ev) =>
+    ev.preventDefault()
+    if $(ev.target).hasClass 'disabled'
+      console.log "ignore ok - disabled"
+      return
+    @$el.foundation 'reveal', 'close'
+    for el in $('input:checked', @$el)
+      id = $(el).attr 'name'
+      console.log "selected #{id}"
+    # TODO
+
+  doClose: (ev) =>
+    ev.preventDefault()
+    @$el.foundation 'reveal', 'close'
+
+  addItem: (thing) =>
+    console.log "ThingMultiselectModalView add #{thing.id}"
+    view = new ThingInMultiselectView model: thing
+    view.render()
+    # TODO add in order / filter
+    $('.thing-list', @$el).append view.$el
+    @views.push view
+    
+  removeItem: (thing) =>
+    console.log "ThingMultiselectModalView remove #{thing.id}"
+    for view, i in @views when view.model.id == thing.id
+      console.log "remove view" 
+      view.$el.remove()
+      @views.splice i,1
+      return
+
+  remove: () =>
+    for view in @views
+      view.remove()
+    super()
+
+  show: =>
+    if not @inited
+      @inited = true
+      try
+        @$el.foundation 'reveal', 'init'
+      catch err
+        console.log "error doing reveal init: #{err.message}"
+    $('input[type=checkbox]').attr 'checked', false
+    @$el.foundation 'reveal', 'open'
+
+

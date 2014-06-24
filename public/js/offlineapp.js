@@ -2004,8 +2004,8 @@
     __extends(LocaldbStateListView, _super);
 
     function LocaldbStateListView() {
-      this.remove = __bind(this.remove, this);
-      this.add = __bind(this.add, this);
+      this.removeItem = __bind(this.removeItem, this);
+      this.addItem = __bind(this.addItem, this);
       this.render = __bind(this.render, this);
       this.template = __bind(this.template, this);
       return LocaldbStateListView.__super__.constructor.apply(this, arguments);
@@ -2016,8 +2016,8 @@
     LocaldbStateListView.prototype.className = 'localdb-state-list row';
 
     LocaldbStateListView.prototype.initialize = function() {
-      this.listenTo(this.model, 'add', this.add);
-      return this.listenTo(this.model, 'remove', this.remove);
+      this.listenTo(this.model, 'add', this.addItem);
+      return this.listenTo(this.model, 'remove', this.removeItem);
     };
 
     LocaldbStateListView.prototype.template = function(d) {};
@@ -2025,13 +2025,13 @@
     LocaldbStateListView.prototype.render = function() {
       var views;
       views = [];
-      this.model.forEach(this.add);
+      this.model.forEach(this.addItem);
       return this;
     };
 
     LocaldbStateListView.prototype.views = [];
 
-    LocaldbStateListView.prototype.add = function(file) {
+    LocaldbStateListView.prototype.addItem = function(file) {
       var view;
       console.log("LocaldbStateListView add " + file.attributes._id);
       view = new LocaldbStateInListView({
@@ -2041,7 +2041,7 @@
       return this.views.push(view);
     };
 
-    LocaldbStateListView.prototype.remove = function(file) {
+    LocaldbStateListView.prototype.removeItem = function(file) {
       var i, view, _i, _len, _ref;
       console.log("LocaldbStateListView remove " + file.attributes._id);
       _ref = this.views;
@@ -2341,8 +2341,8 @@
     __extends(TrackReviewListView, _super);
 
     function TrackReviewListView() {
-      this.remove = __bind(this.remove, this);
-      this.add = __bind(this.add, this);
+      this.removeItem = __bind(this.removeItem, this);
+      this.addItem = __bind(this.addItem, this);
       this.render = __bind(this.render, this);
       this.template = __bind(this.template, this);
       return TrackReviewListView.__super__.constructor.apply(this, arguments);
@@ -2353,8 +2353,8 @@
     TrackReviewListView.prototype.className = 'track-review-list columns large-12 small-12';
 
     TrackReviewListView.prototype.initialize = function() {
-      this.listenTo(this.model, 'add', this.add);
-      this.listenTo(this.model, 'remove', this.remove);
+      this.listenTo(this.model, 'add', this.addItem);
+      this.listenTo(this.model, 'remove', this.removeItem);
       return this.render();
     };
 
@@ -2364,13 +2364,13 @@
       var views;
       this.$el.append('<h2>All Reviews</h2>');
       views = [];
-      this.model.forEach(this.add);
+      this.model.forEach(this.addItem);
       return this;
     };
 
     TrackReviewListView.prototype.views = [];
 
-    TrackReviewListView.prototype.add = function(item) {
+    TrackReviewListView.prototype.addItem = function(item) {
       var view;
       console.log("TrackReviewListView add " + item.id);
       view = new TrackReviewInListView({
@@ -2380,7 +2380,7 @@
       return this.views.push(view);
     };
 
-    TrackReviewListView.prototype.remove = function(item) {
+    TrackReviewListView.prototype.removeItem = function(item) {
       var i, view, _i, _len, _ref;
       console.log("TrackReviewListView remove " + item.id);
       _ref = this.views;

@@ -7,8 +7,8 @@ module.exports = class ThingListView extends Backbone.View
   className: 'row thing-list top-level-view'
 
   initialize: ->
-    @listenTo @model, 'add', @add
-    @listenTo @model, 'remove', @remove
+    @listenTo @model, 'add', @addItem
+    @listenTo @model, 'remove', @removeItem
 
   template: (d) =>
     templateThingList d
@@ -17,19 +17,19 @@ module.exports = class ThingListView extends Backbone.View
     console.log "render ThingList, contentType=#{@model.model.contentType.id}"
     @$el.html @template contentType: @model.model.contentType.attributes
     views = []
-    @model.forEach @add
+    @model.forEach @addItem
     @
 
   views: []
 
-  add: (thing) =>
+  addItem: (thing) =>
     console.log "ThingListView add #{thing.id}"
     view = @model.model.contentType.getThingView thing
     # TODO add in order / filter
     @$el.append view.$el
     @views.push view
     
-  remove: (thing) =>
+  removeItem: (thing) =>
     console.log "ThingListView remove #{thing.id}"
     for view, i in @views when view.model.id == thing.id
       console.log "remove view" 
@@ -37,6 +37,11 @@ module.exports = class ThingListView extends Backbone.View
       @views.splice i,1
       return
     
+  remove: () =>
+    for view in @views
+      view.remove()
+    super()
+
   events:
     "click .do-add-thing": "addThing"
 

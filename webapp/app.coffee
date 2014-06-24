@@ -10,6 +10,7 @@ require 'plugins/Track'
 require 'plugins/Html'
 require 'plugins/Booklet'
 require 'plugins/Place'
+require 'plugins/List'
 
 config = window.mediahubconfig
 

@@ -69,6 +69,8 @@
 
   require('plugins/Place');
 
+  require('plugins/List');
+
   config = window.mediahubconfig;
 
   tempViews = [];
@@ -567,6 +569,74 @@
   })(Backbone.Collection);
 
 }).call(this);
+}, "models/List": function(exports, require, module) {(function() {
+  var Place,
+    __hasProp = {}.hasOwnProperty,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+  module.exports = Place = (function(_super) {
+    __extends(Place, _super);
+
+    function Place() {
+      return Place.__super__.constructor.apply(this, arguments);
+    }
+
+    Place.prototype.defaults = {
+      title: '',
+      description: '',
+      type: 'list',
+      thingsIds: []
+    };
+
+    return Place;
+
+  })(Backbone.Model);
+
+}).call(this);
+}, "models/ListList": function(exports, require, module) {(function() {
+  var List, ListList,
+    __hasProp = {}.hasOwnProperty,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+  List = require('models/List');
+
+  module.exports = ListList = (function(_super) {
+    __extends(ListList, _super);
+
+    function ListList() {
+      return ListList.__super__.constructor.apply(this, arguments);
+    }
+
+    ListList.prototype.model = List;
+
+    ListList.prototype.pouch = {
+      fetch: 'query',
+      listen: true,
+      options: {
+        query: {
+          include_docs: true,
+          startkey: 'list',
+          endkey: 'list',
+          fun: 'app/type'
+        },
+        changes: {
+          include_docs: true,
+          continuous: true,
+          filter: 'app/typeList'
+        }
+      }
+    };
+
+    ListList.prototype.parse = function(result) {
+      console.log("parse " + (JSON.stringify(result)));
+      return _.pluck(result.rows, 'doc');
+    };
+
+    return ListList;
+
+  })(Backbone.Collection);
+
+}).call(this);
 }, "models/Place": function(exports, require, module) {(function() {
   var Place,
     __hasProp = {}.hasOwnProperty,
@@ -636,6 +706,86 @@
     };
 
     return PlaceList;
+
+  })(Backbone.Collection);
+
+}).call(this);
+}, "models/Thing": function(exports, require, module) {(function() {
+  var Thing,
+    __hasProp = {}.hasOwnProperty,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+  module.exports = Thing = (function(_super) {
+    __extends(Thing, _super);
+
+    function Thing() {
+      return Thing.__super__.constructor.apply(this, arguments);
+    }
+
+    Thing.prototype.defaults = {
+      title: '',
+      description: ''
+    };
+
+    return Thing;
+
+  })(Backbone.Model);
+
+}).call(this);
+}, "models/ThingList": function(exports, require, module) {(function() {
+  var Thing, ThingList,
+    __hasProp = {}.hasOwnProperty,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+  Thing = require('models/Thing');
+
+  module.exports = ThingList = (function(_super) {
+    __extends(ThingList, _super);
+
+    function ThingList() {
+      return ThingList.__super__.constructor.apply(this, arguments);
+    }
+
+    ThingList.prototype.model = Thing;
+
+    ThingList.prototype.pouch = {
+      fetch: 'query',
+      listen: false,
+      options: {
+        query: {
+          include_docs: true,
+          fun: 'app/type'
+        }
+      }
+    };
+
+    ThingList.prototype.parse = function(result) {
+      console.log("parse " + (JSON.stringify(result)));
+      return _.pluck(result.rows, 'doc');
+    };
+
+    return ThingList;
+
+  })(Backbone.Collection);
+
+}).call(this);
+}, "models/ThingRefList": function(exports, require, module) {(function() {
+  var Thing, ThingRefList,
+    __hasProp = {}.hasOwnProperty,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+  Thing = require('models/Thing');
+
+  module.exports = ThingRefList = (function(_super) {
+    __extends(ThingRefList, _super);
+
+    function ThingRefList() {
+      return ThingRefList.__super__.constructor.apply(this, arguments);
+    }
+
+    ThingRefList.prototype.model = Thing;
+
+    return ThingRefList;
 
   })(Backbone.Collection);
 
@@ -829,6 +979,36 @@
   plugins.registerContentType(contentType.id, contentType);
 
 }).call(this);
+}, "plugins/List": function(exports, require, module) {(function() {
+  var ThingBuilder, ThisThing, ThisThingEditView, ThisThingInListView, ThisThingList, ThisThingListView, ThisThingView, attributes, contentType, plugins;
+
+  plugins = require('plugins');
+
+  ThisThing = require('models/List');
+
+  ThisThingList = require('models/ListList');
+
+  ThisThingListView = require('views/ThingList');
+
+  ThisThingInListView = require('views/ThingInList');
+
+  ThisThingView = require('views/Thing');
+
+  ThisThingEditView = require('views/ListEdit');
+
+  ThingBuilder = require('plugins/ThingBuilder');
+
+  attributes = {
+    id: 'list',
+    title: 'List',
+    description: 'A list of things'
+  };
+
+  contentType = ThingBuilder.createThingType(attributes, ThisThing, ThisThingList, ThisThingListView, ThisThingInListView, ThisThingView, ThisThingEditView);
+
+  plugins.registerContentType(contentType.id, contentType);
+
+}).call(this);
 }, "plugins/Place": function(exports, require, module) {(function() {
   var ThingBuilder, ThisThing, ThisThingEditView, ThisThingInListView, ThisThingList, ThisThingListView, ThisThingView, attributes, contentType, plugins;
 
@@ -842,7 +1022,7 @@
 
   ThisThingInListView = require('views/ThingInList');
 
-  ThisThingView = null;
+  ThisThingView = require('views/Thing');
 
   ThisThingEditView = require('views/PlaceEdit');
 
@@ -1686,6 +1866,72 @@
   }).call(__obj);
   __obj.safe = __objSafe, __obj.escape = __escape;
   return __out.join('');
+}}, "templates/ListEdit": function(exports, require, module) {module.exports = function(__obj) {
+  if (!__obj) __obj = {};
+  var __out = [], __capture = function(callback) {
+    var out = __out, result;
+    __out = [];
+    callback.call(this);
+    result = __out.join('');
+    __out = out;
+    return __safe(result);
+  }, __sanitize = function(value) {
+    if (value && value.ecoSafe) {
+      return value;
+    } else if (typeof value !== 'undefined' && value != null) {
+      return __escape(value);
+    } else {
+      return '';
+    }
+  }, __safe, __objSafe = __obj.safe, __escape = __obj.escape;
+  __safe = __obj.safe = function(value) {
+    if (value && value.ecoSafe) {
+      return value;
+    } else {
+      if (!(typeof value !== 'undefined' && value != null)) value = '';
+      var result = new String(value);
+      result.ecoSafe = true;
+      return result;
+    }
+  };
+  if (!__escape) {
+    __escape = __obj.escape = function(value) {
+      return ('' + value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    };
+  }
+  (function() {
+    (function() {
+      __out.push('\n<div class="columns large-12">\n  <h2>');
+    
+      __out.push(__sanitize(this.add ? 'Add' : 'Edit'));
+    
+      __out.push(' ');
+    
+      __out.push(__sanitize(this.contentType.title));
+    
+      __out.push('</h2>\n</div>\n<form>\n  <div class="columns large-12">\n    <input type="submit" value="');
+    
+      __out.push(__sanitize(this.add ? 'Add' : 'Save changes'));
+    
+      __out.push('"/>\n    <input type="reset" value="Clear"/>\n    <input type="button" value="Cancel" class="do-cancel"/>\n\n    <label>Title\n      <input type="text" name="title" placeholder="title" value="');
+    
+      __out.push(__sanitize(this.data.title));
+    
+      __out.push('"/>\n    </label>\n\n    <label>Specific Items\n      <div class="thingref-list-holder"></div>\n    </label>\n\n    <label>Description\n      <textarea name="description" placeholder="description" >');
+    
+      __out.push(__sanitize(this.data.description));
+    
+      __out.push('</textarea>\n    </label>\n  </div>\n</form>\n\n');
+    
+    }).call(this);
+    
+  }).call(__obj);
+  __obj.safe = __objSafe, __obj.escape = __escape;
+  return __out.join('');
 }}, "templates/PlaceEdit": function(exports, require, module) {module.exports = function(__obj) {
   if (!__obj) __obj = {};
   var __out = [], __capture = function(callback) {
@@ -1997,7 +2243,65 @@
     
       __out.push(__sanitize(this.title));
     
-      __out.push('\n  <a href="#-delete-file" class="action-button do-delete-file right">Delete</a>\n  <a href="#-edit-file" class="action-button do-edit-file right">Edit</a>\n  <a href="#-view-file" class="action-button do-view-file right">View</a>\n</h3>\n');
+      __out.push('\n  <a href="#-delete-file" class="action-button do-delete-file right">Delete</a>\n  <a href="#-edit-file" class="action-button do-edit-file right">Edit</a>\n  <a href="#-view-file" class="action-button do-view-file right">View</a>\n</h4>\n');
+    
+    }).call(this);
+    
+  }).call(__obj);
+  __obj.safe = __objSafe, __obj.escape = __escape;
+  return __out.join('');
+}}, "templates/ThingInMultiselect": function(exports, require, module) {module.exports = function(__obj) {
+  if (!__obj) __obj = {};
+  var __out = [], __capture = function(callback) {
+    var out = __out, result;
+    __out = [];
+    callback.call(this);
+    result = __out.join('');
+    __out = out;
+    return __safe(result);
+  }, __sanitize = function(value) {
+    if (value && value.ecoSafe) {
+      return value;
+    } else if (typeof value !== 'undefined' && value != null) {
+      return __escape(value);
+    } else {
+      return '';
+    }
+  }, __safe, __objSafe = __obj.safe, __escape = __obj.escape;
+  __safe = __obj.safe = function(value) {
+    if (value && value.ecoSafe) {
+      return value;
+    } else {
+      if (!(typeof value !== 'undefined' && value != null)) value = '';
+      var result = new String(value);
+      result.ecoSafe = true;
+      return result;
+    }
+  };
+  if (!__escape) {
+    __escape = __obj.escape = function(value) {
+      return ('' + value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    };
+  }
+  (function() {
+    (function() {
+      __out.push('\n<h4 class="clearfix"><input type="checkbox" name="');
+    
+      __out.push(__sanitize(this._id));
+    
+      __out.push('"/> ');
+    
+      __out.push(__sanitize(this.typeName));
+    
+      __out.push(' ');
+    
+      __out.push(__sanitize(this.title));
+    
+      __out.push('\n  <a href="#" class="action-button do-preview-thing right">Preview</a>\n</h4>\n');
     
     }).call(this);
     
@@ -2048,6 +2352,152 @@
       __out.push(__sanitize(this.contentType.title));
     
       __out.push(' List</h2>\n    <a href="#-add-thing" class="button do-add-thing">Add...</a>\n  </div>\n\n');
+    
+    }).call(this);
+    
+  }).call(__obj);
+  __obj.safe = __objSafe, __obj.escape = __escape;
+  return __out.join('');
+}}, "templates/ThingMultiselectModal": function(exports, require, module) {module.exports = function(__obj) {
+  if (!__obj) __obj = {};
+  var __out = [], __capture = function(callback) {
+    var out = __out, result;
+    __out = [];
+    callback.call(this);
+    result = __out.join('');
+    __out = out;
+    return __safe(result);
+  }, __sanitize = function(value) {
+    if (value && value.ecoSafe) {
+      return value;
+    } else if (typeof value !== 'undefined' && value != null) {
+      return __escape(value);
+    } else {
+      return '';
+    }
+  }, __safe, __objSafe = __obj.safe, __escape = __obj.escape;
+  __safe = __obj.safe = function(value) {
+    if (value && value.ecoSafe) {
+      return value;
+    } else {
+      if (!(typeof value !== 'undefined' && value != null)) value = '';
+      var result = new String(value);
+      result.ecoSafe = true;
+      return result;
+    }
+  };
+  if (!__escape) {
+    __escape = __obj.escape = function(value) {
+      return ('' + value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    };
+  }
+  (function() {
+    (function() {
+      __out.push('\n');
+    
+      __out.push('\n  <h2>Select items to add</h2>\n  <div>\n    <a class="button do-ok disabled">OK</a><!--\n    --><a class="button do-close">Cancel</a>\n  </div>\n\n  <div class="thing-list row"></div>\n\n  <a class="close-reveal-modal">&#215;</a>\n');
+    
+      __out.push('\n');
+    
+    }).call(this);
+    
+  }).call(__obj);
+  __obj.safe = __objSafe, __obj.escape = __escape;
+  return __out.join('');
+}}, "templates/ThingRefInList": function(exports, require, module) {module.exports = function(__obj) {
+  if (!__obj) __obj = {};
+  var __out = [], __capture = function(callback) {
+    var out = __out, result;
+    __out = [];
+    callback.call(this);
+    result = __out.join('');
+    __out = out;
+    return __safe(result);
+  }, __sanitize = function(value) {
+    if (value && value.ecoSafe) {
+      return value;
+    } else if (typeof value !== 'undefined' && value != null) {
+      return __escape(value);
+    } else {
+      return '';
+    }
+  }, __safe, __objSafe = __obj.safe, __escape = __obj.escape;
+  __safe = __obj.safe = function(value) {
+    if (value && value.ecoSafe) {
+      return value;
+    } else {
+      if (!(typeof value !== 'undefined' && value != null)) value = '';
+      var result = new String(value);
+      result.ecoSafe = true;
+      return result;
+    }
+  };
+  if (!__escape) {
+    __escape = __obj.escape = function(value) {
+      return ('' + value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    };
+  }
+  (function() {
+    (function() {
+      __out.push('\n<h4 class="clearfix">\n  <a href="#" class="button tiny do-add-below">Add below...</a><!--\n    --><a href="#" class="button tiny do-move-below disabled">Move below</a><!--\n    --><a href="#" class="button tiny do-remove-thingref">Remove</a>\n  ');
+    
+      __out.push(__sanitize(this.title != null ? this.title : this._id));
+    
+      __out.push('\n  <a href="#" class="action-button do-preview-thing right">Preview</a>\n</h4>\n');
+    
+    }).call(this);
+    
+  }).call(__obj);
+  __obj.safe = __objSafe, __obj.escape = __escape;
+  return __out.join('');
+}}, "templates/ThingRefList": function(exports, require, module) {module.exports = function(__obj) {
+  if (!__obj) __obj = {};
+  var __out = [], __capture = function(callback) {
+    var out = __out, result;
+    __out = [];
+    callback.call(this);
+    result = __out.join('');
+    __out = out;
+    return __safe(result);
+  }, __sanitize = function(value) {
+    if (value && value.ecoSafe) {
+      return value;
+    } else if (typeof value !== 'undefined' && value != null) {
+      return __escape(value);
+    } else {
+      return '';
+    }
+  }, __safe, __objSafe = __obj.safe, __escape = __obj.escape;
+  __safe = __obj.safe = function(value) {
+    if (value && value.ecoSafe) {
+      return value;
+    } else {
+      if (!(typeof value !== 'undefined' && value != null)) value = '';
+      var result = new String(value);
+      result.ecoSafe = true;
+      return result;
+    }
+  };
+  if (!__escape) {
+    __escape = __obj.escape = function(value) {
+      return ('' + value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    };
+  }
+  (function() {
+    (function() {
+      __out.push('\n  <div class="columns large-12 small-12">\n    <a href="#" class="button tiny do-add-below">Add below...</a><!--\n    --><a href="#" class="button tiny do-move-below disabled">Move below</a><!--\n    --><a href="#" class="button tiny do-remove-thingrefs disabled">Remove selected</a>\n  </div>\n\n');
     
     }).call(this);
     
@@ -2301,8 +2751,8 @@
     __extends(ContentTypeListView, _super);
 
     function ContentTypeListView() {
-      this.remove = __bind(this.remove, this);
-      this.add = __bind(this.add, this);
+      this.removeItem = __bind(this.removeItem, this);
+      this.addItem = __bind(this.addItem, this);
       this.render = __bind(this.render, this);
       this.template = __bind(this.template, this);
       return ContentTypeListView.__super__.constructor.apply(this, arguments);
@@ -2313,8 +2763,8 @@
     ContentTypeListView.prototype.className = 'row content-type-list top-level-view';
 
     ContentTypeListView.prototype.initialize = function() {
-      this.listenTo(this.model, 'add', this.add);
-      return this.listenTo(this.model, 'remove', this.remove);
+      this.listenTo(this.model, 'add', this.addItem);
+      return this.listenTo(this.model, 'remove', this.removeItem);
     };
 
     ContentTypeListView.prototype.template = function(d) {
@@ -2326,13 +2776,13 @@
       console.log("render ContentTypeList with template");
       this.$el.html(this.template(this.model.attributes));
       views = [];
-      this.model.forEach(this.add);
+      this.model.forEach(this.addItem);
       return this;
     };
 
     ContentTypeListView.prototype.views = [];
 
-    ContentTypeListView.prototype.add = function(item) {
+    ContentTypeListView.prototype.addItem = function(item) {
       var view;
       console.log("ContentTypeListView add " + item.id);
       view = new ContentTypeInListView({
@@ -2342,7 +2792,7 @@
       return this.views.push(view);
     };
 
-    ContentTypeListView.prototype.remove = function(item) {
+    ContentTypeListView.prototype.removeItem = function(item) {
       var i, view, _i, _len, _ref;
       console.log("ContentTypeListView remove " + item.id);
       _ref = this.views;
@@ -2897,6 +3347,59 @@
     return ImageSelectListView;
 
   })(ThingListView);
+
+}).call(this);
+}, "views/ListEdit": function(exports, require, module) {(function() {
+  var ListEditView, ThingEditView, ThingRefList, ThingRefListView, templateListEdit,
+    __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
+    __hasProp = {}.hasOwnProperty,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+  templateListEdit = require('templates/ListEdit');
+
+  ThingEditView = require('views/ThingEdit');
+
+  ThingRefList = require('models/ThingRefList');
+
+  ThingRefListView = require('views/ThingRefList');
+
+  module.exports = ListEditView = (function(_super) {
+    __extends(ListEditView, _super);
+
+    function ListEditView() {
+      this.remove = __bind(this.remove, this);
+      this.formToModel = __bind(this.formToModel, this);
+      this.render = __bind(this.render, this);
+      this.template = __bind(this.template, this);
+      return ListEditView.__super__.constructor.apply(this, arguments);
+    }
+
+    ListEditView.prototype.template = function(d) {
+      return templateListEdit(d);
+    };
+
+    ListEditView.prototype.render = function() {
+      ListEditView.__super__.render.call(this);
+      this.thingRefList = new ThingRefList();
+      this.thingRefListView = new ThingRefListView({
+        model: this.thingRefList
+      });
+      this.thingRefListView.render();
+      return $('.thingref-list-holder', this.$el).append(this.thingRefListView.el);
+    };
+
+    ListEditView.prototype.formToModel = function() {
+      return ListEditView.__super__.formToModel.call(this);
+    };
+
+    ListEditView.prototype.remove = function() {
+      this.thingRefListView.remove();
+      return ListEditView.__super__.remove.call(this);
+    };
+
+    return ListEditView;
+
+  })(ThingEditView);
 
 }).call(this);
 }, "views/PlaceEdit": function(exports, require, module) {(function() {
@@ -3489,6 +3992,60 @@
   })(Backbone.View);
 
 }).call(this);
+}, "views/ThingInMultiselect": function(exports, require, module) {(function() {
+  var ThingInMultiselectView, templateThingInMultiselect,
+    __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
+    __hasProp = {}.hasOwnProperty,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+  templateThingInMultiselect = require('templates/ThingInMultiselect');
+
+  module.exports = ThingInMultiselectView = (function(_super) {
+    __extends(ThingInMultiselectView, _super);
+
+    function ThingInMultiselectView() {
+      this.preview = __bind(this.preview, this);
+      this.render = __bind(this.render, this);
+      this.template = __bind(this.template, this);
+      return ThingInMultiselectView.__super__.constructor.apply(this, arguments);
+    }
+
+    ThingInMultiselectView.prototype.tagName = 'div';
+
+    ThingInMultiselectView.prototype.className = 'columns thing-in-list';
+
+    ThingInMultiselectView.prototype.initialize = function() {};
+
+    ThingInMultiselectView.prototype.template = function(d) {
+      var id, ix, typeName;
+      id = this.model.id;
+      ix = id.indexOf(':');
+      typeName = ix > 0 ? id.substring(0, ix) : 'unknown';
+      return templateThingInMultiselect(_.extend({
+        typeName: typeName
+      }, d));
+    };
+
+    ThingInMultiselectView.prototype.render = function() {
+      console.log("render ThingInMultiselectView " + this.model.attributes._id + ": " + this.model.attributes.title);
+      this.$el.html(this.template(this.model.attributes));
+      return this;
+    };
+
+    ThingInMultiselectView.prototype.events = {
+      "click .do-preview-thing": "preview"
+    };
+
+    ThingInMultiselectView.prototype.preview = function(ev) {
+      console.log("preview " + this.model.attributes._id);
+      return ev.preventDefault();
+    };
+
+    return ThingInMultiselectView;
+
+  })(Backbone.View);
+
+}).call(this);
 }, "views/ThingList": function(exports, require, module) {(function() {
   var ThingListView, templateThingList,
     __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
@@ -3503,7 +4060,8 @@
     function ThingListView() {
       this.addThing = __bind(this.addThing, this);
       this.remove = __bind(this.remove, this);
-      this.add = __bind(this.add, this);
+      this.removeItem = __bind(this.removeItem, this);
+      this.addItem = __bind(this.addItem, this);
       this.render = __bind(this.render, this);
       this.template = __bind(this.template, this);
       return ThingListView.__super__.constructor.apply(this, arguments);
@@ -3514,8 +4072,8 @@
     ThingListView.prototype.className = 'row thing-list top-level-view';
 
     ThingListView.prototype.initialize = function() {
-      this.listenTo(this.model, 'add', this.add);
-      return this.listenTo(this.model, 'remove', this.remove);
+      this.listenTo(this.model, 'add', this.addItem);
+      return this.listenTo(this.model, 'remove', this.removeItem);
     };
 
     ThingListView.prototype.template = function(d) {
@@ -3529,13 +4087,13 @@
         contentType: this.model.model.contentType.attributes
       }));
       views = [];
-      this.model.forEach(this.add);
+      this.model.forEach(this.addItem);
       return this;
     };
 
     ThingListView.prototype.views = [];
 
-    ThingListView.prototype.add = function(thing) {
+    ThingListView.prototype.addItem = function(thing) {
       var view;
       console.log("ThingListView add " + thing.id);
       view = this.model.model.contentType.getThingView(thing);
@@ -3543,7 +4101,7 @@
       return this.views.push(view);
     };
 
-    ThingListView.prototype.remove = function(thing) {
+    ThingListView.prototype.removeItem = function(thing) {
       var i, view, _i, _len, _ref;
       console.log("ThingListView remove " + thing.id);
       _ref = this.views;
@@ -3559,6 +4117,16 @@
       }
     };
 
+    ThingListView.prototype.remove = function() {
+      var view, _i, _len, _ref;
+      _ref = this.views;
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        view = _ref[_i];
+        view.remove();
+      }
+      return ThingListView.__super__.remove.call(this);
+    };
+
     ThingListView.prototype.events = {
       "click .do-add-thing": "addThing"
     };
@@ -3572,6 +4140,348 @@
     };
 
     return ThingListView;
+
+  })(Backbone.View);
+
+}).call(this);
+}, "views/ThingMultiselectModal": function(exports, require, module) {(function() {
+  var ThingInMultiselectView, ThingMultiselectModalView, templateThingMultiselectModal,
+    __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
+    __hasProp = {}.hasOwnProperty,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+  templateThingMultiselectModal = require('templates/ThingMultiselectModal');
+
+  ThingInMultiselectView = require('views/ThingInMultiselect');
+
+  module.exports = ThingMultiselectModalView = (function(_super) {
+    __extends(ThingMultiselectModalView, _super);
+
+    function ThingMultiselectModalView() {
+      this.show = __bind(this.show, this);
+      this.remove = __bind(this.remove, this);
+      this.removeItem = __bind(this.removeItem, this);
+      this.addItem = __bind(this.addItem, this);
+      this.doClose = __bind(this.doClose, this);
+      this.doOk = __bind(this.doOk, this);
+      this.checkSelect = __bind(this.checkSelect, this);
+      this.render = __bind(this.render, this);
+      this.template = __bind(this.template, this);
+      return ThingMultiselectModalView.__super__.constructor.apply(this, arguments);
+    }
+
+    ThingMultiselectModalView.prototype.id = 'ThingMultiselectModalView';
+
+    ThingMultiselectModalView.prototype.tagName = 'div';
+
+    ThingMultiselectModalView.prototype.className = 'reveal-modal add-thingrefs-modal';
+
+    ThingMultiselectModalView.prototype.attributes = {
+      'data-reveal': ''
+    };
+
+    ThingMultiselectModalView.prototype.initialize = function() {
+      this.listenTo(this.model, 'add', this.addItem);
+      return this.listenTo(this.model, 'remove', this.removeItem);
+    };
+
+    ThingMultiselectModalView.prototype.template = function(d) {
+      return templateThingMultiselectModal(d);
+    };
+
+    ThingMultiselectModalView.prototype.render = function() {
+      this.$el.html(this.template({}));
+      this.views = [];
+      this.model.forEach(this.addItem);
+      return this;
+    };
+
+    ThingMultiselectModalView.prototype.inited = false;
+
+    ThingMultiselectModalView.prototype.events = {
+      'click .do-ok': 'doOk',
+      'click .do-close': 'doClose',
+      'change input[type=checkbox]': 'checkSelect'
+    };
+
+    ThingMultiselectModalView.prototype.checkSelect = function(ev) {
+      var selected;
+      console.log("checkSelect...");
+      selected = $('input:checked', this.$el).length > 0;
+      if (selected) {
+        return $('.do-ok', this.$el).removeClass('disabled');
+      } else {
+        return $('.do-ok', this.$el).addClass('disabled');
+      }
+    };
+
+    ThingMultiselectModalView.prototype.doOk = function(ev) {
+      var el, id, _i, _len, _ref, _results;
+      ev.preventDefault();
+      if ($(ev.target).hasClass('disabled')) {
+        console.log("ignore ok - disabled");
+        return;
+      }
+      this.$el.foundation('reveal', 'close');
+      _ref = $('input:checked', this.$el);
+      _results = [];
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        el = _ref[_i];
+        id = $(el).attr('name');
+        _results.push(console.log("selected " + id));
+      }
+      return _results;
+    };
+
+    ThingMultiselectModalView.prototype.doClose = function(ev) {
+      ev.preventDefault();
+      return this.$el.foundation('reveal', 'close');
+    };
+
+    ThingMultiselectModalView.prototype.addItem = function(thing) {
+      var view;
+      console.log("ThingMultiselectModalView add " + thing.id);
+      view = new ThingInMultiselectView({
+        model: thing
+      });
+      view.render();
+      $('.thing-list', this.$el).append(view.$el);
+      return this.views.push(view);
+    };
+
+    ThingMultiselectModalView.prototype.removeItem = function(thing) {
+      var i, view, _i, _len, _ref;
+      console.log("ThingMultiselectModalView remove " + thing.id);
+      _ref = this.views;
+      for (i = _i = 0, _len = _ref.length; _i < _len; i = ++_i) {
+        view = _ref[i];
+        if (!(view.model.id === thing.id)) {
+          continue;
+        }
+        console.log("remove view");
+        view.$el.remove();
+        this.views.splice(i, 1);
+        return;
+      }
+    };
+
+    ThingMultiselectModalView.prototype.remove = function() {
+      var view, _i, _len, _ref;
+      _ref = this.views;
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        view = _ref[_i];
+        view.remove();
+      }
+      return ThingMultiselectModalView.__super__.remove.call(this);
+    };
+
+    ThingMultiselectModalView.prototype.show = function() {
+      var err;
+      if (!this.inited) {
+        this.inited = true;
+        try {
+          this.$el.foundation('reveal', 'init');
+        } catch (_error) {
+          err = _error;
+          console.log("error doing reveal init: " + err.message);
+        }
+      }
+      $('input[type=checkbox]').attr('checked', false);
+      return this.$el.foundation('reveal', 'open');
+    };
+
+    return ThingMultiselectModalView;
+
+  })(Backbone.View);
+
+}).call(this);
+}, "views/ThingRefInList": function(exports, require, module) {(function() {
+  var ThingRefInListView, templateThingRefInList,
+    __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
+    __hasProp = {}.hasOwnProperty,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+  templateThingRefInList = require('templates/ThingRefInList');
+
+  module.exports = ThingRefInListView = (function(_super) {
+    __extends(ThingRefInListView, _super);
+
+    function ThingRefInListView() {
+      this.moveBelow = __bind(this.moveBelow, this);
+      this.addBelow = __bind(this.addBelow, this);
+      this.removeFromList = __bind(this.removeFromList, this);
+      this.preview = __bind(this.preview, this);
+      this.render = __bind(this.render, this);
+      this.template = __bind(this.template, this);
+      return ThingRefInListView.__super__.constructor.apply(this, arguments);
+    }
+
+    ThingRefInListView.prototype.tagName = 'div';
+
+    ThingRefInListView.prototype.className = 'columns thing-ref-in-list';
+
+    ThingRefInListView.prototype.initialize = function() {
+      this.listenTo(this.model, 'change', this.render);
+      return this.render();
+    };
+
+    ThingRefInListView.prototype.template = function(d) {
+      return templateThingRefInList(d);
+    };
+
+    ThingRefInListView.prototype.render = function() {
+      console.log("render ThingRefInList " + this.model.attributes._id + ": " + this.model.attributes.title);
+      this.$el.html(this.template(this.model.attributes));
+      return this;
+    };
+
+    ThingRefInListView.prototype.events = {
+      "click .do-preview-thing": "preview",
+      "click .do-remove-thingref": "removeFromList",
+      "click .do-add-below": "addBelow",
+      "click .do-move-below": "moveBelow"
+    };
+
+    ThingRefInListView.prototype.preview = function(ev) {
+      console.log("preview " + this.model.attributes._id);
+      return ev.preventDefault();
+    };
+
+    ThingRefInListView.prototype.removeFromList = function(ev) {
+      return ev.preventDefault();
+    };
+
+    ThingRefInListView.prototype.addBelow = function(ev) {
+      return ev.preventDefault();
+    };
+
+    ThingRefInListView.prototype.moveBelow = function(ev) {
+      return ev.preventDefault();
+    };
+
+    return ThingRefInListView;
+
+  })(Backbone.View);
+
+}).call(this);
+}, "views/ThingRefList": function(exports, require, module) {(function() {
+  var ThingList, ThingMultiselectModalView, ThingRefInListView, ThingRefListView, templateThingRefList,
+    __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
+    __hasProp = {}.hasOwnProperty,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+  templateThingRefList = require('templates/ThingRefList');
+
+  ThingRefInListView = require('views/ThingRefInList');
+
+  ThingMultiselectModalView = require('views/ThingMultiselectModal');
+
+  ThingList = require('models/ThingList');
+
+  module.exports = ThingRefListView = (function(_super) {
+    __extends(ThingRefListView, _super);
+
+    function ThingRefListView() {
+      this.moveBelow = __bind(this.moveBelow, this);
+      this.addBelow = __bind(this.addBelow, this);
+      this.removeSelected = __bind(this.removeSelected, this);
+      this.removeItem = __bind(this.removeItem, this);
+      this.addItem = __bind(this.addItem, this);
+      this.remove = __bind(this.remove, this);
+      this.render = __bind(this.render, this);
+      this.template = __bind(this.template, this);
+      return ThingRefListView.__super__.constructor.apply(this, arguments);
+    }
+
+    ThingRefListView.prototype.tagName = 'div';
+
+    ThingRefListView.prototype.className = 'row';
+
+    ThingRefListView.prototype.initialize = function() {
+      this.listenTo(this.model, 'add', this.addItem);
+      return this.listenTo(this.model, 'remove', this.removeItem);
+    };
+
+    ThingRefListView.prototype.template = function(d) {
+      return templateThingRefList(d);
+    };
+
+    ThingRefListView.prototype.render = function() {
+      var views;
+      console.log("render ThingRefList");
+      this.$el.html(this.template({}));
+      views = [];
+      this.model.forEach(this.addItem);
+      return this;
+    };
+
+    ThingRefListView.prototype.views = [];
+
+    ThingRefListView.prototype.remove = function() {
+      var view, _i, _len, _ref;
+      _ref = this.views;
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        view = _ref[_i];
+        view.remove();
+      }
+      return ThingRefListView.__super__.remove.call(this);
+    };
+
+    ThingRefListView.prototype.addItem = function(thing) {
+      var view;
+      console.log("ThingRefListView add " + thing.id);
+      view = new ThingRefInListView(thing);
+      this.$el.append(view.$el);
+      return this.views.push(view);
+    };
+
+    ThingRefListView.prototype.removeItem = function(thing) {
+      var i, view, _i, _len, _ref;
+      console.log("ThingRefListView remove " + thing.id);
+      _ref = this.views;
+      for (i = _i = 0, _len = _ref.length; _i < _len; i = ++_i) {
+        view = _ref[i];
+        if (!(view.model.id === thing.id)) {
+          continue;
+        }
+        console.log("remove view");
+        view.$el.remove();
+        this.views.splice(i, 1);
+        return;
+      }
+    };
+
+    ThingRefListView.prototype.events = {
+      "click .do-remove-thingrefs": "removeSelected",
+      "click .do-add-below": "addBelow",
+      "click .do-move-below": "moveBelow"
+    };
+
+    ThingRefListView.prototype.removeSelected = function(ev) {
+      return ev.preventDefault();
+    };
+
+    ThingRefListView.prototype.addBelow = function(ev) {
+      var thingList;
+      ev.preventDefault();
+      console.log("addBelow...");
+      if (this.multiseletModal == null) {
+        thingList = new ThingList();
+        this.multiselectModal = new ThingMultiselectModalView({
+          model: thingList
+        });
+        this.multiselectModal.render();
+        this.$el.append(this.multiselectModal.el);
+        thingList.fetch();
+      }
+      return this.multiselectModal.show();
+    };
+
+    ThingRefListView.prototype.moveBelow = function(ev) {
+      return ev.preventDefault();
+    };
+
+    return ThingRefListView;
 
   })(Backbone.View);
 

@@ -1,0 +1,8 @@
+<%# ThingRef in Thing List, takes Thing as data (title, description, ...) %>
+<h4 class="clearfix">
+  <a href="#" class="button tiny do-add-below">Add below...</a><!--
+    --><a href="#" class="button tiny do-move-below disabled">Move below</a><!--
+    --><a href="#" class="button tiny do-remove-thingref">Remove</a>
+  <%= if @title? then @title else @_id %>
+  <a href="#" class="action-button do-preview-thing right">Preview</a>
+</h4>

@@ -166,6 +166,22 @@ ddoc.filters.typePlace = function(doc) {
   }
   return false;
 };
+// filter type List
+ddoc.filters.typeList = function(doc) {
+  if (doc.type && doc.type === 'list') {
+    return true;
+  }
+  return false;
+};
+// filter type Thing, i.e. anything for now!
+ddoc.filters.typeThing = {
+  map: function(doc) {
+    if (doc.type) {
+      return true;
+    }
+    return false;
+  }
+};
 
 ddoc.validate_doc_update = function (newDoc, oldDoc, userCtx) {
   function user_is(role) {
