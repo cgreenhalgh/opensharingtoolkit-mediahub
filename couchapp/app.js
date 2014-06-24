@@ -122,15 +122,6 @@ ddoc.views.type = {
   }
 };
 
-// filter type Booklet
-ddoc.filters.typeBooklet = {
-  map: function(doc) {
-    if (doc.type && doc.type === 'booklet') {
-      return true;
-    }
-    return false;
-  }
-};
 // filter type Html
 ddoc.filters.typeHtml = function(doc) {
   if (doc.type && doc.type === 'html') {
@@ -174,13 +165,11 @@ ddoc.filters.typeList = function(doc) {
   return false;
 };
 // filter type Thing, i.e. anything for now!
-ddoc.filters.typeThing = {
-  map: function(doc) {
-    if (doc.type) {
-      return true;
-    }
-    return false;
+ddoc.filters.typeThing = function(doc) {
+  if (doc.type) {
+    return true;
   }
+  return false;
 };
 
 ddoc.validate_doc_update = function (newDoc, oldDoc, userCtx) {

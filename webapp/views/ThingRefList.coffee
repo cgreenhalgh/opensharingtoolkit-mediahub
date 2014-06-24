@@ -42,11 +42,11 @@ module.exports = class ThingRefListView extends Backbone.View
 
   addItem: (thing, collection, options) =>
     ix = collection.indexOf thing
-    console.log "ThingRefListView add #{thing.id} at #{ix}"
+    #console.log "ThingRefListView add #{thing.id} at #{ix}"
     if thing.attributes.thingId and not thing.attributes.thing?
       t = @allthings.get thing.attributes.thingId
       if t?
-        console.log "Found thingRef #{thing.id} Thing #{t.id} on addItem"
+        #console.log "Found thingRef #{thing.id} Thing #{t.id} on addItem"
         thing.set thing:t
 
     view = new ThingRefInListView model:thing

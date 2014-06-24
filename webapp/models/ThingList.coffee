@@ -7,12 +7,12 @@ module.exports = class ThingList extends Backbone.Collection
 
   pouch: 
     fetch: 'query' 
-    listen: true 
+    listen: true
     options:
       query:
         include_docs: true
         fun: 'app/type'
-     changes: 
+      changes: 
         include_docs: true
         continuous: true
         filter: 'app/typeThing'

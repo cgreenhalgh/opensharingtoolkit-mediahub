@@ -9,11 +9,11 @@ module.exports = class ListList extends Backbone.Collection
     fetch: 'query' 
     listen: true
     options:
-      query:
+      query: 
         include_docs: true
+        fun: 'app/type'
         startkey: 'list'
         endkey: 'list'
-        fun: 'app/type'
       changes: 
         include_docs: true
         continuous: true

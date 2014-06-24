@@ -68,9 +68,9 @@ module.exports = class ThingMultiselectModalView extends Backbone.View
     ix = @views.length
     for v,i in @views
       sv = v.model.getSortValue()
-      console.log "sort #{sortValue} vs #{sv} = #{sortValue.localeCompare String(sv)}"
+      #console.log "sort #{sortValue} vs #{sv} = #{sortValue.localeCompare String(sv)}"
       if (sortValue.localeCompare String(sv)) < 0
-         console.log "sort #{sortValue} vs #{sv} < #{sortValue.localeCompare String(sv)} -> #{i}"
+         #console.log "sort #{sortValue} vs #{sv} < #{sortValue.localeCompare String(sv)} -> #{i}"
          ix = i
          break
     if ix < @views.length

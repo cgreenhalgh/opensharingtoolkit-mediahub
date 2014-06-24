@@ -633,9 +633,9 @@
       options: {
         query: {
           include_docs: true,
+          fun: 'app/type',
           startkey: 'list',
-          endkey: 'list',
-          fun: 'app/type'
+          endkey: 'list'
         },
         changes: {
           include_docs: true,
@@ -787,12 +787,12 @@
         query: {
           include_docs: true,
           fun: 'app/type'
+        },
+        changes: {
+          include_docs: true,
+          continuous: true,
+          filter: 'app/typeThing'
         }
-      },
-      changes: {
-        include_docs: true,
-        continuous: true,
-        filter: 'app/typeThing'
       }
     };
 
@@ -4355,9 +4355,7 @@
       for (i = _i = 0, _len = _ref.length; _i < _len; i = ++_i) {
         v = _ref[i];
         sv = v.model.getSortValue();
-        console.log("sort " + sortValue + " vs " + sv + " = " + (sortValue.localeCompare(String(sv))));
         if ((sortValue.localeCompare(String(sv))) < 0) {
-          console.log("sort " + sortValue + " vs " + sv + " < " + (sortValue.localeCompare(String(sv))) + " -> " + i);
           ix = i;
           break;
         }
@@ -4584,11 +4582,9 @@
     ThingRefListView.prototype.addItem = function(thing, collection, options) {
       var ix, t, view;
       ix = collection.indexOf(thing);
-      console.log("ThingRefListView add " + thing.id + " at " + ix);
       if (thing.attributes.thingId && (thing.attributes.thing == null)) {
         t = this.allthings.get(thing.attributes.thingId);
         if (t != null) {
-          console.log("Found thingRef " + thing.id + " Thing " + t.id + " on addItem");
           thing.set({
             thing: t
           });
