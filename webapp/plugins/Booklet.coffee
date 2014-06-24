@@ -10,7 +10,7 @@ ThisThingEditView = require 'views/BookletEdit'
 ThingBuilder = require 'plugins/ThingBuilder'
 
 attributes = 
-    id: 'booket'
+    id: 'booklet'
     title: 'Booklet'
     description: 'A collection of related content for distribution as part of an app'
 

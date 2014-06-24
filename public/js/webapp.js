@@ -48,7 +48,24 @@
     };
   }
   return this.require.define;
-}).call(this)({"app": function(exports, require, module) {(function() {
+}).call(this)({"allthings": function(exports, require, module) {(function() {
+  var ThingList, singleton;
+
+  ThingList = require('models/ThingList');
+
+  singleton = null;
+
+  module.exports.get = function() {
+    if (singleton == null) {
+      console.log("initialising ThingList for allthings");
+      singleton = new ThingList();
+      singleton.fetch();
+    }
+    return singleton;
+  };
+
+}).call(this);
+}, "app": function(exports, require, module) {(function() {
   var App, ContentTypeList, ContentTypeListView, Router, config, db, plugins, tempViews,
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -713,6 +730,7 @@
 }).call(this);
 }, "models/Thing": function(exports, require, module) {(function() {
   var Thing,
+    __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
@@ -720,12 +738,25 @@
     __extends(Thing, _super);
 
     function Thing() {
+      this.getSortValue = __bind(this.getSortValue, this);
       return Thing.__super__.constructor.apply(this, arguments);
     }
 
     Thing.prototype.defaults = {
       title: '',
       description: ''
+    };
+
+    Thing.prototype.getSortValue = function() {
+      var ix, typeName;
+      typeName = '';
+      if (this.id != null) {
+        ix = this.id.indexOf(':');
+        if (ix >= 0) {
+          typeName = this.id.substring(0, ix);
+        }
+      }
+      return "" + typeName + ":" + this.attributes.title;
     };
 
     return Thing;
@@ -971,7 +1002,7 @@
   ThingBuilder = require('plugins/ThingBuilder');
 
   attributes = {
-    id: 'booket',
+    id: 'booklet',
     title: 'Booklet',
     description: 'A collection of related content for distribution as part of an app'
   };
@@ -4312,14 +4343,33 @@
     };
 
     ThingMultiselectModalView.prototype.addItem = function(thing) {
-      var view;
+      var i, ix, sortValue, sv, v, view, _i, _len, _ref;
       console.log("ThingMultiselectModalView add " + thing.id);
       view = new ThingInMultiselectView({
         model: thing
       });
       view.render();
-      $('.thing-list', this.$el).append(view.$el);
-      return this.views.push(view);
+      sortValue = String(thing.getSortValue());
+      ix = this.views.length;
+      _ref = this.views;
+      for (i = _i = 0, _len = _ref.length; _i < _len; i = ++_i) {
+        v = _ref[i];
+        sv = v.model.getSortValue();
+        console.log("sort " + sortValue + " vs " + sv + " = " + (sortValue.localeCompare(String(sv))));
+        if ((sortValue.localeCompare(String(sv))) < 0) {
+          console.log("sort " + sortValue + " vs " + sv + " < " + (sortValue.localeCompare(String(sv))) + " -> " + i);
+          ix = i;
+          break;
+        }
+      }
+      if (ix < this.views.length) {
+        console.log("insert Thing at " + ix + " / " + this.views.length + " (" + sortValue + ")");
+        this.views[ix].$el.before(view.$el);
+        return this.views.splice(ix, 0, view);
+      } else {
+        $('.thing-list', this.$el).append(view.$el);
+        return this.views.push(view);
+      }
     };
 
     ThingMultiselectModalView.prototype.removeItem = function(thing) {
@@ -4435,7 +4485,7 @@
 
 }).call(this);
 }, "views/ThingRefList": function(exports, require, module) {(function() {
-  var ThingList, ThingMultiselectModalView, ThingRef, ThingRefInListView, ThingRefListView, templateThingRefList,
+  var ThingMultiselectModalView, ThingRef, ThingRefInListView, ThingRefListView, allthings, templateThingRefList,
     __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -4448,7 +4498,7 @@
 
   ThingRef = require('models/ThingRef');
 
-  ThingList = require('models/ThingList');
+  allthings = require('allthings');
 
   module.exports = ThingRefListView = (function(_super) {
     __extends(ThingRefListView, _super);
@@ -4465,6 +4515,7 @@
       this.selectAll = __bind(this.selectAll, this);
       this.removeItem = __bind(this.removeItem, this);
       this.addItem = __bind(this.addItem, this);
+      this.addThing = __bind(this.addThing, this);
       this.remove = __bind(this.remove, this);
       this.render = __bind(this.render, this);
       this.template = __bind(this.template, this);
@@ -4477,8 +4528,10 @@
 
     ThingRefListView.prototype.initialize = function() {
       this.views = [];
+      this.allthings = allthings.get();
       this.listenTo(this.model, 'add', this.addItem);
       this.listenTo(this.model, 'remove', this.removeItem);
+      this.listenTo(this.allthings, 'add', this.addThing);
       return this.render();
     };
 
@@ -4509,10 +4562,38 @@
       return ThingRefListView.__super__.remove.call(this);
     };
 
+    ThingRefListView.prototype.addThing = function(thing) {
+      var tr, _i, _len, _ref, _results;
+      console.log("found Thing " + thing.id + " (" + this.model.models.length + " models)");
+      _ref = this.model.models;
+      _results = [];
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        tr = _ref[_i];
+        if (tr.attributes.thingId === thing.id) {
+          console.log("Found thingRef " + tr.id + " Thing " + thing.id + " on addThing");
+          _results.push(tr.set({
+            thing: thing
+          }));
+        } else {
+          _results.push(void 0);
+        }
+      }
+      return _results;
+    };
+
     ThingRefListView.prototype.addItem = function(thing, collection, options) {
-      var ix, view;
+      var ix, t, view;
       ix = collection.indexOf(thing);
       console.log("ThingRefListView add " + thing.id + " at " + ix);
+      if (thing.attributes.thingId && (thing.attributes.thing == null)) {
+        t = this.allthings.get(thing.attributes.thingId);
+        if (t != null) {
+          console.log("Found thingRef " + thing.id + " Thing " + t.id + " on addItem");
+          thing.set({
+            thing: t
+          });
+        }
+      }
       view = new ThingRefInListView({
         model: thing
       });
@@ -4633,13 +4714,12 @@
       ix = this.getIndex(ev);
       console.log("addBelow " + ix + "...");
       if (this.multiseletModal == null) {
-        thingList = new ThingList();
+        thingList = allthings.get();
         this.multiselectModal = new ThingMultiselectModalView({
           model: thingList
         });
         this.multiselectModal.render();
         this.$el.append(this.multiselectModal.el);
-        thingList.fetch();
       }
       return this.multiselectModal.show((function(_this) {
         return function(thingIds) {

@@ -4,3 +4,11 @@ module.exports = class Thing extends Backbone.Model
     title: ''
     description: ''
 
+  getSortValue: () =>
+    typeName = ''
+    if @id?
+      ix = @id.indexOf(':')
+      if ix>=0 
+        typeName = @id.substring 0, ix
+    return "#{typeName}:#{@attributes.title}"
+

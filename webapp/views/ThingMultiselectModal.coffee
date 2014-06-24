@@ -64,9 +64,22 @@ module.exports = class ThingMultiselectModalView extends Backbone.View
     console.log "ThingMultiselectModalView add #{thing.id}"
     view = new ThingInMultiselectView model: thing
     view.render()
-    # TODO add in order / filter
-    $('.thing-list', @$el).append view.$el
-    @views.push view
+    sortValue = String(thing.getSortValue())
+    ix = @views.length
+    for v,i in @views
+      sv = v.model.getSortValue()
+      console.log "sort #{sortValue} vs #{sv} = #{sortValue.localeCompare String(sv)}"
+      if (sortValue.localeCompare String(sv)) < 0
+         console.log "sort #{sortValue} vs #{sv} < #{sortValue.localeCompare String(sv)} -> #{i}"
+         ix = i
+         break
+    if ix < @views.length
+      console.log "insert Thing at #{ix} / #{@views.length} (#{sortValue})"
+      @views[ix].$el.before view.$el
+      @views.splice ix, 0, view
+    else
+      $('.thing-list', @$el).append view.$el
+      @views.push view
     
   removeItem: (thing) =>
     console.log "ThingMultiselectModalView remove #{thing.id}"

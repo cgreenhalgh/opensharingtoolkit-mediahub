@@ -3,7 +3,7 @@ templateThingRefList = require 'templates/ThingRefList'
 ThingRefInListView = require 'views/ThingRefInList'
 ThingMultiselectModalView = require 'views/ThingMultiselectModal'
 ThingRef = require 'models/ThingRef'
-ThingList = require 'models/ThingList'
+allthings = require 'allthings'
 
 module.exports = class ThingRefListView extends Backbone.View
 
@@ -12,8 +12,10 @@ module.exports = class ThingRefListView extends Backbone.View
 
   initialize: ->
     @views = []
+    @allthings = allthings.get()
     @listenTo @model, 'add', @addItem
     @listenTo @model, 'remove', @removeItem
+    @listenTo @allthings, 'add', @addThing
     @render()
 
   template: (d) =>
@@ -31,10 +33,22 @@ module.exports = class ThingRefListView extends Backbone.View
       view.remove()
     super()
 
+  addThing: (thing) =>
+    console.log "found Thing #{thing.id} (#{@model.models.length} models)"
+    for tr in @model.models
+      if tr.attributes.thingId == thing.id
+        console.log "Found thingRef #{tr.id} Thing #{thing.id} on addThing"
+        tr.set thing:thing
 
   addItem: (thing, collection, options) =>
     ix = collection.indexOf thing
     console.log "ThingRefListView add #{thing.id} at #{ix}"
+    if thing.attributes.thingId and not thing.attributes.thing?
+      t = @allthings.get thing.attributes.thingId
+      if t?
+        console.log "Found thingRef #{thing.id} Thing #{t.id} on addItem"
+        thing.set thing:t
+
     view = new ThingRefInListView model:thing
     if ix>=0 && ix<@views.length
       console.log "add ThingRef #{ view.el } before #{ @views[ix].el } ix #{ix}"
@@ -120,12 +134,10 @@ module.exports = class ThingRefListView extends Backbone.View
     ix = @getIndex ev
     console.log "addBelow #{ix}..."
     if not @multiseletModal?
-      thingList = new ThingList()
+      thingList = allthings.get()
       @multiselectModal = new ThingMultiselectModalView model: thingList
       @multiselectModal.render()
       @$el.append @multiselectModal.el
-      # no change while visible!
-      thingList.fetch()
     @multiselectModal.show (thingIds) => @onAddBelow thingIds, ix
 
   onAddBelow: (thingIds, ix) =>
