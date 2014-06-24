@@ -68,7 +68,7 @@ module.exports = class ThingEditView extends Backbone.View
     @close()
 
   close: =>
-    @remove()
+    #@remove()
     window.history.back()
 
   selectImage: (ev, selector) =>

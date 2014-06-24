@@ -7,6 +7,7 @@ module.exports = class ThingListView extends Backbone.View
   className: 'row thing-list top-level-view'
 
   initialize: ->
+    @views = []
     @listenTo @model, 'add', @addItem
     @listenTo @model, 'remove', @removeItem
 
@@ -16,11 +17,8 @@ module.exports = class ThingListView extends Backbone.View
   render: =>
     console.log "render ThingList, contentType=#{@model.model.contentType.id}"
     @$el.html @template contentType: @model.model.contentType.attributes
-    views = []
     @model.forEach @addItem
     @
-
-  views: []
 
   addItem: (thing) =>
     console.log "ThingListView add #{thing.id}"

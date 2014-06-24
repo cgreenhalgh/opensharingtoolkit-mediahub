@@ -7,11 +7,15 @@ module.exports = class ThingList extends Backbone.Collection
 
   pouch: 
     fetch: 'query' 
-    listen: false # NB one-shot
+    listen: true 
     options:
       query:
         include_docs: true
         fun: 'app/type'
+     changes: 
+        include_docs: true
+        continuous: true
+        filter: 'app/typeThing'
 
   parse: (result) ->
     console.log "parse #{JSON.stringify result}"

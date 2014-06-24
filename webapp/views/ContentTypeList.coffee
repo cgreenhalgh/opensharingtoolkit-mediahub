@@ -9,6 +9,7 @@ module.exports = class ContentTypeListView extends Backbone.View
   className: 'row content-type-list top-level-view'
 
   initialize: ->
+    @views = []
     @listenTo @model, 'add', @addItem
     @listenTo @model, 'remove', @removeItem
 
@@ -18,11 +19,8 @@ module.exports = class ContentTypeListView extends Backbone.View
   render: =>
     console.log "render ContentTypeList with template"
     @$el.html @template @model.attributes
-    views = []
     @model.forEach @addItem
     @
-
-  views: []
 
   addItem: (item) =>
     console.log "ContentTypeListView add #{item.id}"

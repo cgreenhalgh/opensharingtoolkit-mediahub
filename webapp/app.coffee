@@ -31,6 +31,7 @@ class Router extends Backbone.Router
 
   removeTempViews: () ->
     console.log "removeTempViews (#{tempViews.length})"
+    $('.reveal-modal.open', document).foundation 'reveal','close'
     while tempViews.length>0
       view = tempViews.splice(0,1)[0]
       view.remove()

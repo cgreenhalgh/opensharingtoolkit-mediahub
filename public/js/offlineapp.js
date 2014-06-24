@@ -2016,6 +2016,7 @@
     LocaldbStateListView.prototype.className = 'localdb-state-list row';
 
     LocaldbStateListView.prototype.initialize = function() {
+      this.views = [];
       this.listenTo(this.model, 'add', this.addItem);
       return this.listenTo(this.model, 'remove', this.removeItem);
     };
@@ -2023,13 +2024,9 @@
     LocaldbStateListView.prototype.template = function(d) {};
 
     LocaldbStateListView.prototype.render = function() {
-      var views;
-      views = [];
       this.model.forEach(this.addItem);
       return this;
     };
-
-    LocaldbStateListView.prototype.views = [];
 
     LocaldbStateListView.prototype.addItem = function(file) {
       var view;
@@ -2353,6 +2350,7 @@
     TrackReviewListView.prototype.className = 'track-review-list columns large-12 small-12';
 
     TrackReviewListView.prototype.initialize = function() {
+      this.views = [];
       this.listenTo(this.model, 'add', this.addItem);
       this.listenTo(this.model, 'remove', this.removeItem);
       return this.render();
@@ -2361,14 +2359,10 @@
     TrackReviewListView.prototype.template = function(d) {};
 
     TrackReviewListView.prototype.render = function() {
-      var views;
       this.$el.append('<h2>All Reviews</h2>');
-      views = [];
       this.model.forEach(this.addItem);
       return this;
     };
-
-    TrackReviewListView.prototype.views = [];
 
     TrackReviewListView.prototype.addItem = function(item) {
       var view;

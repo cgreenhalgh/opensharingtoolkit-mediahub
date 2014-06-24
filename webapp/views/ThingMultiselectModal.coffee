@@ -45,10 +45,16 @@ module.exports = class ThingMultiselectModalView extends Backbone.View
       console.log "ignore ok - disabled"
       return
     @$el.foundation 'reveal', 'close'
+    thingIds = []
     for el in $('input:checked', @$el)
       id = $(el).attr 'name'
       console.log "selected #{id}"
-    # TODO
+      thingIds.push id
+    try 
+      @callback thingIds
+    catch err
+      console.log "error calling ThingMultiselect callback: #{err.message}" 
+      console.log "at #{err.stack}"
 
   doClose: (ev) =>
     ev.preventDefault()
@@ -75,7 +81,7 @@ module.exports = class ThingMultiselectModalView extends Backbone.View
       view.remove()
     super()
 
-  show: =>
+  show: (cb) =>
     if not @inited
       @inited = true
       try
@@ -83,6 +89,7 @@ module.exports = class ThingMultiselectModalView extends Backbone.View
       catch err
         console.log "error doing reveal init: #{err.message}"
     $('input[type=checkbox]').attr 'checked', false
+    @callback = cb
     @$el.foundation 'reveal', 'open'
 
 

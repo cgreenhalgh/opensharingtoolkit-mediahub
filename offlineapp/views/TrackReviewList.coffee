@@ -9,6 +9,7 @@ module.exports = class TrackReviewListView extends Backbone.View
   className: 'track-review-list columns large-12 small-12'
 
   initialize: ->
+    @views = []
     @listenTo @model, 'add', @addItem
     @listenTo @model, 'remove', @removeItem
     @render()
@@ -19,11 +20,8 @@ module.exports = class TrackReviewListView extends Backbone.View
   render: =>
     #@$el.html @template @model.attributes
     @$el.append '<h2>All Reviews</h2>'
-    views = []
     @model.forEach @addItem
     @
-
-  views: []
 
   addItem: (item) =>
     console.log "TrackReviewListView add #{item.id}"

@@ -2,6 +2,8 @@
   <div class="columns large-12 small-12">
     <a href="#" class="button tiny do-add-below">Add below...</a><!--
     --><a href="#" class="button tiny do-move-below disabled">Move below</a><!--
+    --><a href="#" class="button tiny do-select-all">Select all</a><!--
+    --><a href="#" class="button tiny do-select-none">Select none</a><!--
     --><a href="#" class="button tiny do-remove-thingrefs disabled">Remove selected</a>
   </div>
 
