@@ -49,6 +49,345 @@
   }
   return this.require.define;
 }).call(this)({"app": function(exports, require, module) {(function() {
+  var App, BookletCoverView, BookletView, CacheStateWidgetView, HomeView, Router, appcache, appid, checkConfig, checkThing, currentView, dburl, itemViews, items, loadThing, loadThings, localdb, makeBooklet, refresh,
+    __hasProp = {}.hasOwnProperty,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+  appcache = require('appcache');
+
+  HomeView = require('views/Home');
+
+  CacheStateWidgetView = require('views/CacheStateWidget');
+
+  BookletCoverView = require('views/BookletCover');
+
+  BookletView = require('views/Booklet');
+
+  localdb = require('localdb');
+
+  appid = null;
+
+  itemViews = [];
+
+  dburl = null;
+
+  items = {};
+
+  currentView = null;
+
+  Router = (function(_super) {
+    __extends(Router, _super);
+
+    function Router() {
+      return Router.__super__.constructor.apply(this, arguments);
+    }
+
+    Router.prototype.routes = {
+      "": "entries",
+      "#": "entries",
+      "booklet/:id": "booklet",
+      "booklet/:id/:page": "bookletPage",
+      "booklet/:id/:page/": "bookletPage",
+      "booklet/:id/:page/:anchor": "bookletPage"
+    };
+
+    Router.prototype.removeCurrentView = function() {
+      var err;
+      if (currentView != null) {
+        try {
+          currentView.remove();
+        } catch (_error) {
+          err = _error;
+          console.log("error removing current view: " + err.message);
+        }
+        return currentView = null;
+      }
+    };
+
+    Router.prototype.entries = function() {
+      console.log("router: entries");
+      this.removeCurrentView();
+      return $('#home').show();
+    };
+
+    Router.prototype.booklet = function(id) {
+      var booklet;
+      console.log("show booklet " + id);
+      this.removeCurrentView();
+      $('#home').hide();
+      booklet = items[id];
+      if (booklet == null) {
+        alert("Sorry, could not find booklet " + id);
+        this.navigate('#', {
+          trigger: true,
+          replace: true
+        });
+        return false;
+      }
+      currentView = new BookletView({
+        model: booklet
+      });
+      $('body').append(currentView.el);
+      return true;
+    };
+
+    Router.prototype.bookletPage = function(id, page, anchor) {
+      if ((currentView == null) || currentView.model.id !== id) {
+        if (!this.booklet(id)) {
+          return;
+        }
+      }
+      return currentView.showPage(page, anchor);
+    };
+
+    return Router;
+
+  })(Backbone.Router);
+
+  makeBooklet = function(data) {
+    var booklet, err, view;
+    try {
+      booklet = new Backbone.Model(data);
+      if (booklet.id) {
+        items[booklet.id] = booklet;
+      }
+      view = new BookletCoverView({
+        model: booklet
+      });
+      itemViews.push(view);
+      return $('#home').append(view.el);
+    } catch (_error) {
+      err = _error;
+      return console.log("error making booklet: " + err.message + ": " + data);
+    }
+  };
+
+  checkThing = function(app, data) {
+    var err;
+    try {
+      data = JSON.parse(data);
+      if (data.type === 'booklet') {
+        return makeBooklet(data);
+      } else {
+        return console.log("unknown item type " + data.type + " - ignored");
+      }
+    } catch (_error) {
+      err = _error;
+      return console.log("error parsing thing: " + err.message + ": " + data);
+    }
+  };
+
+  loadThing = function(app, thingId) {
+    console.log("load thing " + thingId);
+    return $.ajax(dburl + "/" + thingId, {
+      success: function(data) {
+        return checkThing(app, data);
+      },
+      dataType: "text",
+      error: function(xhr, status, err) {
+        console.log("get thing error " + xhr.status + ": " + err.message);
+        if (xhr.status === 0 && xhr.responseText) {
+          return checkThing(app, xhr.responseText);
+        }
+      }
+    });
+  };
+
+  loadThings = function(app) {
+    var thingId, _i, _len, _ref, _results;
+    _ref = app.thingIds;
+    _results = [];
+    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+      thingId = _ref[_i];
+      _results.push(loadThing(app, thingId));
+    }
+    return _results;
+  };
+
+  checkConfig = function(app) {
+    var err;
+    console.log("config(app): " + app);
+    try {
+      app = JSON.parse(app);
+      return loadThings(app);
+    } catch (_error) {
+      err = _error;
+      return console.log("error parsing app config: " + err.message + ": " + app + " - " + err.stack);
+    }
+  };
+
+  refresh = function() {
+    var itemView, oldItemViews, _i, _len;
+    console.log("refresh " + dburl + " " + appid);
+    oldItemViews = itemViews;
+    itemViews = [];
+    for (_i = 0, _len = oldItemViews.length; _i < _len; _i++) {
+      itemView = oldItemViews[_i];
+      itemView.remove();
+    }
+    return $.ajax(dburl + "/" + appid, {
+      success: checkConfig,
+      dataType: "text",
+      error: function(xhr, status, err) {
+        console.log("get client config error " + xhr.status + ": " + err.message);
+        if (xhr.status === 0 && xhr.responseText) {
+          return checkConfig(xhr.responseText);
+        }
+      }
+    });
+  };
+
+  App = {
+    init: function() {
+      var appcacheWidget, home, ix, path, router;
+      home = new HomeView({
+        model: {}
+      });
+      home.el.id = 'home';
+      $('body').append(home.el);
+      appid = $('meta[name="mediahub-appid"]').attr('content');
+      console.log("OfflineApp starting... app.id=" + appid);
+      dburl = location.href;
+      if (dburl.indexOf('/_design/') >= 0) {
+        dburl = dburl.substring(0, dburl.indexOf('/_design/'));
+      }
+      appcacheWidget = new CacheStateWidgetView({
+        model: appcache.state
+      });
+      $('#home').append(appcacheWidget.el);
+      Backbone.Model.prototype.idAttribute = '_id';
+      _.extend(Backbone.Model.prototype, BackbonePouch.attachments());
+      router = new Router;
+      window.router = router;
+      path = window.location.pathname;
+      ix = path.lastIndexOf('/');
+      if (ix >= 0) {
+        path = path.substring(0, ix + 1);
+      }
+      if (!Backbone.history.start({
+        root: path
+      })) {
+        console.log("invalid initial route");
+        router.navigate('#', {
+          trigger: true
+        });
+      }
+      appcache.onUpdate(function() {
+        return refresh(dburl, appid);
+      });
+      return refresh(dburl, appid);
+    }
+  };
+
+  module.exports = App;
+
+}).call(this);
+}, "appcache": function(exports, require, module) {(function() {
+  var CacheState, appCache, lastState, onUpdate, on_cache_event, state, updateState;
+
+  CacheState = require('models/CacheState');
+
+  state = new CacheState();
+
+  module.exports.state = state;
+
+  onUpdate = [];
+
+  module.exports.onUpdate = function(cb) {
+    return onUpdate.push(cb);
+  };
+
+  appCache = window.applicationCache;
+
+  lastState = -1;
+
+  updateState = function() {
+    var newState;
+    newState = (function() {
+      switch (appCache.status) {
+        case appCache.UNCACHED:
+          return {
+            alertType: 'warning',
+            message: 'This page is not saved; you will need Internet access to view it again'
+          };
+        case appCache.IDLE:
+          return {
+            alertType: 'success',
+            bookmark: true,
+            message: 'Saved for off-Internet use'
+          };
+        case appCache.UPDATEREADY:
+          return {
+            alertType: 'info',
+            bookmark: true,
+            message: 'A new version has been downloaded',
+            updateReady: true
+          };
+        case appCache.CHECKING:
+        case appCache.DOWNLOADING:
+          return {
+            alertType: 'info',
+            message: 'Checking for a new version'
+          };
+        case appCache.OBSOLETE:
+          return {
+            alertType: 'warning',
+            message: 'obsolete'
+          };
+        default:
+          return {
+            alertType: 'warning',
+            message: 'State unknown (' + appCache.status + ')'
+          };
+      }
+    })();
+    newState = _.extend({
+      bookmark: false,
+      alertType: '',
+      updateReady: false,
+      state: appCache.status
+    }, newState);
+    console.log("update appcache state: " + (JSON.stringify(newState)));
+    return state.set(newState);
+  };
+
+  on_cache_event = function(ev) {
+    var cb, err, _i, _len, _results;
+    if (appCache.status === lastState) {
+      return false;
+    }
+    lastState = appCache.status;
+    console.log('AppCache status = ' + appCache.status);
+    updateState();
+    if (appCache.status === appCache.UPDATEREADY) {
+      try {
+        appCache.swapCache();
+        console.log("Swapped cache!");
+        updateState();
+        _results = [];
+        for (_i = 0, _len = onUpdate.length; _i < _len; _i++) {
+          cb = onUpdate[_i];
+          try {
+            _results.push(cb());
+          } catch (_error) {
+            err = _error;
+            _results.push(console.log("error calling cache onUpdate fn: " + err.message + " " + err.stack));
+          }
+        }
+        return _results;
+      } catch (_error) {
+        err = _error;
+        return console.log("cache swap error: " + err.message);
+      }
+    }
+  };
+
+  $(appCache).bind("cached checking downloading error noupdate obsolete progress updateready", on_cache_event);
+
+  on_cache_event();
+
+}).call(this);
+}, "client": function(exports, require, module) {(function() {
   var App, BookletCoverView, BookletView, CacheStateWidgetView, HomeView, LocaldbStateListView, Router, SyncState, SyncStateWidgetView, Track, TrackReview, TrackReviewList, TrackView, appcache, checkConfig, checkItem, clientid, currentView, dburl, itemViews, items, loadItem, loadItems, localdb, makeBooklet, makeTrack, refresh, syncState,
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -377,111 +716,6 @@
   };
 
   module.exports = App;
-
-}).call(this);
-}, "appcache": function(exports, require, module) {(function() {
-  var CacheState, appCache, lastState, onUpdate, on_cache_event, state, updateState;
-
-  CacheState = require('models/CacheState');
-
-  state = new CacheState();
-
-  module.exports.state = state;
-
-  onUpdate = [];
-
-  module.exports.onUpdate = function(cb) {
-    return onUpdate.push(cb);
-  };
-
-  appCache = window.applicationCache;
-
-  lastState = -1;
-
-  updateState = function() {
-    var newState;
-    newState = (function() {
-      switch (appCache.status) {
-        case appCache.UNCACHED:
-          return {
-            alertType: 'warning',
-            message: 'This page is not saved; you will need Internet access to view it again'
-          };
-        case appCache.IDLE:
-          return {
-            alertType: 'success',
-            bookmark: true,
-            message: 'Saved for off-Internet use'
-          };
-        case appCache.UPDATEREADY:
-          return {
-            alertType: 'info',
-            bookmark: true,
-            message: 'A new version has been downloaded',
-            updateReady: true
-          };
-        case appCache.CHECKING:
-        case appCache.DOWNLOADING:
-          return {
-            alertType: 'info',
-            message: 'Checking for a new version'
-          };
-        case appCache.OBSOLETE:
-          return {
-            alertType: 'warning',
-            message: 'obsolete'
-          };
-        default:
-          return {
-            alertType: 'warning',
-            message: 'State unknown (' + appCache.status + ')'
-          };
-      }
-    })();
-    newState = _.extend({
-      bookmark: false,
-      alertType: '',
-      updateReady: false,
-      state: appCache.status
-    }, newState);
-    console.log("update appcache state: " + (JSON.stringify(newState)));
-    return state.set(newState);
-  };
-
-  on_cache_event = function(ev) {
-    var cb, err, _i, _len, _results;
-    if (appCache.status === lastState) {
-      return false;
-    }
-    lastState = appCache.status;
-    console.log('AppCache status = ' + appCache.status);
-    updateState();
-    if (appCache.status === appCache.UPDATEREADY) {
-      try {
-        appCache.swapCache();
-        console.log("Swapped cache!");
-        updateState();
-        _results = [];
-        for (_i = 0, _len = onUpdate.length; _i < _len; _i++) {
-          cb = onUpdate[_i];
-          try {
-            _results.push(cb());
-          } catch (_error) {
-            err = _error;
-            _results.push(console.log("error calling cache onUpdate fn: " + err.message + " " + err.stack));
-          }
-        }
-        return _results;
-      } catch (_error) {
-        err = _error;
-        return console.log("cache swap error: " + err.message);
-      }
-    }
-  };
-
-  $(appCache).bind("cached checking downloading error noupdate obsolete progress updateready", on_cache_event);
-
-  on_cache_event();
 
 }).call(this);
 }, "localdb": function(exports, require, module) {(function() {

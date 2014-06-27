@@ -1,15 +1,8 @@
-# offline app
+# offline app - for App
 
 appcache = require 'appcache'
 HomeView = require 'views/Home'
 CacheStateWidgetView = require 'views/CacheStateWidget'
-Track = require 'models/Track'
-TrackView = require 'views/Track'
-TrackReview = require 'models/TrackReview'
-TrackReviewList = require 'models/TrackReviewList'
-LocaldbStateListView = require 'views/LocaldbStateList'
-SyncState = require 'models/SyncState'
-SyncStateWidgetView = require 'views/SyncStateWidget'
 
 BookletCoverView = require 'views/BookletCover'
 BookletView = require 'views/Booklet'
@@ -18,10 +11,9 @@ localdb = require 'localdb'
 
 #config = window.mediahubconfig
 
+appid = null
 itemViews = []
 dburl = null
-clientid = null
-syncState = new SyncState()
 
 items = {}
 currentView = null
@@ -69,42 +61,6 @@ class Router extends Backbone.Router
         return
     currentView.showPage page,anchor
 
-makeTrack = (data) ->
-  try
-    data.url = dburl+"/"+data._id+"/bytes"
-    track = new Track data
-    if track.id
-      items[track.id] = track
-
-    trackid = if data._id.indexOf(':')>=0 then data._id.substring(data._id.indexOf(':')+1) else data._id
-    cid = if clientid.indexOf(':')>=0 then clientid.substring(clientid.indexOf(':')+1) else clientid
-    reviewid = 'trackreview:'+trackid+':'+cid
-    console.log "add track #{data._id} review #{reviewid}"
-    track.trackReview = new TrackReview {_id:reviewid, trackid:data._id, clientid:clientid}
-    track.trackReview.sync = BackbonePouch.sync
-      db: localdb.currentdb()
-    # might be in pouch from before
-    try 
-      track.trackReview.fetch()
-    catch err
-      console.log "error fetching review #{reviewid}: #{err.message}"
-
-    # TODO: filter by track
-    track.trackReviewList = new TrackReviewList()
-    track.trackReviewList.sync = BackbonePouch.sync
-      db: localdb.currentdb()
-    try 
-      track.trackReviewList.fetch()
-    catch err
-      console.log "error fetching trackreviews: #{err.message}"
-
-    trackView = new TrackView model:track
-    itemViews.push trackView
-    $('#home').append trackView.el
-  catch err
-    console.log "error making track: #{err.message}: #{data}"
-
-
 makeBooklet = (data) ->
   try
     booklet = new Backbone.Model data
@@ -116,67 +72,51 @@ makeBooklet = (data) ->
   catch err
     console.log "error making booklet: #{err.message}: #{data}"
 
-checkItem = (instanceid, item, data) ->
-  if instanceid isnt localdb.currentInstanceid()
-    console.log "Ignore item on load; old instanceid #{instanceid} vs #{localdb.currentInstanceid()}"
-    return
-  console.log "#{item.type}: #{data}"
+checkThing = (app, data) ->
+  #if instanceid isnt localdb.currentInstanceid()
+  #  console.log "Ignore item on load; old instanceid #{instanceid} vs #{localdb.currentInstanceid()}"
+  #  return
   try 
     data = JSON.parse data
-    if item.type=='track'
-      makeTrack data
-    else if item.type=='booklet'
+    if data.type=='booklet'
       makeBooklet data
     else
-      console.log "unknown item type #{item.type} - ignored"
+      console.log "unknown item type #{data.type} - ignored"
   catch err
-    console.log "error parsing item: #{err.message}: #{data}"
+    console.log "error parsing thing: #{err.message}: #{data}"
 
-loadItem = (instanceid,item) ->
-  console.log "load track #{item.id}"
-  $.ajax dburl+"/"+item.id,
+loadThing = (app,thingId) ->
+  console.log "load thing #{thingId}"
+  $.ajax dburl+"/"+thingId,
     success: (data)->
-      checkItem instanceid, item, data
+      checkThing app, data
     dataType: "text"
     error: (xhr,status,err) ->
-      console.log "get track error "+xhr.status+": "+err.message
+      console.log "get thing error "+xhr.status+": "+err.message
       # on android (at least) files from cache sometimes have status 0!!
       if xhr.status==0 && xhr.responseText
-        checkItem instanceid, item, xhr.responseText
+        checkThing app, xhr.responseText
 
-loadItems = (instanceid, data) ->
-  for item in data.items
+loadThings = (app) ->
+  for thingId in app.thingIds
     # id, url, type
-    if item.type?
-      loadItem instanceid,item
+    loadThing app,thingId
 
-checkConfig = (data) ->
-  console.log  "config: "+data 
+checkConfig = (app) ->
+  console.log  "config(app): "+app 
   try 
-    data = JSON.parse data
-    # switch local db
-    instanceid = data._id+':'+data._rev
-    localdb.swapdb dburl, data
-    # wait for localdb sync
-    $('#home').append '<p id="syncing">synchronizing</p>'
-    syncState.doSync (success) ->
-      if success
-        $('#syncing').remove()
-        loadItems instanceid, data
-      else
-        console.log "Error doing initial synchronization"
-        $('#home').replace '<p id="syncing">Error doing initial synchronization - try reloading this page</p>'
-
+    app = JSON.parse app
+    loadThings app
   catch err
-    console.log "error parsing client config: #{err.message}: #{data} - #{err.stack}"
+    console.log "error parsing app config: #{err.message}: #{app} - #{err.stack}"
 
 refresh = ()->
-  console.log "refresh #{dburl} #{clientid}"
+  console.log "refresh #{dburl} #{appid}"
   oldItemViews = itemViews
   itemViews = []
   for itemView in oldItemViews
     itemView.remove()
-  $.ajax dburl+"/"+clientid,
+  $.ajax dburl+"/"+appid,
     success: checkConfig
     dataType: "text"
     error: (xhr,status,err) ->
@@ -192,20 +132,14 @@ App =
     home.el.id = 'home'
     $('body').append home.el
 
-    clientid = $('meta[name="mediahub-clientid"]').attr('content')
-    console.log "OfflineApp starting... clientid=#{clientid}"
+    appid = $('meta[name="mediahub-appid"]').attr('content')
+    console.log "OfflineApp starting... app.id=#{appid}"
     # presume index is served by couchdb .../_design/app/_show/...
     dburl = location.href
     if dburl.indexOf('/_design/')>=0
       dburl = dburl.substring 0,dburl.indexOf('/_design/')
     appcacheWidget = new CacheStateWidgetView model: appcache.state
     $('#home').append appcacheWidget.el
-
-    localdbStateListView = new LocaldbStateListView model: localdb.localdbStateList
-    $('#home').append localdbStateListView.el
-
-    syncStateWidgetView = new SyncStateWidgetView model: syncState
-    $('#home').append syncStateWidgetView.el   
 
     #Backbone.sync =  BackbonePouch.sync
     #  db: db
@@ -230,14 +164,9 @@ App =
       console.log "invalid initial route"
       router.navigate '#', trigger:true
 
-    # wait for localdb initialisation
-    $('#home').append '<p id="initialising">initialising</p>'
-
-    localdb.init ()->
-      $('#initialising').remove()
-      appcache.onUpdate () ->
-        refresh dburl,clientid
-      refresh dburl,clientid
+    appcache.onUpdate () ->
+      refresh dburl,appid
+    refresh dburl,appid
 
 module.exports = App
 

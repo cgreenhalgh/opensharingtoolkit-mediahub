@@ -35,7 +35,8 @@ function addIndex(name) {
   };
   ddoc.shows[name] = showIndex.toString().replace("${@index}", minescape(index.toString()));
 }
-addIndex('index');
+addIndex('app');
+addIndex('client');
 addIndex('trackinabox');
 
 // matching manifest
@@ -63,7 +64,7 @@ var showManifest = function(doc, req) {
 };
 
 // add index src="..." to manifest template
-var index = fs.readFileSync(path.join(__dirname, "templates/index.html"));
+var index = fs.readFileSync(path.join(__dirname, "templates/app.html"));
 manifest = manifest + "\nCACHE:\n";
 var srcpatt = /src=["][^"]*["]/g;
 var src;
@@ -160,6 +161,13 @@ ddoc.filters.typePlace = function(doc) {
 // filter type List
 ddoc.filters.typeList = function(doc) {
   if (doc.type && doc.type === 'list') {
+    return true;
+  }
+  return false;
+};
+// filter type App
+ddoc.filters.typeApp = function(doc) {
+  if (doc.type && doc.type === 'app') {
     return true;
   }
   return false;

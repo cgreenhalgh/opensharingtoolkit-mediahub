@@ -88,6 +88,8 @@
 
   require('plugins/List');
 
+  require('plugins/App');
+
   config = window.mediahubconfig;
 
   tempViews = [];
@@ -265,6 +267,74 @@
   };
 
   module.exports = getParams;
+
+}).call(this);
+}, "models/App": function(exports, require, module) {(function() {
+  var App,
+    __hasProp = {}.hasOwnProperty,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+  module.exports = App = (function(_super) {
+    __extends(App, _super);
+
+    function App() {
+      return App.__super__.constructor.apply(this, arguments);
+    }
+
+    App.prototype.defaults = {
+      title: '',
+      description: '',
+      type: 'app',
+      thingsIds: []
+    };
+
+    return App;
+
+  })(Backbone.Model);
+
+}).call(this);
+}, "models/AppList": function(exports, require, module) {(function() {
+  var App, AppList,
+    __hasProp = {}.hasOwnProperty,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+  App = require('models/App');
+
+  module.exports = AppList = (function(_super) {
+    __extends(AppList, _super);
+
+    function AppList() {
+      return AppList.__super__.constructor.apply(this, arguments);
+    }
+
+    AppList.prototype.model = App;
+
+    AppList.prototype.pouch = {
+      fetch: 'query',
+      listen: true,
+      options: {
+        query: {
+          include_docs: true,
+          fun: 'app/type',
+          startkey: 'app',
+          endkey: 'app'
+        },
+        changes: {
+          include_docs: true,
+          continuous: true,
+          filter: 'app/appList'
+        }
+      }
+    };
+
+    AppList.prototype.parse = function(result) {
+      console.log("parse " + (JSON.stringify(result)));
+      return _.pluck(result.rows, 'doc');
+    };
+
+    return AppList;
+
+  })(Backbone.Collection);
 
 }).call(this);
 }, "models/Booklet": function(exports, require, module) {(function() {
@@ -956,10 +1026,15 @@
           return console.log("error setting client " + err);
         } else {
           console.log("set client " + clientid);
-          return window.open(config.dburl + "/_design/app/_show/index/" + clientid, '_self');
+          return window.open(config.dburl + "/_design/app/_show/client/" + clientid, '_self');
         }
       });
     });
+  };
+
+  module.exports.testApp = function(app) {
+    console.log("Offline test with app " + app.id);
+    return window.open(config.dburl + "/_design/app/_show/app/" + app.id, '_self');
   };
 
 }).call(this);
@@ -980,6 +1055,36 @@
   module.exports.getContentType = function(name) {
     return contentTypes[name];
   };
+
+}).call(this);
+}, "plugins/App": function(exports, require, module) {(function() {
+  var ThingBuilder, ThisThing, ThisThingEditView, ThisThingInListView, ThisThingList, ThisThingListView, ThisThingView, attributes, contentType, plugins;
+
+  plugins = require('plugins');
+
+  ThisThing = require('models/App');
+
+  ThisThingList = require('models/AppList');
+
+  ThisThingListView = require('views/ThingList');
+
+  ThisThingInListView = require('views/AppInList');
+
+  ThisThingView = require('views/Thing');
+
+  ThisThingEditView = require('views/AppEdit');
+
+  ThingBuilder = require('plugins/ThingBuilder');
+
+  attributes = {
+    id: 'app',
+    title: 'App',
+    description: 'A downloadable web-app'
+  };
+
+  contentType = ThingBuilder.createThingType(attributes, ThisThing, ThisThingList, ThisThingListView, ThisThingInListView, ThisThingView, ThisThingEditView);
+
+  plugins.registerContentType(contentType.id, contentType);
 
 }).call(this);
 }, "plugins/Booklet": function(exports, require, module) {(function() {
@@ -1259,7 +1364,123 @@
   plugins.registerContentType(contentType.id, contentType);
 
 }).call(this);
-}, "templates/BookletEdit": function(exports, require, module) {module.exports = function(__obj) {
+}, "templates/AppEdit": function(exports, require, module) {module.exports = function(__obj) {
+  if (!__obj) __obj = {};
+  var __out = [], __capture = function(callback) {
+    var out = __out, result;
+    __out = [];
+    callback.call(this);
+    result = __out.join('');
+    __out = out;
+    return __safe(result);
+  }, __sanitize = function(value) {
+    if (value && value.ecoSafe) {
+      return value;
+    } else if (typeof value !== 'undefined' && value != null) {
+      return __escape(value);
+    } else {
+      return '';
+    }
+  }, __safe, __objSafe = __obj.safe, __escape = __obj.escape;
+  __safe = __obj.safe = function(value) {
+    if (value && value.ecoSafe) {
+      return value;
+    } else {
+      if (!(typeof value !== 'undefined' && value != null)) value = '';
+      var result = new String(value);
+      result.ecoSafe = true;
+      return result;
+    }
+  };
+  if (!__escape) {
+    __escape = __obj.escape = function(value) {
+      return ('' + value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    };
+  }
+  (function() {
+    (function() {
+      __out.push('\n<div class="columns large-12">\n  <h2>');
+    
+      __out.push(__sanitize(this.add ? 'Add' : 'Edit'));
+    
+      __out.push(' ');
+    
+      __out.push(__sanitize(this.contentType.title));
+    
+      __out.push('</h2>\n</div>\n<form>\n  <div class="columns large-12">\n    <input type="submit" value="');
+    
+      __out.push(__sanitize(this.add ? 'Add' : 'Save changes'));
+    
+      __out.push('"/>\n    <input type="reset" value="Clear"/>\n    <input type="button" value="Cancel" class="do-cancel"/>\n    <input type="button" value="Prepare for download" class="do-update"/>\n\n    <label>Title\n      <input type="text" name="title" placeholder="title" value="');
+    
+      __out.push(__sanitize(this.data.title));
+    
+      __out.push('"/>\n    </label>\n\n    <label>Top-level Items\n      <div class="thingref-list-holder"></div>\n    </label>\n\n    <label>Description\n      <textarea name="description" placeholder="description" >');
+    
+      __out.push(__sanitize(this.data.description));
+    
+      __out.push('</textarea>\n    </label>\n  </div>\n</form>\n\n');
+    
+    }).call(this);
+    
+  }).call(__obj);
+  __obj.safe = __objSafe, __obj.escape = __escape;
+  return __out.join('');
+}}, "templates/AppInList": function(exports, require, module) {module.exports = function(__obj) {
+  if (!__obj) __obj = {};
+  var __out = [], __capture = function(callback) {
+    var out = __out, result;
+    __out = [];
+    callback.call(this);
+    result = __out.join('');
+    __out = out;
+    return __safe(result);
+  }, __sanitize = function(value) {
+    if (value && value.ecoSafe) {
+      return value;
+    } else if (typeof value !== 'undefined' && value != null) {
+      return __escape(value);
+    } else {
+      return '';
+    }
+  }, __safe, __objSafe = __obj.safe, __escape = __obj.escape;
+  __safe = __obj.safe = function(value) {
+    if (value && value.ecoSafe) {
+      return value;
+    } else {
+      if (!(typeof value !== 'undefined' && value != null)) value = '';
+      var result = new String(value);
+      result.ecoSafe = true;
+      return result;
+    }
+  };
+  if (!__escape) {
+    __escape = __obj.escape = function(value) {
+      return ('' + value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    };
+  }
+  (function() {
+    (function() {
+      __out.push('\n<h4 class="clearfix">');
+    
+      __out.push(__sanitize(this.title));
+    
+      __out.push('\n  <a href="#" class="action-button do-delete-file right">Delete</a>\n  <a href="#" class="action-button do-edit-file right">Edit</a>\n  <!-- <a href="#" class="action-button do-view-file right">View</a> -->\n  <a href="#" class="action-button do-testapp right">Test Offline</a>\n</h3>\n');
+    
+    }).call(this);
+    
+  }).call(__obj);
+  __obj.safe = __objSafe, __obj.escape = __escape;
+  return __out.join('');
+}}, "templates/BookletEdit": function(exports, require, module) {module.exports = function(__obj) {
   if (!__obj) __obj = {};
   var __out = [], __capture = function(callback) {
     var out = __out, result;
@@ -2611,6 +2832,128 @@
     $('#deleteModalHolder').html(templateFileDeleteModal(model.attributes));
     return $('#deleteModalHolder').foundation('reveal', 'open');
   };
+
+}).call(this);
+}, "views/AppEdit": function(exports, require, module) {(function() {
+  var AppEditView, ListEditView, allthings, config, templateAppEdit,
+    __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
+    __hasProp = {}.hasOwnProperty,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+  ListEditView = require('views/ListEdit');
+
+  templateAppEdit = require('templates/AppEdit');
+
+  allthings = require('allthings');
+
+  config = window.mediahubconfig;
+
+  module.exports = AppEditView = (function(_super) {
+    __extends(AppEditView, _super);
+
+    function AppEditView() {
+      this.checkThings = __bind(this.checkThings, this);
+      this.update = __bind(this.update, this);
+      this.formToModel = __bind(this.formToModel, this);
+      this.template = __bind(this.template, this);
+      return AppEditView.__super__.constructor.apply(this, arguments);
+    }
+
+    AppEditView.prototype.template = function(d) {
+      return templateAppEdit(d);
+    };
+
+    AppEditView.prototype.formToModel = function() {
+      return AppEditView.__super__.formToModel.call(this);
+    };
+
+    AppEditView.prototype.events = {
+      "submit": "submit",
+      "click .do-cancel": "cancel",
+      "click .do-save": "save",
+      "click .do-update": "update"
+    };
+
+    AppEditView.prototype.update = function(ev) {
+      var files, items, thingIds;
+      ev.preventDefault();
+      console.log("Update app for download...");
+      this.formToModel();
+      items = [];
+      files = [];
+      thingIds = this.model.attributes.thingIds;
+      return this.checkThings(thingIds, items, files);
+    };
+
+    AppEditView.prototype.checkThings = function(thingIds, items, files) {
+      var item, thing, thingId;
+      while (thingIds.length > 0) {
+        thingId = (thingIds.splice(0, 1))[0];
+        console.log("update for thing " + thingId + "...");
+        thing = allthings.get().get(thingId);
+        if (thing == null) {
+          console.log("- could not find " + thingId);
+        } else {
+          item = {
+            type: thing.type,
+            id: thing.id,
+            url: config.dburl + "/" + thingId
+          };
+          items.push(item);
+        }
+      }
+      console.log("Checked all things, found " + items.length + " items and " + files.length + " files");
+      return this.model.set({
+        items: items,
+        files: files
+      });
+    };
+
+    return AppEditView;
+
+  })(ListEditView);
+
+}).call(this);
+}, "views/AppInList": function(exports, require, module) {(function() {
+  var AppInListView, ThingInListView, offline, templateAppInList,
+    __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
+    __hasProp = {}.hasOwnProperty,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+  templateAppInList = require('templates/AppInList');
+
+  ThingInListView = require('views/ThingInList');
+
+  offline = require('offline');
+
+  module.exports = AppInListView = (function(_super) {
+    __extends(AppInListView, _super);
+
+    function AppInListView() {
+      this.testapp = __bind(this.testapp, this);
+      this.template = __bind(this.template, this);
+      return AppInListView.__super__.constructor.apply(this, arguments);
+    }
+
+    AppInListView.prototype.template = function(d) {
+      return templateAppInList(d);
+    };
+
+    AppInListView.prototype.events = {
+      "click .do-edit-file": "edit",
+      "click .do-delete-file": "delete",
+      "click .do-save": "save",
+      "click .do-testapp": "testapp"
+    };
+
+    AppInListView.prototype.testapp = function(ev) {
+      ev.preventDefault();
+      return offline.testApp(this.model);
+    };
+
+    return AppInListView;
+
+  })(ThingInListView);
 
 }).call(this);
 }, "views/BookletEdit": function(exports, require, module) {(function() {

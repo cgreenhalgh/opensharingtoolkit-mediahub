@@ -80,5 +80,9 @@ module.exports.testBooklet = (booklet) ->
         console.log "error setting client #{err}"
       else
         console.log "set client #{clientid}"
-        window.open config.dburl+"/_design/app/_show/index/"+clientid, '_self'
+        window.open config.dburl+"/_design/app/_show/client/"+clientid, '_self'
+
+module.exports.testApp = (app) ->
+  console.log "Offline test with app #{app.id}"
+  window.open config.dburl+"/_design/app/_show/app/"+app.id, '_self'
 

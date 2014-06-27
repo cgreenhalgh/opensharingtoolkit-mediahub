@@ -11,6 +11,7 @@ require 'plugins/Html'
 require 'plugins/Booklet'
 require 'plugins/Place'
 require 'plugins/List'
+require 'plugins/App'
 
 config = window.mediahubconfig
 
