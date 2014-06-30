@@ -240,6 +240,12 @@
   App = {
     init: function() {
       var appcacheWidget, home, ix, path, router;
+      $.ajaxSetup({
+        beforeSend: function(xhr, options) {
+          console.log("beforeSend " + options.method + " " + options.url);
+          return true;
+        }
+      });
       home = new HomeView({
         model: {}
       });
@@ -283,7 +289,7 @@
 
 }).call(this);
 }, "appcache": function(exports, require, module) {(function() {
-  var CacheState, appCache, lastState, onUpdate, on_cache_event, state, updateState;
+  var CacheState, appCache, event, lastState, onUpdate, on_cache_event, state, updateState, _i, _len, _ref;
 
   CacheState = require('models/CacheState');
 
@@ -324,10 +330,14 @@
             updateReady: true
           };
         case appCache.CHECKING:
-        case appCache.DOWNLOADING:
           return {
             alertType: 'info',
             message: 'Checking for a new version'
+          };
+        case appCache.DOWNLOADING:
+          return {
+            alertType: 'info',
+            message: 'Downloading a new version'
           };
         case appCache.OBSOLETE:
           return {
@@ -382,7 +392,11 @@
     }
   };
 
-  $(appCache).bind("cached checking downloading error noupdate obsolete progress updateready", on_cache_event);
+  _ref = "cached downloading checking error noupdate obsolete progress updateready".split(' ');
+  for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+    event = _ref[_i];
+    appCache.addEventListener(event, on_cache_event, false);
+  }
 
   on_cache_event();
 

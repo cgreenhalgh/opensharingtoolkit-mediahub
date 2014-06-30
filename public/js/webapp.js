@@ -2885,6 +2885,35 @@
       return this.checkThings(thingIds, items, files);
     };
 
+    AppEditView.prototype.addUrl = function(files, url, title) {
+      if ((url != null) && url !== '') {
+        return files.push({
+          url: url,
+          title: title
+        });
+      }
+    };
+
+    AppEditView.prototype.addHtml = function(files, html) {
+      var m, src, srcs, _results;
+      if (html != null) {
+        srcs = /<[iI][mM][gG][^>]+src="?([^"\s>]+)"?[^>]*\/>/g;
+        _results = [];
+        while (m = srcs.exec(html)) {
+          src = m[1];
+          if (src.length > 0) {
+            _results.push(files.push({
+              url: src,
+              title: 'img'
+            }));
+          } else {
+            _results.push(void 0);
+          }
+        }
+        return _results;
+      }
+    };
+
     AppEditView.prototype.checkThings = function(thingIds, items, files) {
       var item, thing, thingId;
       while (thingIds.length > 0) {
@@ -2895,11 +2924,14 @@
           console.log("- could not find " + thingId);
         } else {
           item = {
-            type: thing.type,
+            type: thing.attributes.type,
             id: thing.id,
             url: config.dburl + "/" + thingId
           };
           items.push(item);
+          console.log("thing: " + (JSON.stringify(thing.attributes)));
+          this.addUrl(files, thing.attributes.coverurl, 'cover');
+          this.addHtml(files, thing.attributes.content);
         }
       }
       console.log("Checked all things, found " + items.length + " items and " + files.length + " files");

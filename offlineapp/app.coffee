@@ -128,6 +128,11 @@ refresh = ()->
 App = 
   init: ->
 
+    $.ajaxSetup beforeSend: (xhr, options) ->
+      # TODO cache redirect?
+      console.log "beforeSend #{options.type} #{options.url}"
+      true
+
     home = new HomeView model:{}
     home.el.id = 'home'
     $('body').append home.el

@@ -27,9 +27,12 @@ updateState = ()->
       bookmark: true
       message: 'A new version has been downloaded'
       updateReady: true
-    when appCache.CHECKING, appCache.DOWNLOADING 
+    when appCache.CHECKING 
       alertType: 'info'
       message: 'Checking for a new version'
+    when appCache.DOWNLOADING 
+      alertType: 'info'
+      message: 'Downloading a new version'
     when appCache.OBSOLETE 
       alertType: 'warning'
       message: 'obsolete'
@@ -41,6 +44,7 @@ updateState = ()->
   state.set newState
 
 on_cache_event = (ev) ->
+  #console.log 'AppCache status = '+appCache.status+" (was #{lastState})"
   if appCache.status==lastState
     return false
   lastState = appCache.status
@@ -59,6 +63,8 @@ on_cache_event = (ev) ->
     catch err 
       console.log "cache swap error: #{err.message}"
 
-$(appCache).bind "cached checking downloading error noupdate obsolete progress updateready", on_cache_event
+#'' 
+for event in "cached downloading checking error noupdate obsolete progress updateready".split(' ')
+  appCache.addEventListener event, on_cache_event, false
 on_cache_event()
 

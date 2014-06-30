@@ -28,6 +28,25 @@ module.exports = class AppEditView extends ListEditView
     thingIds = @model.attributes.thingIds
     @checkThings thingIds, items, files    
 
+  addUrl: (files,url,title) ->
+    if url? and url!=''
+      # mime type? (not actually used, happily)
+      files.push 
+        url: url
+        title: title
+
+  addHtml: (files,html) ->
+    # images in html
+    if html?
+      srcs = /<[iI][mM][gG][^>]+src="?([^"\s>]+)"?[^>]*\/>/g
+      while m = ( srcs.exec html ) 
+        src = m[1]
+        if src.length>0
+          files.push {
+            url: src
+            title: 'img'
+          }
+
   checkThings: (thingIds, items, files) =>
     while thingIds.length > 0
       thingId = (thingIds.splice 0,1)[0]
@@ -36,9 +55,13 @@ module.exports = class AppEditView extends ListEditView
       if not thing? 
         console.log "- could not find #{thingId}"
       else
-        item = { type: thing.type, id: thing.id, url: config.dburl+"/"+thingId }
+        item = { type: thing.attributes.type, id: thing.id, url: config.dburl+"/"+thingId }
         items.push item
-        # TODO... files, etc.
+        console.log "thing: #{JSON.stringify thing.attributes}"
+        # files, etc.
+        # cover image
+        @addUrl files, thing.attributes.coverurl, 'cover'
+        @addHtml files, thing.attributes.content
         
     console.log "Checked all things, found #{items.length} items and #{files.length} files"
     @model.set { items: items, files: files }
