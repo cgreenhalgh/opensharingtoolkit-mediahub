@@ -58,5 +58,5 @@ module.exports = class BookletEditView extends ThingEditView
     "click .do-select-cover": "selectCover"
 
   selectCover: (ev) =>
-    selectImage ev,'.image-select-image'
+    @selectImage ev,'.image-select-image'
 
