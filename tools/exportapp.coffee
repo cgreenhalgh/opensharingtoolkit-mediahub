@@ -26,11 +26,11 @@ get_file_extension = (url) ->
   ix = url.lastIndexOf '/'
   if ix<0
     ix = 0
-  ix = url.lastIndexOf '.', ix
-  if ix<0 or ix==url.length-1
+  ix2 = url.lastIndexOf '.'
+  if ix2<ix or ix2==url.length-1
     null
   else
-    url.substring (ix+1)
+    url.substring (ix2+1)
 
 get_filename_for_component = (h) ->
   if h=='' 
@@ -79,6 +79,7 @@ get_safe_path = (path) ->
   return path
 
 cachePaths = {}
+cacheUrls = {}
 
 addSrcRefs = (file) ->
   if file.text?
@@ -94,7 +95,7 @@ addSrcRefs = (file) ->
           type: 'html'
           from: from
           to: from+src.length
-          src: fix_relative_url file.url, decodeURI(src)
+          src: fix_relative_url file.url, src
       ix = srcs.lastIndex
 
 check_json = (surl) ->
@@ -105,27 +106,49 @@ check_json = (surl) ->
   console.log "check json #{surl} = #{path}"
   try 
     data = fs.readFileSync path,{encoding:'utf8'}
+    json = JSON.parse data
     file = 
-      text: data
+      json: json
       url: surl
       done: false
       refs: []
     addSrcRefs file
-    urls = /url":("[^"]+")/g
-    ix = 0
-    while m = ( urls.exec file.text ) 
-      url = JSON.parse m[1]
-      console.log "url #{url}"
-      from = file.text.indexOf m[1],ix
-      file.refs.push
-        encoding: 'json'
-        from: from
-        to: from+m[1].length
-        src: fix_relative_url file.url, url
-      ix = urls.lastIndex
+    els = for name,val of json
+      {obj:json,ix:[name]}
+    while els.length>0
+      el = (els.splice 0,1)[0]
+      ix = el.ix[el.ix.length-1]
+      val = el.obj[ix]
+      #console.log "check json #{el.ix} = #{typeof val} #{val}"
+      if (typeof val)=='string'
+        if (typeof ix)=='string' and ix.length>=3 and (ix.lastIndexOf 'url')==(ix.length-3)
+          console.log "found json ...url #{el.ix} = #{val}"
+          file.refs.push
+            from: 0
+            to: val.length
+            src: val
+            ix: el.ix.join '.'
+        else # html?
+          #console.log "check for src in #{val}"
+          srcs = /<[^>]+src="?([^"\s>]+)"?[^>]*>/g
+          ix = 0
+          while m = ( srcs.exec val ) 
+            src = m[1]
+            console.log "found json src #{src} in #{el.ix}"
+            if src.length>0
+              from = val.indexOf src, ix
+              file.refs.push
+                from: from
+                to: from+src.length
+                src: fix_relative_url file.url, src
+                ix: el.ix.join '.'
+            ix = srcs.lastIndex
+      else if (typeof val)=='object'
+        for name,val2 of val
+          els.push {obj:val,ix:(el.ix.concat [name])}
     files[surl] = file
   catch err
-    console.log "error reading json #{path}"
+    console.log "error reading json #{path}: #{err.message}"
     process.exit -1 
 
 check_manifest = (surl) ->
@@ -142,7 +165,7 @@ check_manifest = (surl) ->
     done: false
     refs: []
   lines = data.split '\n'
-  lines = for l in lines when l.trim().indexOf('#')!=0 and l.trim().length>0
+  lines = for l in lines when l.trim().length>0
     l.trim()
   if lines.length<=0
     console.log "Empty appcache manifest #{surl}"
@@ -154,17 +177,24 @@ check_manifest = (surl) ->
   for l,i in lines when i>0
     if l=="CACHE:" or l=="SETTINGS:" or l=="NETWORK:"
       section = l
-      text = text+l+'\n'
-    else if section=="CACHE:"
+    else if section=="CACHE:" and (l.indexOf '#')!=0
       url = fix_relative_url surl,l
       #console.log "Found manifest entry #{l} -> #{url}"
       file.refs.push 
         from: text.length
         to: text.length+l.length
         src: url
-      text = text+l+'\n'
+    text = text+l+'\n'
+  text = text+'\n'
   file.text = text
   files[surl] = file
+
+# undo URL encoding of path elements
+get_filesystem_path = (path) ->
+  ps = path.split '/'
+  ps = for p in ps
+    decodeURIComponent p
+  ps.join '/'
 
 cacheFile = (surl,fn) ->
   if cachePaths[surl]?
@@ -195,7 +225,7 @@ cacheFile = (surl,fn) ->
   if ps.length>1 or ps[0].length>0
     console.log "mkdirs #{dir}"
     for i in [0..(ps.length-1)]
-      d = d + (if i>0 then '/' else '') + ps[i]
+      d = d + (if i>0 then '/' else '') + decodeURIComponent( ps[i] )
       if !fs.existsSync(d)
         console.log "mkdir #{d}" 
         fs.mkdirSync d
@@ -213,6 +243,7 @@ cacheFile = (surl,fn) ->
     extension = get_file_extension path
     processJson = false
     if not extension?
+      console.log "no extension found on #{path}"
       # TODO file extension
       if (type.indexOf 'image/')==0
         path = path+'.'+type.substring(6)
@@ -232,7 +263,10 @@ cacheFile = (surl,fn) ->
         processJson = true
       else
         console.log "Missing extension for #{path} type #{type}"
-    tmppath = dir + (if dir!='' then '/' else '') + '.cb_download'
+    else
+      console.log "extension #{extension} found on #{path}"
+
+    tmppath = get_filesystem_path (dir + (if dir!='' then '/' else '') + '.cb_download')
     try 
       fd = fs.openSync(tmppath, 'w')
     catch e
@@ -265,19 +299,21 @@ cacheFile = (surl,fn) ->
         return fn ("read #{count}/#{length}")
 
       console.log "OK: read #{count} bytes"
+      filepath = get_filesystem_path path
       try
         # remove old old file if present
-        fs.unlinkSync path
+        fs.unlinkSync filepath
       catch e
         ;# ignore
       try
-        fs.renameSync tmppath,path
+        fs.renameSync tmppath,filepath
         # done!
       catch e
-        console.log "Error renaming new cache file #{tmppath} to #{path}: #{e}"
+        console.log "Error renaming new cache file #{tmppath} to #{filepath}: #{e}"
         fn 'error renaming new cache file'
-      console.log "Downloaded #{surl} -> #{path} (#{length} bytes, #{type})"
-      cachePaths[surl] = path
+      console.log "Downloaded #{surl} -> #{filepath} aka #{path} (#{length} bytes, #{type})"
+      cachePaths[surl] = filepath
+      cacheUrls[surl] = path
       if (type.indexOf 'text/cache-manifest')==0
         if not files[surl]?
           check_manifest surl
@@ -339,26 +375,57 @@ fix_relative_url = (url,path) ->
 
 files = {}
 
+processRefs = (text,refs) ->
+    out = ''
+    ix = text.length
+    for ref in refs  
+      path = pathprefix+ref.path
+      if ref.encoding=='json'
+        path = JSON.stringify path
+      else if ref.encoding=='html'
+        path = path # encodeURI(path)
+      out = path+text.substring(ref.to,ix)+out
+      ix = ref.from
+    out = text.substring(0,ix)+out
+    out
+
 processFile = (file) ->
-  sortRefs file
-  out = ''
-  ix = file.text.length
-  for ref in file.refs  
-    path = pathprefix+ref.path
-    if ref.encoding=='json'
-      path = JSON.stringify path
-    else if ref.encoding=='html'
-      path = path # encodeURI(path)
-    out = path+file.text.substring(ref.to,ix)+out
-    ix = ref.from
-  out = file.text.substring(0,ix)+out
-  path = cachePaths[file.url]
-  try
-    console.log "re-writing #{path}..."
-    fs.writeFileSync path, out
-  catch err
-    console.log "error re-writing #{path}"
-    process.exit -1
+  if file.text
+    sortRefs file.refs
+    out = processRefs file.text, file.refs
+    path = cachePaths[file.url]
+    try
+      console.log "re-writing #{path}..."
+      fs.writeFileSync path, out
+    catch err
+      console.log "error re-writing #{path}"
+      process.exit -1
+  else if file.json
+    sortJsonRefs file.refs
+    # TODO 
+    els = {}
+    for ref in file.refs
+      if not els[ref.ix]?
+        els[ref.ix] = []
+      els[ref.ix].push ref
+    for ix,refs of els
+      ixs = ix.split '.'
+      obj = file.json
+      while ixs.length>1
+        obj = obj[(ixs.splice 0, 1)[0]]
+      val = obj[ixs[0]]
+      sortRefs refs
+      out = processRefs val,refs
+      obj[ixs[0]] = out
+    path = cachePaths[file.url]
+    text = JSON.stringify file.json
+    try
+      console.log "re-writing #{path}..."
+      fs.writeFileSync path, text
+    catch err
+      console.log "error re-writing #{path}"
+      process.exit -1
+
 
 processFiles = () ->
   for url,file of files when not file.done
@@ -370,14 +437,23 @@ processFiles = () ->
       return cacheFile ref.src, (err,path) ->
         if err?
           process.exit -1
-        ref.path = path
+        ref.path = cacheUrls[ref.src]
         processFiles()
     file.done = true
     processFile file
   console.log "Done!"
     
-sortRefs = (file) ->
-  file.refs.sort (a,b)->return b.from-a.from
+sortRefs = (refs) ->
+  refs.sort (a,b)-> return b.from-a.from
+
+sortJsonRefs = (refs) ->
+  refs.sort (a,b)-> 
+    if a.json? and b.json? 
+      c = a.localeCompare b
+      if c!=0
+        c
+      else
+        b.from-a.from
 
 cacheFile appurl, (err,path) ->
   if err?
@@ -409,6 +485,12 @@ readTextFile appurl, (err,html) ->
   else
     console.log "Could not find manifest reference"
     process.exit -1
+  # mark as exported using meta
+  ix = html.indexOf '<head>'
+  if ix<0
+    console.log "error: cannot find <head> to mark as exported"
+    process.exit -1
+  file.text = html.substring( 0, ix+6 )+'<meta name="mediahub-exported" content="true"/>'+html.substring( ix+6 )
   addSrcRefs file
   if not (get_file_extension file.url)?
     file.extension = '.html'

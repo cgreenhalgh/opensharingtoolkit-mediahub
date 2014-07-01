@@ -4,6 +4,6 @@ CACHE MANIFEST
 
 # general network access
 NETWORK:
-*
+#*
 
 # NB couch deploy command and couch app show function will add the other (static and dynamic) files that are required to this skeleton!

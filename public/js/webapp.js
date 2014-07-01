@@ -2880,6 +2880,11 @@
       console.log("Update app for download...");
       this.formToModel();
       items = [];
+      items.push({
+        type: this.model.attributes.type,
+        id: this.model.id,
+        url: config.dburl + "/" + encodeURIComponent(this.model.id)
+      });
       files = [];
       thingIds = this.model.attributes.thingIds;
       return this.checkThings(thingIds, items, files);
@@ -2926,7 +2931,7 @@
           item = {
             type: thing.attributes.type,
             id: thing.id,
-            url: config.dburl + "/" + thingId
+            url: config.dburl + "/" + encodeURIComponent(thingId)
           };
           items.push(item);
           console.log("thing: " + (JSON.stringify(thing.attributes)));
@@ -3081,7 +3086,7 @@
     };
 
     BookletEditView.prototype.selectCover = function(ev) {
-      return selectImage(ev, '.image-select-image');
+      return this.selectImage(ev, '.image-select-image');
     };
 
     return BookletEditView;
@@ -3763,7 +3768,7 @@
     __extends(ImageSelectListView, _super);
 
     function ImageSelectListView() {
-      this.add = __bind(this.add, this);
+      this.addItem = __bind(this.addItem, this);
       this.template = __bind(this.template, this);
       return ImageSelectListView.__super__.constructor.apply(this, arguments);
     }
@@ -3772,7 +3777,7 @@
       return templateImageSelectList(d);
     };
 
-    ImageSelectListView.prototype.add = function(thing) {
+    ImageSelectListView.prototype.addItem = function(thing) {
       var view;
       console.log("ImageSelectListView add " + thing.id);
       view = new ImageSelectView({

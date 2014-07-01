@@ -46,7 +46,7 @@ var showManifest = function(doc, req) {
   // too volatile, really...
   manifest = manifest + "\n# version "+(new Date().toUTCString())+"\n";
   manifest = manifest + "CACHE:\n";
-  manifest = manifest + "../../../../"+doc._id+"\n";
+  manifest = manifest + "../../../../"+encodeURIComponent(doc._id)+"\n";
   if (doc && doc.files) {
     for (var i in doc.files) {
       manifest = manifest + "# MEDIAHUB-FILE "+doc.files[i].type+" "+doc.files[i].title+"\n"+doc.files[i].url+"\n";

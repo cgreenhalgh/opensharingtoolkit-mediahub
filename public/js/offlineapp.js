@@ -179,7 +179,7 @@
 
   loadThing = function(app, thingId) {
     console.log("load thing " + thingId);
-    return $.ajax(dburl + "/" + thingId, {
+    return $.ajax(dburl + "/" + encodeURIComponent(thingId), {
       success: function(data) {
         return checkThing(app, data);
       },
@@ -225,7 +225,7 @@
       itemView = oldItemViews[_i];
       itemView.remove();
     }
-    return $.ajax(dburl + "/" + appid, {
+    return $.ajax(dburl + "/" + encodeURIComponent(appid), {
       success: checkConfig,
       dataType: "text",
       error: function(xhr, status, err) {
@@ -239,23 +239,34 @@
 
   App = {
     init: function() {
-      var appcacheWidget, home, ix, path, router;
-      $.ajaxSetup({
-        beforeSend: function(xhr, options) {
-          console.log("beforeSend " + options.method + " " + options.url);
-          return true;
-        }
-      });
+      var appcacheWidget, exported, home, ix, path, router;
       home = new HomeView({
         model: {}
       });
       home.el.id = 'home';
       $('body').append(home.el);
       appid = $('meta[name="mediahub-appid"]').attr('content');
-      console.log("OfflineApp starting... app.id=" + appid);
+      exported = $('meta[name="mediahub-exported"]').attr('content');
+      console.log("OfflineApp starting... app.id=" + appid + ", exported=" + exported);
       dburl = location.href;
       if (dburl.indexOf('/_design/') >= 0) {
         dburl = dburl.substring(0, dburl.indexOf('/_design/'));
+      }
+      if (exported === 'true') {
+        $.ajaxSetup({
+          beforeSend: function(xhr, options) {
+            var eix, six;
+            if ((options.url != null) && options.url.indexOf(dburl) === 0) {
+              six = options.url.lastIndexOf('/');
+              eix = options.url.lastIndexOf('.');
+              if (eix < 0 || eix < six) {
+                console.log("exported, beforeSend " + options.type + " " + options.url + ", try .json");
+                options.url = options.url + '.json';
+              }
+            }
+            return true;
+          }
+        });
       }
       appcacheWidget = new CacheStateWidgetView({
         model: appcache.state

@@ -87,7 +87,7 @@ checkThing = (app, data) ->
 
 loadThing = (app,thingId) ->
   console.log "load thing #{thingId}"
-  $.ajax dburl+"/"+thingId,
+  $.ajax dburl+"/"+encodeURIComponent(thingId),
     success: (data)->
       checkThing app, data
     dataType: "text"
@@ -116,7 +116,7 @@ refresh = ()->
   itemViews = []
   for itemView in oldItemViews
     itemView.remove()
-  $.ajax dburl+"/"+appid,
+  $.ajax dburl+"/"+encodeURIComponent(appid),
     success: checkConfig
     dataType: "text"
     error: (xhr,status,err) ->
@@ -128,21 +128,31 @@ refresh = ()->
 App = 
   init: ->
 
-    $.ajaxSetup beforeSend: (xhr, options) ->
-      # TODO cache redirect?
-      console.log "beforeSend #{options.type} #{options.url}"
-      true
-
     home = new HomeView model:{}
     home.el.id = 'home'
     $('body').append home.el
 
     appid = $('meta[name="mediahub-appid"]').attr('content')
-    console.log "OfflineApp starting... app.id=#{appid}"
+    exported = $('meta[name="mediahub-exported"]').attr('content')
+    console.log "OfflineApp starting... app.id=#{appid}, exported=#{exported}"
+
     # presume index is served by couchdb .../_design/app/_show/...
     dburl = location.href
     if dburl.indexOf('/_design/')>=0
       dburl = dburl.substring 0,dburl.indexOf('/_design/')
+
+    if exported == 'true'
+      $.ajaxSetup beforeSend: (xhr, options) ->
+        # TODO cache redirect?
+        if options.url? and options.url.indexOf(dburl)==0
+          six = options.url.lastIndexOf '/'
+          eix = options.url.lastIndexOf '.'
+          if eix<0 or eix<six
+            # no extension...
+            console.log "exported, beforeSend #{options.type} #{options.url}, try .json"
+            options.url = options.url+'.json'
+        true
+
     appcacheWidget = new CacheStateWidgetView model: appcache.state
     $('#home').append appcacheWidget.el
 

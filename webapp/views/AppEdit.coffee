@@ -24,6 +24,8 @@ module.exports = class AppEditView extends ListEditView
     console.log "Update app for download..."
     @formToModel()
     items = []
+    # add itself?!
+    items.push { type: @model.attributes.type, id: @model.id, url: config.dburl+"/"+encodeURIComponent(@model.id) }
     files = []
     thingIds = @model.attributes.thingIds
     @checkThings thingIds, items, files    
@@ -55,7 +57,7 @@ module.exports = class AppEditView extends ListEditView
       if not thing? 
         console.log "- could not find #{thingId}"
       else
-        item = { type: thing.attributes.type, id: thing.id, url: config.dburl+"/"+thingId }
+        item = { type: thing.attributes.type, id: thing.id, url: config.dburl+"/"+encodeURIComponent(thingId) }
         items.push item
         console.log "thing: #{JSON.stringify thing.attributes}"
         # files, etc.
