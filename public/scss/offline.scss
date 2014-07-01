@@ -118,3 +118,30 @@
   }
 }
 
+.thing-in-list {
+  @extend .columns;
+  @extend .large-4;
+  @extend .medium-6;
+  @extend .small-12;
+  @extend .unselectable;
+  text-align: center;
+  background-color: scale-color($primary-color, $lightness:50%);
+  border: 1px solid #fff;
+  //padding-top: 0.5em;
+  //padding-bottom: 0.5em;
+  overflow: hidden;
+  cursor: $cursor-pointer-value;
+  @include single-transition(background-color);
+
+  &:hover,
+  &:focus { background-color: scale-color($primary-color, $lightness: 70% ); }
+
+  &.disabled {
+    cursor: $cursor-default-value;
+    opacity: $button-disabled-opacity;
+    box-shadow: none;
+    &:hover,
+    &:focus { background-color: scale-color($primary-color, $lightness:50%); }
+  };
+}
+

@@ -7,16 +7,19 @@ CacheStateWidgetView = require 'views/CacheStateWidget'
 BookletCoverView = require 'views/BookletCover'
 BookletView = require 'views/Booklet'
 
+ThingListView = require 'views/ThingList'
+
 localdb = require 'localdb'
 
 #config = window.mediahubconfig
 
 appid = null
-itemViews = []
 dburl = null
 
 items = {}
 currentView = null
+
+topLevelThings = new Backbone.Collection()
 
 class Router extends Backbone.Router
   routes: 
@@ -61,16 +64,14 @@ class Router extends Backbone.Router
         return
     currentView.showPage page,anchor
 
-makeBooklet = (data) ->
+makeBooklet = (data, collection) ->
   try
     booklet = new Backbone.Model data
     if booklet.id
       items[booklet.id] = booklet
-    view = new BookletCoverView model:booklet
-    itemViews.push view
-    $('#home').append view.el
+    collection.add booklet
   catch err
-    console.log "error making booklet: #{err.message}: #{data}"
+    console.log "error making booklet: #{err.message}: #{data}\n#{err.stack}"
 
 checkThing = (app, data) ->
   #if instanceid isnt localdb.currentInstanceid()
@@ -79,7 +80,7 @@ checkThing = (app, data) ->
   try 
     data = JSON.parse data
     if data.type=='booklet'
-      makeBooklet data
+      makeBooklet data, topLevelThings
     else
       console.log "unknown item type #{data.type} - ignored"
   catch err
@@ -112,10 +113,7 @@ checkConfig = (app) ->
 
 refresh = ()->
   console.log "refresh #{dburl} #{appid}"
-  oldItemViews = itemViews
-  itemViews = []
-  for itemView in oldItemViews
-    itemView.remove()
+  topLevelThings.reset()
   $.ajax dburl+"/"+encodeURIComponent(appid),
     success: checkConfig
     dataType: "text"
@@ -156,6 +154,10 @@ App =
     appcacheWidget = new CacheStateWidgetView model: appcache.state
     $('#home').append appcacheWidget.el
 
+    topLevelThingsView = new ThingListView model: topLevelThings
+    topLevelThingsView.render()
+    $('#home').append topLevelThingsView.el
+
     #Backbone.sync =  BackbonePouch.sync
     #  db: db
     #  error: (err)->
@@ -178,6 +180,8 @@ App =
     if not Backbone.history.start( root:path )
       console.log "invalid initial route"
       router.navigate '#', trigger:true
+
+    $('#loading-alert').hide()  
 
     appcache.onUpdate () ->
       refresh dburl,appid

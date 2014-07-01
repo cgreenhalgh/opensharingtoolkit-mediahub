@@ -12,9 +12,11 @@
 	<script src="../../vendor/modernizr/modernizr.js"></script>
 </head>
 <body>
-    <div class="row">
+    <div id="loading-alert" class="row">
       <div class="large-12 columns">
-        <p>OfflineApp app skeleton ${@id}</p>
+        <div data-alert class="alert-box"><img src="../../icons/loading.gif"/>Loading offlineApp app...
+          <br/>If this message remains after 10 seconds then there has probably been a problem loading or running the app - please try reloading it, or try it on a different device or in a difference browser
+        </div>
       </div>
     </div>
 

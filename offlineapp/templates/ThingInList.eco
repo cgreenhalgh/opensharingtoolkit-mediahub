@@ -1,0 +1,3 @@
+<%# Thing in Thing List, takes Thing as data (title, description, ...) %>
+<h4><%= @title %>
+</h4>

@@ -49,7 +49,7 @@
   }
   return this.require.define;
 }).call(this)({"app": function(exports, require, module) {(function() {
-  var App, BookletCoverView, BookletView, CacheStateWidgetView, HomeView, Router, appcache, appid, checkConfig, checkThing, currentView, dburl, itemViews, items, loadThing, loadThings, localdb, makeBooklet, refresh,
+  var App, BookletCoverView, BookletView, CacheStateWidgetView, HomeView, Router, ThingListView, appcache, appid, checkConfig, checkThing, currentView, dburl, items, loadThing, loadThings, localdb, makeBooklet, refresh, topLevelThings,
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
@@ -63,17 +63,19 @@
 
   BookletView = require('views/Booklet');
 
+  ThingListView = require('views/ThingList');
+
   localdb = require('localdb');
 
   appid = null;
-
-  itemViews = [];
 
   dburl = null;
 
   items = {};
 
   currentView = null;
+
+  topLevelThings = new Backbone.Collection();
 
   Router = (function(_super) {
     __extends(Router, _super);
@@ -144,21 +146,17 @@
 
   })(Backbone.Router);
 
-  makeBooklet = function(data) {
-    var booklet, err, view;
+  makeBooklet = function(data, collection) {
+    var booklet, err;
     try {
       booklet = new Backbone.Model(data);
       if (booklet.id) {
         items[booklet.id] = booklet;
       }
-      view = new BookletCoverView({
-        model: booklet
-      });
-      itemViews.push(view);
-      return $('#home').append(view.el);
+      return collection.add(booklet);
     } catch (_error) {
       err = _error;
-      return console.log("error making booklet: " + err.message + ": " + data);
+      return console.log("error making booklet: " + err.message + ": " + data + "\n" + err.stack);
     }
   };
 
@@ -167,7 +165,7 @@
     try {
       data = JSON.parse(data);
       if (data.type === 'booklet') {
-        return makeBooklet(data);
+        return makeBooklet(data, topLevelThings);
       } else {
         return console.log("unknown item type " + data.type + " - ignored");
       }
@@ -217,14 +215,8 @@
   };
 
   refresh = function() {
-    var itemView, oldItemViews, _i, _len;
     console.log("refresh " + dburl + " " + appid);
-    oldItemViews = itemViews;
-    itemViews = [];
-    for (_i = 0, _len = oldItemViews.length; _i < _len; _i++) {
-      itemView = oldItemViews[_i];
-      itemView.remove();
-    }
+    topLevelThings.reset();
     return $.ajax(dburl + "/" + encodeURIComponent(appid), {
       success: checkConfig,
       dataType: "text",
@@ -239,7 +231,7 @@
 
   App = {
     init: function() {
-      var appcacheWidget, exported, home, ix, path, router;
+      var appcacheWidget, exported, home, ix, path, router, topLevelThingsView;
       home = new HomeView({
         model: {}
       });
@@ -272,6 +264,11 @@
         model: appcache.state
       });
       $('#home').append(appcacheWidget.el);
+      topLevelThingsView = new ThingListView({
+        model: topLevelThings
+      });
+      topLevelThingsView.render();
+      $('#home').append(topLevelThingsView.el);
       Backbone.Model.prototype.idAttribute = '_id';
       _.extend(Backbone.Model.prototype, BackbonePouch.attachments());
       router = new Router;
@@ -289,6 +286,7 @@
           trigger: true
         });
       }
+      $('#loading-alert').hide();
       appcache.onUpdate(function() {
         return refresh(dburl, appid);
       });
@@ -1626,6 +1624,56 @@
   }).call(__obj);
   __obj.safe = __objSafe, __obj.escape = __escape;
   return __out.join('');
+}}, "templates/ThingInList": function(exports, require, module) {module.exports = function(__obj) {
+  if (!__obj) __obj = {};
+  var __out = [], __capture = function(callback) {
+    var out = __out, result;
+    __out = [];
+    callback.call(this);
+    result = __out.join('');
+    __out = out;
+    return __safe(result);
+  }, __sanitize = function(value) {
+    if (value && value.ecoSafe) {
+      return value;
+    } else if (typeof value !== 'undefined' && value != null) {
+      return __escape(value);
+    } else {
+      return '';
+    }
+  }, __safe, __objSafe = __obj.safe, __escape = __obj.escape;
+  __safe = __obj.safe = function(value) {
+    if (value && value.ecoSafe) {
+      return value;
+    } else {
+      if (!(typeof value !== 'undefined' && value != null)) value = '';
+      var result = new String(value);
+      result.ecoSafe = true;
+      return result;
+    }
+  };
+  if (!__escape) {
+    __escape = __obj.escape = function(value) {
+      return ('' + value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    };
+  }
+  (function() {
+    (function() {
+      __out.push('\n<h4>');
+    
+      __out.push(__sanitize(this.title));
+    
+      __out.push('\n</h4>\n');
+    
+    }).call(this);
+    
+  }).call(__obj);
+  __obj.safe = __objSafe, __obj.escape = __escape;
+  return __out.join('');
 }}, "templates/Track": function(exports, require, module) {module.exports = function(__obj) {
   if (!__obj) __obj = {};
   var __out = [], __capture = function(callback) {
@@ -2366,6 +2414,151 @@
     };
 
     return SyncStateWidget;
+
+  })(Backbone.View);
+
+}).call(this);
+}, "views/ThingInList": function(exports, require, module) {(function() {
+  var ThingInListView, templateThingInList,
+    __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
+    __hasProp = {}.hasOwnProperty,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+  templateThingInList = require('templates/ThingInList');
+
+  module.exports = ThingInListView = (function(_super) {
+    __extends(ThingInListView, _super);
+
+    function ThingInListView() {
+      this.view = __bind(this.view, this);
+      this.render = __bind(this.render, this);
+      this.template = __bind(this.template, this);
+      return ThingInListView.__super__.constructor.apply(this, arguments);
+    }
+
+    ThingInListView.prototype.tagName = 'div';
+
+    ThingInListView.prototype.className = 'thing-in-list';
+
+    ThingInListView.prototype.initialize = function() {
+      this.listenTo(this.model, 'change', this.render);
+      return this.render();
+    };
+
+    ThingInListView.prototype.template = function(d) {
+      return templateThingInList(d);
+    };
+
+    ThingInListView.prototype.render = function() {
+      console.log("render ThingInList " + this.model.attributes._id + ": " + this.model.attributes.title);
+      this.$el.html(this.template(this.model.attributes));
+      return this;
+    };
+
+    ThingInListView.prototype.events = {
+      "click": "view"
+    };
+
+    ThingInListView.prototype.view = function(ev) {
+      var id, ix, type;
+      console.log("view " + this.model.attributes._id);
+      ev.preventDefault();
+      id = this.model.id;
+      ix = id.indexOf(':');
+      type = ix > 0 ? id.substring(0, ix) : 'unknown';
+      return window.router.navigate("#" + type + "/" + (encodeURIComponent(this.model.id)), {
+        trigger: true
+      });
+    };
+
+    return ThingInListView;
+
+  })(Backbone.View);
+
+}).call(this);
+}, "views/ThingList": function(exports, require, module) {(function() {
+  var ThingInListView, ThingListView,
+    __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
+    __hasProp = {}.hasOwnProperty,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+  ThingInListView = require('views/ThingInList');
+
+  module.exports = ThingListView = (function(_super) {
+    __extends(ThingListView, _super);
+
+    function ThingListView() {
+      this.remove = __bind(this.remove, this);
+      this.reset = __bind(this.reset, this);
+      this.removeItem = __bind(this.removeItem, this);
+      this.addItem = __bind(this.addItem, this);
+      this.render = __bind(this.render, this);
+      return ThingListView.__super__.constructor.apply(this, arguments);
+    }
+
+    ThingListView.prototype.tagName = 'div';
+
+    ThingListView.prototype.className = 'row';
+
+    ThingListView.prototype.initialize = function() {
+      this.views = [];
+      this.listenTo(this.model, 'add', this.addItem);
+      this.listenTo(this.model, 'remove', this.removeItem);
+      return this.listenTo(this.model, 'reset', this.reset);
+    };
+
+    ThingListView.prototype.render = function() {
+      this.model.forEach(this.addItem);
+      return this;
+    };
+
+    ThingListView.prototype.addItem = function(thing) {
+      var view;
+      console.log("ThingListView add " + thing.id);
+      view = new ThingInListView({
+        model: thing
+      });
+      this.$el.append(view.$el);
+      return this.views.push(view);
+    };
+
+    ThingListView.prototype.removeItem = function(thing) {
+      var i, view, _i, _len, _ref;
+      console.log("ThingListView remove " + thing.id);
+      _ref = this.views;
+      for (i = _i = 0, _len = _ref.length; _i < _len; i = ++_i) {
+        view = _ref[i];
+        if (!(view.model.id === thing.id)) {
+          continue;
+        }
+        console.log("remove view");
+        view.$el.remove();
+        this.views.splice(i, 1);
+        return;
+      }
+    };
+
+    ThingListView.prototype.reset = function() {
+      var view, views, _i, _len, _ref;
+      _ref = this.views;
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        view = _ref[_i];
+        view.remove();
+      }
+      return views = [];
+    };
+
+    ThingListView.prototype.remove = function() {
+      var view, _i, _len, _ref;
+      _ref = this.views;
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        view = _ref[_i];
+        view.remove();
+      }
+      return ThingListView.__super__.remove.call(this);
+    };
+
+    return ThingListView;
 
   })(Backbone.View);
 
