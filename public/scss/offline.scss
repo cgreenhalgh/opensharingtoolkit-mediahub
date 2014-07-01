@@ -25,10 +25,18 @@
   padding-left: 1em; 
 }
 
+.unselectable {
+  user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  -webkit-user-select: none;
+}
+
 .toc-button {
   @extend .columns;
   @extend .large-3;
   @extend .small-3;
+  @extend .unselectable;
   text-align: center;
   background-color: scale-color($primary-color, $lightness:50%);
   border-color: scale-color($primary-color, $lightness:0%);
@@ -73,14 +81,14 @@
     display: none; 
   }
   .toc-show {
-    display: initial; 
+    display: block; 
   }
   &.toc-toggle {
     .toc-hide {
-      display: initial; 
+      display: block; 
     }
     .toc-body {
-      display: initial; 
+      display: block; 
     }
     .toc-show {
       display: none; 
@@ -91,7 +99,7 @@
       display: none; 
     }
     .toc-body {
-      display: initial; 
+      display: block; 
     }
     .toc-show {
       display: none; 
@@ -101,7 +109,7 @@
         display: none; 
       }
       .toc-body {
-        display: initial; 
+        display: block; 
       }
       .toc-show {
         display: none; 
