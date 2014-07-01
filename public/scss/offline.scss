@@ -129,15 +129,15 @@
     background-color: scale-color($primary-color, $lightness:50%);
     margin: 1px;
     position: relative;
-    height: 2.6em;
+    height: 4.6em;
 
     .thing-in-list-icon {
       //float: left;
-      position: relative;
+      position: absolute;
       border: 1px solid #666;
       //padding: 1px;
-      width: 2rem;
-      height: 2rem;
+      width: 4rem;
+      height: 4rem;
       overflow: hidden;    
       margin: 0.2rem;
       img {
@@ -147,10 +147,11 @@
     }
     .thing-in-list-title {
       position: absolute;
-      left: 2.4em;
+      left: 4.4rem;
       top: 0;
       right: 0;
-      font-size: 1rem;
+      font-size: 1.4rem;
+      height: 2rem;
       white-space: nowrap;
       text-overflow: ellipsis;
       overflow: hidden;
@@ -158,15 +159,15 @@
     }
     .thing-in-list-buttons {
       position: absolute;
-      left: 2.4em;
-      top: 1.2em;
+      left: 4.4rem;
+      top: 2.2em;
       margin: 1px;
       right: 0;
       .thing-in-list-button {
         //position: relative;
         display: inline-block;
-        width: 1rem;
-        height: 1rem;
+        width: 2rem;
+        height: 2rem;
         border: 1px solid #888;
         margin: 1px;
       }

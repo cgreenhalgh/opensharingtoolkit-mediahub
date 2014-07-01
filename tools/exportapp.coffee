@@ -121,12 +121,12 @@ check_json = (surl) ->
       val = el.obj[ix]
       #console.log "check json #{el.ix} = #{typeof val} #{val}"
       if (typeof val)=='string'
-        if (typeof ix)=='string' and ix.length>=3 and (ix.lastIndexOf 'url')==(ix.length-3)
+        if (typeof ix)=='string' and ix.length>=3 and (ix.lastIndexOf 'url')==(ix.length-3) and val.length>0
           console.log "found json ...url #{el.ix} = #{val}"
           file.refs.push
             from: 0
             to: val.length
-            src: val
+            src: fix_relative_url file.url, val
             ix: el.ix.join '.'
         else # html?
           #console.log "check for src in #{val}"
