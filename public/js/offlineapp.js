@@ -1663,11 +1663,15 @@
   }
   (function() {
     (function() {
-      __out.push('\n<h4>');
+      __out.push('\n<div class="thing-in-list-holder">\n  <div class="thing-in-list-icon"><img src="');
+    
+      __out.push(__sanitize(this.coverurl != null ? this.coverurl : ''));
+    
+      __out.push('"/></div>\n  <div class="thing-in-list-title">');
     
       __out.push(__sanitize(this.title));
     
-      __out.push('\n</h4>\n');
+      __out.push('</div>\n  <div class="thing-in-list-buttons"><!--\n    --><div class="thing-in-list-button">1</div><!--\n    --><div class="thing-in-list-button">2</div><!--\n  --></div>\n  <div class="thing-in-list-clear"></div>\n</div>\n\n\n');
     
     }).call(this);
     

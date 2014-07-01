@@ -124,24 +124,70 @@
   @extend .medium-6;
   @extend .small-12;
   @extend .unselectable;
-  text-align: center;
-  background-color: scale-color($primary-color, $lightness:50%);
-  border: 1px solid #fff;
-  //padding-top: 0.5em;
-  //padding-bottom: 0.5em;
-  overflow: hidden;
-  cursor: $cursor-pointer-value;
-  @include single-transition(background-color);
 
-  &:hover,
-  &:focus { background-color: scale-color($primary-color, $lightness: 70% ); }
+  .thing-in-list-holder {
+    background-color: scale-color($primary-color, $lightness:50%);
+    margin: 1px;
+    position: relative;
+    height: 2.6em;
 
-  &.disabled {
-    cursor: $cursor-default-value;
-    opacity: $button-disabled-opacity;
-    box-shadow: none;
+    .thing-in-list-icon {
+      //float: left;
+      position: relative;
+      border: 1px solid #666;
+      //padding: 1px;
+      width: 2rem;
+      height: 2rem;
+      overflow: hidden;    
+      margin: 0.2rem;
+      img {
+        width: auto;
+        height: auto;
+      }
+    }
+    .thing-in-list-title {
+      position: absolute;
+      left: 2.4em;
+      top: 0;
+      right: 0;
+      font-size: 1rem;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      overflow: hidden;
+      margin: 1px;
+    }
+    .thing-in-list-buttons {
+      position: absolute;
+      left: 2.4em;
+      top: 1.2em;
+      margin: 1px;
+      right: 0;
+      .thing-in-list-button {
+        //position: relative;
+        display: inline-block;
+        width: 1rem;
+        height: 1rem;
+        border: 1px solid #888;
+        margin: 1px;
+      }
+    }
+    .thing-in-list-clear { 
+      clear: both;
+    }
+    border: 1px solid #fff;
+    cursor: $cursor-pointer-value;
+    @include single-transition(background-color);
+
     &:hover,
-    &:focus { background-color: scale-color($primary-color, $lightness:50%); }
-  };
+    &:focus { background-color: scale-color($primary-color, $lightness: 70% ); }
+
+    &.disabled {
+      cursor: $cursor-default-value;
+      opacity: $button-disabled-opacity;
+      box-shadow: none;
+      &:hover,
+      &:focus { background-color: scale-color($primary-color, $lightness:50%); }
+    };
+  }
 }
 

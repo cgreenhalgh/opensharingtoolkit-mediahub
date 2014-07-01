@@ -1,3 +1,12 @@
-<%# Thing in Thing List, takes Thing as data (title, description, ...) %>
-<h4><%= @title %>
-</h4>
+<%# Thing in Thing List, in column, takes Thing as data (title, description, ...) %>
+<div class="thing-in-list-holder">
+  <div class="thing-in-list-icon"><img src="<%= if @coverurl? then @coverurl else '' %>"/></div>
+  <div class="thing-in-list-title"><%= @title %></div>
+  <div class="thing-in-list-buttons"><!--
+    --><div class="thing-in-list-button">1</div><!--
+    --><div class="thing-in-list-button">2</div><!--
+  --></div>
+  <div class="thing-in-list-clear"></div>
+</div>
+
+
