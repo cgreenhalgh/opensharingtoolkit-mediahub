@@ -1630,7 +1630,7 @@
     
       __out.push(__sanitize(this.title));
     
-      __out.push('</a></h1>\n    </li>\n  </ul>\n</nav>\n<div class="row">\n  <div class="columns large-4 medium-6 small-12">\n    <a id="map"><div class="stretch-100"><div class="place-map" tabindex="0"></div></div></a> \n  </div>\n  <div class="columns large-8 medium-6 small-12">\n    <div class="place-address">');
+      __out.push('</a></h1>\n    </li>\n  </ul>\n</nav>\n<div class="row">\n  <div class="columns large-4 medium-6 small-12">\n    <div class="stretch-100 map-parent"><div class="stretch-child"><div class="place-map" tabindex="0"></div></div></div>\n  </div>\n  <div class="columns large-8 medium-6 small-12">\n    <div class="place-address">');
     
       __out.push(__sanitize(this.address));
     
@@ -2508,17 +2508,34 @@
 
 }).call(this);
 }, "views/Place": function(exports, require, module) {(function() {
-  var PlaceView, templatePlace,
+  var PlaceView, maxZoom, maxZoomIn, maxZoomOut, myIcon, templatePlace,
     __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
   templatePlace = require('templates/Place');
 
+  myIcon = L.icon({
+    iconUrl: '../../vendor/leaflet/images/my-icon.png',
+    iconRetinaUrl: '../../vendor/leaflet/images/my-icon-2x.png',
+    iconSize: [25, 41],
+    iconAnchor: [12, 41],
+    popupAnchor: [1, -34],
+    shadowSize: [41, 41],
+    shadowUrl: '../../vendor/leaflet/images/marker-shadow.png'
+  });
+
+  maxZoom = 19;
+
+  maxZoomIn = 2;
+
+  maxZoomOut = 5;
+
   module.exports = PlaceView = (function(_super) {
     __extends(PlaceView, _super);
 
     function PlaceView() {
+      this.remove = __bind(this.remove, this);
       this.render = __bind(this.render, this);
       this.template = __bind(this.template, this);
       return PlaceView.__super__.constructor.apply(this, arguments);
@@ -2535,8 +2552,66 @@
     };
 
     PlaceView.prototype.render = function() {
+      var err, f;
       this.$el.html(this.template(this.model.attributes));
+      f = (function(_this) {
+        return function() {
+          var layer, mapEl, options, re;
+          mapEl = $('.place-map', _this.$el).get(0);
+          options = {
+            fadeAnimation: false,
+            dragging: false,
+            keyboard: false
+          };
+          _this.map = L.map(mapEl, options).setView([_this.model.attributes.lat, _this.model.attributes.lon], _this.model.attributes.zoom);
+          layer = L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
+            attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>',
+            maxZoom: Math.min(maxZoom, _this.model.attributes.zoom + maxZoomIn),
+            minZoom: Math.max(0, _this.model.attributes.zoom - maxZoomOut)
+          });
+          layer.addTo(_this.map);
+          _this.marker = L.marker([_this.model.attributes.lat, _this.model.attributes.lon], {
+            icon: myIcon
+          });
+          _this.marker.addTo(_this.map);
+          _this.map.on('zoomend', function() {
+            return _this.map.setView([_this.model.attributes.lat, _this.model.attributes.lon]);
+          });
+          console.log("(hopefully) created map");
+          re = function() {
+            if (_this.map != null) {
+              console.log("invalidateSize");
+              return _this.map.invalidateSize();
+            }
+          };
+          return setTimeout(re, 1000);
+        };
+      })(this);
+      if (this.map) {
+        try {
+          this.map.remove();
+          this.map = null;
+        } catch (_error) {
+          err = _error;
+          console.log("error removing place map: " + err.message);
+        }
+      }
+      setTimeout(f, 0);
       return this;
+    };
+
+    PlaceView.prototype.remove = function() {
+      var err;
+      if (this.map) {
+        try {
+          this.map.remove();
+          this.map = null;
+        } catch (_error) {
+          err = _error;
+          console.log("error removing place map: " + err.message);
+        }
+      }
+      return PlaceView.__super__.remove.call(this);
     };
 
     return PlaceView;

@@ -2835,7 +2835,7 @@
 
 }).call(this);
 }, "views/AppEdit": function(exports, require, module) {(function() {
-  var AppEditView, ListEditView, allthings, config, templateAppEdit,
+  var AppEditView, ListEditView, allthings, config, defaultZoom, lat2tile, lon2tile, maxZoom, maxZoomIn, maxZoomOut, templateAppEdit,
     __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -2847,6 +2847,22 @@
   allthings = require('allthings');
 
   config = window.mediahubconfig;
+
+  maxZoom = 19;
+
+  defaultZoom = 16;
+
+  maxZoomIn = 2;
+
+  maxZoomOut = 5;
+
+  lon2tile = function(lon, zoom) {
+    return (lon + 180) / 360 * Math.pow(2, zoom);
+  };
+
+  lat2tile = function(lat, zoom) {
+    return (1 - Math.log(Math.tan(lat * Math.PI / 180) + 1 / Math.cos(lat * Math.PI / 180)) / Math.PI) / 2 * Math.pow(2, zoom);
+  };
 
   module.exports = AppEditView = (function(_super) {
     __extends(AppEditView, _super);
@@ -2937,6 +2953,9 @@
           console.log("thing: " + (JSON.stringify(thing.attributes)));
           this.addUrl(files, thing.attributes.coverurl, 'cover');
           this.addHtml(files, thing.attributes.content);
+          if (thing.attributes.type === 'place' && (thing.attributes.lat != null) && (thing.attributes.lon != null)) {
+            this.addPlace(files, thing.attributes.lat, thing.attributes.lon, thing.attributes.zoom);
+          }
         }
       }
       console.log("Checked all things, found " + items.length + " items and " + files.length + " files");
@@ -2944,6 +2963,65 @@
         items: items,
         files: files
       });
+    };
+
+    AppEditView.prototype.addPlace = function(files, lat, lon, zoom) {
+      var latTile0, lonTile0, mapUrl, minZoom, mzoom, s, subdomains, tileRange, url, x, x1, x2, xmax, y, y1, y2, z, _i, _results;
+      console.log("add place " + lat + "," + lon + "," + zoom);
+      if (zoom == null) {
+        zoom = defaultZoom;
+      }
+      if (zoom > maxZoom) {
+        zoom = maxZoom;
+      }
+      mapUrl = 'http://{s}.tile.osm.org/{z}/{x}/{y}.png';
+      subdomains = ['a', 'b', 'c'];
+      latTile0 = lat2tile(lat, 0);
+      lonTile0 = lon2tile(lon, 0);
+      console.log("-> " + latTile0 + "," + lonTile0);
+      mzoom = zoom + maxZoomIn;
+      minZoom = zoom - maxZoomOut;
+      if (mzoom > maxZoom) {
+        mzoom = maxZoom;
+      }
+      tileRange = 0.5 * 400 / 256;
+      xmax = 1;
+      _results = [];
+      for (z = _i = 0; 0 <= mzoom ? _i <= mzoom : _i >= mzoom; z = 0 <= mzoom ? ++_i : --_i) {
+        y1 = Math.max(0, Math.floor(latTile0 - tileRange));
+        y2 = Math.min(xmax - 1, Math.floor(latTile0 + tileRange));
+        x1 = Math.max(0, Math.floor(lonTile0 - tileRange));
+        x2 = Math.min(xmax - 1, Math.floor(lonTile0 + tileRange));
+        xmax = xmax * 2;
+        latTile0 = latTile0 * 2;
+        lonTile0 = lonTile0 * 2;
+        console.log("tiles zoom " + z + " (0-" + (xmax - 1) + ") " + x1 + ":" + x2 + ", " + y1 + ":" + y2);
+        if (z >= minZoom) {
+          _results.push((function() {
+            var _j, _results1;
+            _results1 = [];
+            for (x = _j = x1; x1 <= x2 ? _j <= x2 : _j >= x2; x = x1 <= x2 ? ++_j : --_j) {
+              _results1.push((function() {
+                var _k, _results2;
+                _results2 = [];
+                for (y = _k = y1; y1 <= y2 ? _k <= y2 : _k >= y2; y = y1 <= y2 ? ++_k : --_k) {
+                  s = subdomains[Math.abs(x + y) % subdomains.length];
+                  url = mapUrl.replace('{s}', s).replace('{z}', z).replace('{x}', x).replace('{y}', y);
+                  _results2.push(files.push({
+                    url: url,
+                    title: 'map tile'
+                  }));
+                }
+                return _results2;
+              })());
+            }
+            return _results1;
+          })());
+        } else {
+          _results.push(void 0);
+        }
+      }
+      return _results;
     };
 
     return AppEditView;

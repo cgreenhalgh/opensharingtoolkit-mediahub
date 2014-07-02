@@ -1,6 +1,7 @@
 CACHE MANIFEST
 # cache files
 ../../stylesheets/offline.css
+../../vendor/leaflet/leaflet.css
 # default icons
 ../../icons/place.png
 ../../icons/booklet.png
@@ -9,6 +10,12 @@ CACHE MANIFEST
 ../../icons/arrow-r-black.png
 ../../icons/back-black.png
 ../../icons/bars-black.png
+# leaflet icons
+../../vendor/leaflet/images/marker-icon-2x.png
+../../vendor/leaflet/images/marker-icon.png
+../../vendor/leaflet/images/marker-shadow.png
+../../vendor/leaflet/images/my-icon-2x.png
+../../vendor/leaflet/images/my-icon.png
 
 # general network access
 NETWORK:
