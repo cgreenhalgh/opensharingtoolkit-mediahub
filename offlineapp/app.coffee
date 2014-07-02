@@ -6,6 +6,7 @@ CacheStateWidgetView = require 'views/CacheStateWidget'
 
 BookletView = require 'views/Booklet'
 ThingView = require 'views/Thing'
+PlaceView = require 'views/Place'
 
 ThingListView = require 'views/ThingList'
 
@@ -56,6 +57,8 @@ class Router extends Backbone.Router
     
     if thing.attributes.type=='booklet'
       currentView = new BookletView model: thing
+    else if thing.attributes.type=='place'
+      currentView = new PlaceView model: thing
     else if thing.attributes.type?
       currentView = new ThingView model: thing
     else

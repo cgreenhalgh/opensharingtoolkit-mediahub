@@ -216,3 +216,20 @@ $thing-color: #bbb;
   }
 }
 
+.stretch-100 {
+  width: 100%;
+  position: relative; 
+  padding-bottom: 100%;
+
+  div {
+    position: absolute;
+    top: 0; bottom: 0; left: 0; right: 0;
+  }
+}
+
+$outline-color: #000;
+	
+.place-map {
+  border: 1px solid $outline-color;
+}
+

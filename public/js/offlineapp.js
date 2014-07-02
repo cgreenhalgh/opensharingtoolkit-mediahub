@@ -49,7 +49,7 @@
   }
   return this.require.define;
 }).call(this)({"app": function(exports, require, module) {(function() {
-  var App, BookletView, CacheStateWidgetView, HomeView, Router, ThingListView, ThingView, appcache, appid, checkConfig, checkThing, currentView, dburl, items, loadThing, loadThings, localdb, makeThing, refresh, topLevelThings,
+  var App, BookletView, CacheStateWidgetView, HomeView, PlaceView, Router, ThingListView, ThingView, appcache, appid, checkConfig, checkThing, currentView, dburl, items, loadThing, loadThings, localdb, makeThing, refresh, topLevelThings,
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
@@ -62,6 +62,8 @@
   BookletView = require('views/Booklet');
 
   ThingView = require('views/Thing');
+
+  PlaceView = require('views/Place');
 
   ThingListView = require('views/ThingList');
 
@@ -128,6 +130,10 @@
       }
       if (thing.attributes.type === 'booklet') {
         currentView = new BookletView({
+          model: thing
+        });
+      } else if (thing.attributes.type === 'place') {
+        currentView = new PlaceView({
           model: thing
         });
       } else if (thing.attributes.type != null) {
@@ -1581,6 +1587,64 @@
   }).call(__obj);
   __obj.safe = __objSafe, __obj.escape = __escape;
   return __out.join('');
+}}, "templates/Place": function(exports, require, module) {module.exports = function(__obj) {
+  if (!__obj) __obj = {};
+  var __out = [], __capture = function(callback) {
+    var out = __out, result;
+    __out = [];
+    callback.call(this);
+    result = __out.join('');
+    __out = out;
+    return __safe(result);
+  }, __sanitize = function(value) {
+    if (value && value.ecoSafe) {
+      return value;
+    } else if (typeof value !== 'undefined' && value != null) {
+      return __escape(value);
+    } else {
+      return '';
+    }
+  }, __safe, __objSafe = __obj.safe, __escape = __obj.escape;
+  __safe = __obj.safe = function(value) {
+    if (value && value.ecoSafe) {
+      return value;
+    } else {
+      if (!(typeof value !== 'undefined' && value != null)) value = '';
+      var result = new String(value);
+      result.ecoSafe = true;
+      return result;
+    }
+  };
+  if (!__escape) {
+    __escape = __obj.escape = function(value) {
+      return ('' + value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    };
+  }
+  (function() {
+    (function() {
+      __out.push('<nav class="top-bar" data-topbar>\n  <ul class="title-area">\n    <li class="name">\n      <h1><a href="#">');
+    
+      __out.push(__sanitize(this.title));
+    
+      __out.push('</a></h1>\n    </li>\n  </ul>\n</nav>\n<div class="row">\n  <div class="columns large-4 medium-6 small-12">\n    <a id="map"><div class="stretch-100"><div class="place-map" tabindex="0"></div></div></a> \n  </div>\n  <div class="columns large-8 medium-6 small-12">\n    <div class="place-address">');
+    
+      __out.push(__sanitize(this.address));
+    
+      __out.push('</div>\n    ');
+    
+      __out.push(this.description);
+    
+      __out.push('\n  </div>\n</div>\n');
+    
+    }).call(this);
+    
+  }).call(__obj);
+  __obj.safe = __objSafe, __obj.escape = __escape;
+  return __out.join('');
 }}, "templates/SyncStateWidget": function(exports, require, module) {module.exports = function(__obj) {
   if (!__obj) __obj = {};
   var __out = [], __capture = function(callback) {
@@ -1682,7 +1746,7 @@
     
       __out.push(__sanitize(this.title));
     
-      __out.push('</a></h1>\n    </li>\n  </ul>\n</nav>\n<div class="row">\n  <div class="columns large-12 small-12 toc">\n    ');
+      __out.push('</a></h1>\n    </li>\n  </ul>\n</nav>\n<div class="row">\n  <div class="columns large-12 small-12">\n    ');
     
       __out.push(this.description);
     
@@ -2439,6 +2503,43 @@
     };
 
     return LocaldbStateListView;
+
+  })(Backbone.View);
+
+}).call(this);
+}, "views/Place": function(exports, require, module) {(function() {
+  var PlaceView, templatePlace,
+    __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
+    __hasProp = {}.hasOwnProperty,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+  templatePlace = require('templates/Place');
+
+  module.exports = PlaceView = (function(_super) {
+    __extends(PlaceView, _super);
+
+    function PlaceView() {
+      this.render = __bind(this.render, this);
+      this.template = __bind(this.template, this);
+      return PlaceView.__super__.constructor.apply(this, arguments);
+    }
+
+    PlaceView.prototype.tagName = 'div';
+
+    PlaceView.prototype.initialize = function() {
+      return this.render();
+    };
+
+    PlaceView.prototype.template = function(d) {
+      return templatePlace(d);
+    };
+
+    PlaceView.prototype.render = function() {
+      this.$el.html(this.template(this.model.attributes));
+      return this;
+    };
+
+    return PlaceView;
 
   })(Backbone.View);
 

@@ -1,0 +1,16 @@
+<nav class="top-bar" data-topbar>
+  <ul class="title-area">
+    <li class="name">
+      <h1><a href="#"><%= @title %></a></h1>
+    </li>
+  </ul>
+</nav>
+<div class="row">
+  <div class="columns large-4 medium-6 small-12">
+    <a id="map"><div class="stretch-100"><div class="place-map" tabindex="0"></div></div></a> 
+  </div>
+  <div class="columns large-8 medium-6 small-12">
+    <div class="place-address"><%= @address %></div>
+    <%- @description %>
+  </div>
+</div>
