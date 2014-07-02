@@ -19,11 +19,9 @@ module.exports = class ThingInListView extends Backbone.View
     if not iconurl? or iconurl==''
       iconurl = @model.attributes.coverurl
     if not iconurl? or iconurl==''
-      # defaults
-      ix = @model.id.indexOf ':'
-      if ix>0
-        iconurl = "../../icons/#{@model.id.substring 0, ix}.png"
-    @$el.html @template _.extend { iconurl: iconurl }, @model.attributes
+      if @model.attributes.type?
+        iconurl = "../../icons/#{@model.attributes.type}.png"
+    @$el.html @template _.extend {}, @model.attributes, { iconurl: iconurl } 
     @
 
   events:
@@ -35,5 +33,5 @@ module.exports = class ThingInListView extends Backbone.View
     id = @model.id
     ix = id.indexOf ':'
     type = if ix>0 then id.substring 0,ix else 'unknown'
-    window.router.navigate "##{type}/#{encodeURIComponent @model.id}", trigger:true
+    window.router.navigate "#thing/#{encodeURIComponent @model.id}", trigger:true
 

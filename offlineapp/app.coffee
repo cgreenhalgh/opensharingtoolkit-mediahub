@@ -4,8 +4,8 @@ appcache = require 'appcache'
 HomeView = require 'views/Home'
 CacheStateWidgetView = require 'views/CacheStateWidget'
 
-BookletCoverView = require 'views/BookletCover'
 BookletView = require 'views/Booklet'
+ThingView = require 'views/Thing'
 
 ThingListView = require 'views/ThingList'
 
@@ -25,7 +25,7 @@ class Router extends Backbone.Router
   routes: 
     "" : "entries"
     "#" : "entries"
-    "booklet/:id": "booklet"
+    "thing/:id": "thing"
     "booklet/:id/:page": "bookletPage"
     "booklet/:id/:page/": "bookletPage"
     "booklet/:id/:page/:anchor": "bookletPage"
@@ -44,17 +44,25 @@ class Router extends Backbone.Router
     $('#home').show()
     # TODO
 
-  booklet: (id) ->
-    console.log "show booklet #{id}"
+  thing: (id) ->
+    console.log "show thing #{id}"
     @removeCurrentView()
     $('#home').hide()
-    booklet = items[id]
-    if not booklet?
-      alert "Sorry, could not find booklet #{id}"
+    thing = items[id]
+    if not thing?
+      alert "Sorry, could not find thing #{id}"
+      @navigate '#', { trigger:true, replace:true }
+      return false
+    
+    if thing.attributes.type=='booklet'
+      currentView = new BookletView model: thing
+    else if thing.attributes.type?
+      currentView = new ThingView model: thing
+    else
+      alert "Sorry, not sure how to display #{id}"
       @navigate '#', { trigger:true, replace:true }
       return false
 
-    currentView = new BookletView model: booklet
     $('body').append currentView.el
     true
 
@@ -64,14 +72,14 @@ class Router extends Backbone.Router
         return
     currentView.showPage page,anchor
 
-makeBooklet = (data, collection) ->
+makeThing = (data, collection) ->
   try
-    booklet = new Backbone.Model data
-    if booklet.id
-      items[booklet.id] = booklet
-    collection.add booklet
+    thing = new Backbone.Model data
+    if thing.id
+      items[thing.id] = thing
+    collection.add thing
   catch err
-    console.log "error making booklet: #{err.message}: #{data}\n#{err.stack}"
+    console.log "error making thing: #{err.message}: #{data}\n#{err.stack}"
 
 checkThing = (app, data) ->
   #if instanceid isnt localdb.currentInstanceid()
@@ -79,8 +87,8 @@ checkThing = (app, data) ->
   #  return
   try 
     data = JSON.parse data
-    if data.type=='booklet'
-      makeBooklet data, topLevelThings
+    if data.type?
+      makeThing data, topLevelThings
     else
       console.log "unknown item type #{data.type} - ignored"
   catch err

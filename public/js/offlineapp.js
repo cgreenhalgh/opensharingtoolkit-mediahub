@@ -49,7 +49,7 @@
   }
   return this.require.define;
 }).call(this)({"app": function(exports, require, module) {(function() {
-  var App, BookletCoverView, BookletView, CacheStateWidgetView, HomeView, Router, ThingListView, appcache, appid, checkConfig, checkThing, currentView, dburl, items, loadThing, loadThings, localdb, makeBooklet, refresh, topLevelThings,
+  var App, BookletView, CacheStateWidgetView, HomeView, Router, ThingListView, ThingView, appcache, appid, checkConfig, checkThing, currentView, dburl, items, loadThing, loadThings, localdb, makeThing, refresh, topLevelThings,
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
@@ -59,9 +59,9 @@
 
   CacheStateWidgetView = require('views/CacheStateWidget');
 
-  BookletCoverView = require('views/BookletCover');
-
   BookletView = require('views/Booklet');
+
+  ThingView = require('views/Thing');
 
   ThingListView = require('views/ThingList');
 
@@ -87,7 +87,7 @@
     Router.prototype.routes = {
       "": "entries",
       "#": "entries",
-      "booklet/:id": "booklet",
+      "thing/:id": "thing",
       "booklet/:id/:page": "bookletPage",
       "booklet/:id/:page/": "bookletPage",
       "booklet/:id/:page/:anchor": "bookletPage"
@@ -112,23 +112,36 @@
       return $('#home').show();
     };
 
-    Router.prototype.booklet = function(id) {
-      var booklet;
-      console.log("show booklet " + id);
+    Router.prototype.thing = function(id) {
+      var thing;
+      console.log("show thing " + id);
       this.removeCurrentView();
       $('#home').hide();
-      booklet = items[id];
-      if (booklet == null) {
-        alert("Sorry, could not find booklet " + id);
+      thing = items[id];
+      if (thing == null) {
+        alert("Sorry, could not find thing " + id);
         this.navigate('#', {
           trigger: true,
           replace: true
         });
         return false;
       }
-      currentView = new BookletView({
-        model: booklet
-      });
+      if (thing.attributes.type === 'booklet') {
+        currentView = new BookletView({
+          model: thing
+        });
+      } else if (thing.attributes.type != null) {
+        currentView = new ThingView({
+          model: thing
+        });
+      } else {
+        alert("Sorry, not sure how to display " + id);
+        this.navigate('#', {
+          trigger: true,
+          replace: true
+        });
+        return false;
+      }
       $('body').append(currentView.el);
       return true;
     };
@@ -146,17 +159,17 @@
 
   })(Backbone.Router);
 
-  makeBooklet = function(data, collection) {
-    var booklet, err;
+  makeThing = function(data, collection) {
+    var err, thing;
     try {
-      booklet = new Backbone.Model(data);
-      if (booklet.id) {
-        items[booklet.id] = booklet;
+      thing = new Backbone.Model(data);
+      if (thing.id) {
+        items[thing.id] = thing;
       }
-      return collection.add(booklet);
+      return collection.add(thing);
     } catch (_error) {
       err = _error;
-      return console.log("error making booklet: " + err.message + ": " + data + "\n" + err.stack);
+      return console.log("error making thing: " + err.message + ": " + data + "\n" + err.stack);
     }
   };
 
@@ -164,8 +177,8 @@
     var err;
     try {
       data = JSON.parse(data);
-      if (data.type === 'booklet') {
-        return makeBooklet(data, topLevelThings);
+      if (data.type != null) {
+        return makeThing(data, topLevelThings);
       } else {
         return console.log("unknown item type " + data.type + " - ignored");
       }
@@ -1626,6 +1639,60 @@
   }).call(__obj);
   __obj.safe = __objSafe, __obj.escape = __escape;
   return __out.join('');
+}}, "templates/Thing": function(exports, require, module) {module.exports = function(__obj) {
+  if (!__obj) __obj = {};
+  var __out = [], __capture = function(callback) {
+    var out = __out, result;
+    __out = [];
+    callback.call(this);
+    result = __out.join('');
+    __out = out;
+    return __safe(result);
+  }, __sanitize = function(value) {
+    if (value && value.ecoSafe) {
+      return value;
+    } else if (typeof value !== 'undefined' && value != null) {
+      return __escape(value);
+    } else {
+      return '';
+    }
+  }, __safe, __objSafe = __obj.safe, __escape = __obj.escape;
+  __safe = __obj.safe = function(value) {
+    if (value && value.ecoSafe) {
+      return value;
+    } else {
+      if (!(typeof value !== 'undefined' && value != null)) value = '';
+      var result = new String(value);
+      result.ecoSafe = true;
+      return result;
+    }
+  };
+  if (!__escape) {
+    __escape = __obj.escape = function(value) {
+      return ('' + value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    };
+  }
+  (function() {
+    (function() {
+      __out.push('<nav class="top-bar" data-topbar>\n  <ul class="title-area">\n    <li class="name">\n      <h1><a href="#">');
+    
+      __out.push(__sanitize(this.title));
+    
+      __out.push('</a></h1>\n    </li>\n  </ul>\n</nav>\n<div class="row">\n  <div class="columns large-12 small-12 toc">\n    ');
+    
+      __out.push(this.description);
+    
+      __out.push('\n  </div>\n</div>\n');
+    
+    }).call(this);
+    
+  }).call(__obj);
+  __obj.safe = __objSafe, __obj.escape = __escape;
+  return __out.join('');
 }}, "templates/ThingInList": function(exports, require, module) {module.exports = function(__obj) {
   if (!__obj) __obj = {};
   var __out = [], __capture = function(callback) {
@@ -2428,6 +2495,49 @@
   })(Backbone.View);
 
 }).call(this);
+}, "views/Thing": function(exports, require, module) {(function() {
+  var ThingView, templateThing,
+    __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
+    __hasProp = {}.hasOwnProperty,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+  templateThing = require('templates/Thing');
+
+  module.exports = ThingView = (function(_super) {
+    __extends(ThingView, _super);
+
+    function ThingView() {
+      this.back = __bind(this.back, this);
+      this.render = __bind(this.render, this);
+      this.template = __bind(this.template, this);
+      return ThingView.__super__.constructor.apply(this, arguments);
+    }
+
+    ThingView.prototype.tagName = 'div';
+
+    ThingView.prototype.initialize = function() {
+      return this.render();
+    };
+
+    ThingView.prototype.template = function(d) {
+      return templateThing(d);
+    };
+
+    ThingView.prototype.render = function() {
+      this.$el.html(this.template(this.model.attributes));
+      return this;
+    };
+
+    ThingView.prototype.back = function() {
+      console.log("back");
+      return window.history.back();
+    };
+
+    return ThingView;
+
+  })(Backbone.View);
+
+}).call(this);
 }, "views/ThingInList": function(exports, require, module) {(function() {
   var ThingInListView, templateThingInList,
     __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
@@ -2460,21 +2570,20 @@
     };
 
     ThingInListView.prototype.render = function() {
-      var iconurl, ix;
+      var iconurl;
       console.log("render ThingInList " + this.model.attributes._id + ": " + this.model.attributes.title);
       iconurl = this.model.attributes.iconurl;
       if ((iconurl == null) || iconurl === '') {
         iconurl = this.model.attributes.coverurl;
       }
       if ((iconurl == null) || iconurl === '') {
-        ix = this.model.id.indexOf(':');
-        if (ix > 0) {
-          iconurl = "../../icons/" + (this.model.id.substring(0, ix)) + ".png";
+        if (this.model.attributes.type != null) {
+          iconurl = "../../icons/" + this.model.attributes.type + ".png";
         }
       }
-      this.$el.html(this.template(_.extend({
+      this.$el.html(this.template(_.extend({}, this.model.attributes, {
         iconurl: iconurl
-      }, this.model.attributes)));
+      })));
       return this;
     };
 
@@ -2489,7 +2598,7 @@
       id = this.model.id;
       ix = id.indexOf(':');
       type = ix > 0 ? id.substring(0, ix) : 'unknown';
-      return window.router.navigate("#" + type + "/" + (encodeURIComponent(this.model.id)), {
+      return window.router.navigate("#thing/" + (encodeURIComponent(this.model.id)), {
         trigger: true
       });
     };
