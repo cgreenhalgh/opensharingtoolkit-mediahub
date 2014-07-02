@@ -8,10 +8,10 @@
 <div class="row">
   <div class="columns large-6 medium-8 small-12 toc">
     <div class="toc-header"><!--
-      --><div class="toc-button do-back">Back<br></div><!--
-      --><div class="toc-button <%= if @prev? then "do-prev" else 'disabled' %>" <%= if @prev? then "data-page=#{@prev}" %>>Previous<br></div><!--
-      --><div class="toc-button do-toc">Contents<br><div class="toc-hide">Hide</div><div class="toc-show">Show</div></div><!--
-      --><div class="toc-button <%= if @next? then "do-next" else 'disabled' %>" <%= if @next? then "data-page=#{@next}" %>>Next<br></div><!--
+      --><div class="toc-button do-back"><img src="../../icons/back-black.png"/>Back</div><!--
+      --><div class="toc-button <%= if @prev? then "do-prev" else 'disabled' %>" <%= if @prev? then "data-page=#{@prev}" %>><img src="../../icons/arrow-l-black.png"/>Previous</div><!--
+      --><div class="toc-button do-toc"><img src="../../icons/bars-black.png"/><div class="toc-fixed">Contents</div><div class="toc-hide">Hide TOC</div><div class="toc-show">Show TOC</div></div><!--
+      --><div class="toc-button <%= if @next? then "do-next" else 'disabled' %>" <%= if @next? then "data-page=#{@next}" %>><img src="../../icons/arrow-r-black.png"/>Next<br></div><!--
     --></div>
     <div class="toc-body">
       <% for item in @toc: %>

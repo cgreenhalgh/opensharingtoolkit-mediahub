@@ -1339,7 +1339,7 @@
     
       __out.push(__sanitize(this.booklet.title));
     
-      __out.push('</a></h1>\n    </li>\n  </ul>\n</nav>\n<div class="row">\n  <div class="columns large-6 medium-8 small-12 toc">\n    <div class="toc-header"><!--\n      --><div class="toc-button do-back">Back<br></div><!--\n      --><div class="toc-button ');
+      __out.push('</a></h1>\n    </li>\n  </ul>\n</nav>\n<div class="row">\n  <div class="columns large-6 medium-8 small-12 toc">\n    <div class="toc-header"><!--\n      --><div class="toc-button do-back"><img src="../../icons/back-black.png"/>Back</div><!--\n      --><div class="toc-button ');
     
       __out.push(__sanitize(this.prev != null ? "do-prev" : 'disabled'));
     
@@ -1347,7 +1347,7 @@
     
       __out.push(__sanitize(this.prev != null ? "data-page=" + this.prev : void 0));
     
-      __out.push('>Previous<br></div><!--\n      --><div class="toc-button do-toc">Contents<br><div class="toc-hide">Hide</div><div class="toc-show">Show</div></div><!--\n      --><div class="toc-button ');
+      __out.push('><img src="../../icons/arrow-l-black.png"/>Previous</div><!--\n      --><div class="toc-button do-toc"><img src="../../icons/bars-black.png"/><div class="toc-fixed">Contents</div><div class="toc-hide">Hide TOC</div><div class="toc-show">Show TOC</div></div><!--\n      --><div class="toc-button ');
     
       __out.push(__sanitize(this.next != null ? "do-next" : 'disabled'));
     
@@ -1355,7 +1355,7 @@
     
       __out.push(__sanitize(this.next != null ? "data-page=" + this.next : void 0));
     
-      __out.push('>Next<br></div><!--\n    --></div>\n    <div class="toc-body">\n      ');
+      __out.push('><img src="../../icons/arrow-r-black.png"/>Next<br></div><!--\n    --></div>\n    <div class="toc-body">\n      ');
     
       _ref = this.toc;
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {

@@ -1,6 +1,14 @@
 CACHE MANIFEST
 # cache files
 ../../stylesheets/offline.css
+# default icons
+../../icons/place.png
+../../icons/booklet.png
+../../icons/list.png
+../../icons/arrow-l-black.png
+../../icons/arrow-r-black.png
+../../icons/back-black.png
+../../icons/bars-black.png
 
 # general network access
 NETWORK:
