@@ -15,7 +15,15 @@ module.exports = class ThingInListView extends Backbone.View
 
   render: =>
     console.log "render ThingInList #{@model.attributes._id}: #{ @model.attributes.title }"
-    @$el.html @template @model.attributes
+    iconurl = @model.attributes.iconurl
+    if not iconurl? or iconurl==''
+      iconurl = @model.attributes.coverurl
+    if not iconurl? or iconurl==''
+      # defaults
+      ix = @model.id.indexOf ':'
+      if ix>0
+        iconurl = "../../icons/#{@model.id.substring 0, ix}.png"
+    @$el.html @template _.extend { iconurl: iconurl }, @model.attributes
     @
 
   events:

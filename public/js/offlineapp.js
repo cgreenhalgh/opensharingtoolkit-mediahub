@@ -287,9 +287,6 @@
         });
       }
       $('#loading-alert').hide();
-      appcache.onUpdate(function() {
-        return refresh(dburl, appid);
-      });
       return refresh(dburl, appid);
     }
   };
@@ -298,7 +295,7 @@
 
 }).call(this);
 }, "appcache": function(exports, require, module) {(function() {
-  var CacheState, appCache, event, lastState, onUpdate, on_cache_event, state, updateState, _i, _len, _ref;
+  var CacheState, appCache, check_for_update, event, lastState, onUpdate, on_cache_event, state, updateState, _i, _len, _ref;
 
   CacheState = require('models/CacheState');
 
@@ -309,7 +306,8 @@
   onUpdate = [];
 
   module.exports.onUpdate = function(cb) {
-    return onUpdate.push(cb);
+    onUpdate.push(cb);
+    return check_for_update();
   };
 
   appCache = window.applicationCache;
@@ -335,7 +333,7 @@
           return {
             alertType: 'info',
             bookmark: true,
-            message: 'A new version has been downloaded',
+            message: 'A new version has been downloaded; reload this page to use it',
             updateReady: true
           };
         case appCache.CHECKING:
@@ -371,14 +369,18 @@
   };
 
   on_cache_event = function(ev) {
-    var cb, err, _i, _len, _results;
     if (appCache.status === lastState) {
       return false;
     }
     lastState = appCache.status;
     console.log('AppCache status = ' + appCache.status);
     updateState();
-    if (appCache.status === appCache.UPDATEREADY) {
+    return check_for_update();
+  };
+
+  check_for_update = function() {
+    var cb, err, _i, _len, _results;
+    if (onUpdate.length > 0 && appCache.status === appCache.UPDATEREADY) {
       try {
         appCache.swapCache();
         console.log("Swapped cache!");
@@ -1663,11 +1665,15 @@
   }
   (function() {
     (function() {
-      __out.push('\n<div class="thing-in-list-holder">\n  <div class="thing-in-list-icon"><img src="');
+      __out.push('\n<div class="thing-in-list-holder">\n  ');
     
-      __out.push(__sanitize(this.coverurl != null ? this.coverurl : ''));
+      if ((this.iconurl != null) && this.iconurl !== '') {
+        __out.push('\n    <div class="thing-in-list-icon"><img src="');
+        __out.push(__sanitize(this.iconurl));
+        __out.push('"/></div>\n  ');
+      }
     
-      __out.push('"/></div>\n  <div class="thing-in-list-title">');
+      __out.push('\n  <div class="thing-in-list-title">');
     
       __out.push(__sanitize(this.title));
     
@@ -2454,8 +2460,21 @@
     };
 
     ThingInListView.prototype.render = function() {
+      var iconurl, ix;
       console.log("render ThingInList " + this.model.attributes._id + ": " + this.model.attributes.title);
-      this.$el.html(this.template(this.model.attributes));
+      iconurl = this.model.attributes.iconurl;
+      if ((iconurl == null) || iconurl === '') {
+        iconurl = this.model.attributes.coverurl;
+      }
+      if ((iconurl == null) || iconurl === '') {
+        ix = this.model.id.indexOf(':');
+        if (ix > 0) {
+          iconurl = "../../icons/" + (this.model.id.substring(0, ix)) + ".png";
+        }
+      }
+      this.$el.html(this.template(_.extend({
+        iconurl: iconurl
+      }, this.model.attributes)));
       return this;
     };
 

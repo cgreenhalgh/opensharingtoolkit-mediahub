@@ -9,6 +9,7 @@ onUpdate = []
 
 module.exports.onUpdate = (cb)->
   onUpdate.push cb
+  check_for_update()
 
 appCache = window.applicationCache
 lastState = -1
@@ -25,7 +26,7 @@ updateState = ()->
     when appCache.UPDATEREADY 
       alertType: 'info'
       bookmark: true
-      message: 'A new version has been downloaded'
+      message: 'A new version has been downloaded; reload this page to use it'
       updateReady: true
     when appCache.CHECKING 
       alertType: 'info'
@@ -50,7 +51,10 @@ on_cache_event = (ev) ->
   lastState = appCache.status
   console.log 'AppCache status = '+appCache.status
   updateState()  
-  if appCache.status==appCache.UPDATEREADY 
+  check_for_update()
+
+check_for_update = () ->
+  if onUpdate.length>0 and appCache.status==appCache.UPDATEREADY 
     try 
       appCache.swapCache()
       console.log "Swapped cache!"

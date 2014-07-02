@@ -26,6 +26,7 @@ module.exports = class CacheStateWidget extends Backbone.View
   doUpdate: (ev) =>
     console.log "Update!"
     ev.preventDefault()
+    # NB default is from cache
     location.reload()
     false
 

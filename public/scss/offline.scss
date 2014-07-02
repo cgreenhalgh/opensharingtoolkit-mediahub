@@ -140,6 +140,8 @@
   }
 }
 
+$thing-color: #bbb;
+
 .thing-in-list {
   @extend .columns;
   @extend .large-4;
@@ -148,7 +150,7 @@
   @extend .unselectable;
 
   .thing-in-list-holder {
-    background-color: scale-color($primary-color, $lightness:50%);
+    background-color: scale-color($thing-color, $lightness:50%);
     margin: 1px;
     position: relative;
     height: 4.6em;
@@ -156,14 +158,14 @@
     .thing-in-list-icon {
       //float: left;
       position: absolute;
-      border: 1px solid #666;
+      //border: 1px solid #666;
       //padding: 1px;
       width: 4rem;
       height: 4rem;
       overflow: hidden;    
       margin: 0.2rem;
       img {
-        width: auto;
+        width: 100%;
         height: auto;
       }
     }
@@ -202,14 +204,14 @@
     @include single-transition(background-color);
 
     &:hover,
-    &:focus { background-color: scale-color($primary-color, $lightness: 70% ); }
+    &:focus { background-color: scale-color($thing-color, $lightness: 70% ); }
 
     &.disabled {
       cursor: $cursor-default-value;
       opacity: $button-disabled-opacity;
       box-shadow: none;
       &:hover,
-      &:focus { background-color: scale-color($primary-color, $lightness:50%); }
+      &:focus { background-color: scale-color($thing-color, $lightness:50%); }
     };
   }
 }

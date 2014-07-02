@@ -183,8 +183,8 @@ App =
 
     $('#loading-alert').hide()  
 
-    appcache.onUpdate () ->
-      refresh dburl,appid
+    #appcache.onUpdate () ->
+    #  refresh dburl,appid
     refresh dburl,appid
 
 module.exports = App
