@@ -5,9 +5,10 @@ https = require 'https'
 http = require 'http'
 fs = require 'fs'
 parse_url = (require 'url').parse
+uuid = require 'node-uuid'
 
 if process.argv.length!=3 and process.argv.length!=4
-  console.log 'usage: coffee exportapp.coffee <DIR> [<COUCHDB-URL>]'
+  console.log 'usage: coffee updatecache.coffee <DIR> [<COUCHDB-URL>]'
   process.exit -1
 
 outdir = process.argv[2]
@@ -53,6 +54,9 @@ else
   else if not couchurl?
     couchurl = config.couchurl
     console.log "Note: using couchdb #{couchurl} from #{configpath}"
+
+if not config.uuid 
+  config.uuid = uuid.v4()
 
 downloadFile = (surl,path,fn) ->
 

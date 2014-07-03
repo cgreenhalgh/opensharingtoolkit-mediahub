@@ -9,7 +9,8 @@
     "couchapp": "0.11.0",
     "underscore": "",
     "async": "",
-    "eco": ""
+    "eco": "",
+    "node-uuid": ""
   }
 }
 
