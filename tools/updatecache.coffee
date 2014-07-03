@@ -244,7 +244,7 @@ downloadFile couchurl+changespath,"#{outdir}/_changes.json", (err,path) ->
           # hopefully rev will ensure uniqueness/no race
           attachpath = "/#{encodeURIComponent rev.id}/#{encodeURIComponent att.name}?rev=#{encodeURIComponent rev.rev}"
           # / in base64 = bad
-          attachfile = "#{attachdir}/#{rev.id}/#{att.info.digest.replace '/', '_'}"
+          attachfile = "#{attachdir}/#{rev.id}/#{att.info.digest.replace /\//g, '_'}"
           if fs.existsSync attachfile
             try
               state = fs.statSync attachfile

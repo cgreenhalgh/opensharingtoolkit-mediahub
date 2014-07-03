@@ -158,7 +158,7 @@ readFile couchurl+checkpointpath, (err,data,res) ->
       # object {id:{missing:[..]},..}
       try 
         diffs = JSON.parse data
-      catch 
+      catch err
         console.log "Error parsing _revs_diff response: #{err}"
         process.exit -1
       missing = []
@@ -167,7 +167,31 @@ readFile couchurl+checkpointpath, (err,data,res) ->
           for rev in diff.missing
             missing.push { id: id, rev: rev }
 
+      console.log "#{missing.length} revs missing from target"
       bulkdocs = []
+
+      doRevWithAttachments = (rev, fn) ->
+        for name,att of rev._attachments
+          # TODO skip if already known to target
+          attpath = "#{cachedir}/attachments/#{rev._id}/#{att.digest.replace /\//g, '_'}"
+          try 
+            bin = fs.readFileSync attpath
+          catch err
+            console.log "Error reading attachment file #{attpath}: #{err.message}"
+            process.exit -1
+          base64 = new Buffer(bin, 'binary').toString('base64')
+          delete rev._attachments[name].stub
+          rev._attachments[name].data = base64
+          console.log "- loaded attachment #{name}"
+        console.log "upload #{rev._id} #{rev._rev} with attachments"
+        body =  JSON.stringify( {docs: [ rev ], new_edits: false} )
+        #console.log "body: #{body}"
+        doPost couchurl+"/_bulk_docs", body, (err,data,res) ->
+          if err?
+            console.log "Error doing _bulk_docs: #{err}"
+            process.exit -1
+          console.log "upload done: #{data}"
+          fn()        
 
       doRev = (fn) ->
        while true
@@ -186,35 +210,37 @@ readFile couchurl+checkpointpath, (err,data,res) ->
           process.exit -1
         if rev._attachments? 
           console.log "Note: attachments on #{revpath}"
+          return doRevWithAttachments rev, () -> doRev fn
           # TODO
         else
           console.log "no attachments on #{revpath}"
-          if bulkdocs.length>0 and bulkdocs[bulkdocs.length-1]._id==rev._id
-            console.log "flush on multiple reviison for #{rev._id}"
-            return doBulk () ->
-              bulkdocs.push rev
-              doRev fn
+          #if bulkdocs.length>0 and bulkdocs[bulkdocs.length-1]._id==rev._id
+          #  console.log "flush on multiple reviison for #{rev._id}"
+          #  return doBulk () ->
+          #    bulkdocs.push rev
+          #    doRev fn
           bulkdocs.push rev
         #continue
 
       doBulk = (fn) ->
         if bulkdocs.length>0
           console.log "bulk update #{bulkdocs.length} documents"
-          body =  JSON.stringify( {docs: bulkdocs} )
+          body =  JSON.stringify( {docs: bulkdocs, new_edits: false} )
+          bulkdocs = []
           #console.log "bulk body: #{body}"
-          doPost couchurl+"/_bulk_docs?new_edits:false", body, (err,data,res) ->
+          doPost couchurl+"/_bulk_docs", body, (err,data,res) ->
             if err?
               console.log "Error doing _bulk_docs: #{err}"
               process.exit -1
             console.log "bulk update done: #{data}"
             fn()
-          bulkdocs = []
         else        
+          console.log "No bulk updates left"
           return fn()
 
       return doRev () -> 
         doBulk () ->
-          fn()
+          doCheckpoint fn
 
   doCheckpoint () ->
     console.log "Done!"
