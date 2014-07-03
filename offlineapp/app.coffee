@@ -7,6 +7,8 @@ CacheStateWidgetView = require 'views/CacheStateWidget'
 BookletView = require 'views/Booklet'
 ThingView = require 'views/Thing'
 PlaceView = require 'views/Place'
+HtmlView = require 'views/Html'
+ListView = require 'views/List'
 
 ThingListView = require 'views/ThingList'
 
@@ -59,6 +61,10 @@ class Router extends Backbone.Router
       currentView = new BookletView model: thing
     else if thing.attributes.type=='place'
       currentView = new PlaceView model: thing
+    else if thing.attributes.type=='html'
+      currentView = new HtmlView model: thing
+    else if thing.attributes.type=='list'
+      currentView = new ListView model: thing
     else if thing.attributes.type?
       currentView = new ThingView model: thing
     else
@@ -81,44 +87,48 @@ makeThing = (data, collection) ->
     if thing.id
       items[thing.id] = thing
     collection.add thing
+    if data.thingIds?
+      console.log "create new thing collection for #{thing.id}"
+      thing.things = new Backbone.Collection()
+      loadThings data,thing.things
   catch err
     console.log "error making thing: #{err.message}: #{data}\n#{err.stack}"
 
-checkThing = (app, data) ->
+checkThing = (data,collection) ->
   #if instanceid isnt localdb.currentInstanceid()
   #  console.log "Ignore item on load; old instanceid #{instanceid} vs #{localdb.currentInstanceid()}"
   #  return
   try 
     data = JSON.parse data
     if data.type?
-      makeThing data, topLevelThings
+      makeThing data, collection
     else
       console.log "unknown item type #{data.type} - ignored"
   catch err
     console.log "error parsing thing: #{err.message}: #{data}"
 
-loadThing = (app,thingId) ->
+loadThing = (thingId,collection) ->
   console.log "load thing #{thingId}"
   $.ajax dburl+"/"+encodeURIComponent(thingId),
     success: (data)->
-      checkThing app, data
+      checkThing data, collection
     dataType: "text"
     error: (xhr,status,err) ->
       console.log "get thing error "+xhr.status+": "+err.message
       # on android (at least) files from cache sometimes have status 0!!
       if xhr.status==0 && xhr.responseText
-        checkThing app, xhr.responseText
+        checkThing xhr.responseText, collection
 
-loadThings = (app) ->
+loadThings = (app,collection) ->
   for thingId in app.thingIds
     # id, url, type
-    loadThing app,thingId
+    loadThing thingId,collection
 
 checkConfig = (app) ->
   console.log  "config(app): "+app 
   try 
     app = JSON.parse app
-    loadThings app
+    loadThings app,topLevelThings
   catch err
     console.log "error parsing app config: #{err.message}: #{app} - #{err.stack}"
 
@@ -150,6 +160,7 @@ App =
     if dburl.indexOf('/_design/')>=0
       dburl = dburl.substring 0,dburl.indexOf('/_design/')
 
+    # hack - leaflets map tile load doesn't get picked up here
     if exported == 'true'
       $.ajaxSetup beforeSend: (xhr, options) ->
         # TODO cache redirect?
@@ -160,6 +171,9 @@ App =
             # no extension...
             console.log "exported, beforeSend #{options.type} #{options.url}, try .json"
             options.url = options.url+'.json'
+        else if options.url?
+          console.log "unchanged ajax url #{options.url}"
+          
         true
 
     appcacheWidget = new CacheStateWidgetView model: appcache.state

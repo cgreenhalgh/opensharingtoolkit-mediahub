@@ -1,4 +1,4 @@
-# File/Track (initial) ContentType plugin
+# File (initial) ContentType plugin
 plugins = require 'plugins'
 File = require 'models/File'
 FileList = require 'models/FileList'
@@ -11,8 +11,8 @@ ThingBuilder = require 'plugins/ThingBuilder'
 
 attributes =  
     id: 'file'
-    title: 'File/Track'
-    description: 'Initial test/development content type - part file, part audio track'
+    title: 'File'
+    description: 'A file to download/use, e.g. image, video, audio, PDF'
 
 updateRatings = (files, ratings) ->
   try 

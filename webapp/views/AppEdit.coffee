@@ -37,19 +37,21 @@ module.exports = class AppEditView extends ListEditView
     ev.preventDefault()
     console.log "Update app for download..."
     @formToModel()
-    items = []
+    items = {}
     # add itself?!
-    items.push { type: @model.attributes.type, id: @model.id, url: config.dburl+"/"+encodeURIComponent(@model.id) }
-    files = []
+    item = { type: @model.attributes.type, id: @model.id, url: config.dburl+"/"+encodeURIComponent(@model.id) }
+    items[item.url] = item
+    files = {}
     thingIds = @model.attributes.thingIds
     @checkThings thingIds, items, files    
 
   addUrl: (files,url,title) ->
     if url? and url!=''
       # mime type? (not actually used, happily)
-      files.push 
+      file = 
         url: url
         title: title
+      files[file.url] = file
 
   addHtml: (files,html) ->
     # images in html
@@ -58,10 +60,19 @@ module.exports = class AppEditView extends ListEditView
       while m = ( srcs.exec html ) 
         src = m[1]
         if src.length>0
-          files.push {
+          file = 
             url: src
             title: 'img'
-          }
+          files[file.url] = file
+
+  addFile: (files, thing) =>
+     if thing.attributes.fileType?
+       # check actual attachment?
+       file = 
+         url: config.dburl+"/"+thing.id+"/bytes"
+         type: thing.get 'fileType'
+         title: thing.get 'title'
+       files[file.url] = file
 
   checkThings: (thingIds, items, files) =>
     while thingIds.length > 0
@@ -72,15 +83,29 @@ module.exports = class AppEditView extends ListEditView
         console.log "- could not find #{thingId}"
       else
         item = { type: thing.attributes.type, id: thing.id, url: config.dburl+"/"+encodeURIComponent(thingId) }
-        items.push item
+        items[item.url] =  item
         console.log "thing: #{JSON.stringify thing.attributes}"
         # files, etc.
         # cover image
         @addUrl files, thing.attributes.coverurl, 'cover'
+        @addUrl files, thing.attributes.iconurl, 'icon'
+        @addUrl files, thing.attributes.mapiconurl, 'mapicon'
+        @addUrl files, thing.attributes.imageurl, 'image'
         @addHtml files, thing.attributes.content
+        @addHtml files, thing.attributes.html
+        @addHtml files, thing.attributes.description
         if thing.attributes.type=='place' and thing.attributes.lat? and thing.attributes.lon?
           @addPlace files, thing.attributes.lat, thing.attributes.lon, thing.attributes.zoom
-        
+        if thing.attributes.thingIds?
+          # e.g. list
+          @checkThings thing.attributes.thingIds, items, files
+        if thing.attributes.type == 'file'
+          @addFile files, thing
+
+    items = for url,item of items
+      item
+    files = for url,file of files
+      file
     console.log "Checked all things, found #{items.length} items and #{files.length} files"
     @model.set { items: items, files: files }
     
@@ -120,6 +145,7 @@ module.exports = class AppEditView extends ListEditView
           for y in [y1..y2]
             s = subdomains[Math.abs(x + y) % subdomains.length]
             url = mapUrl.replace( '{s}', s ).replace( '{z}', z ).replace( '{x}',x ).replace( '{y}', y )    
-            files.push { url: url, title: 'map tile' } 
+            file = { url: url, title: 'map tile' } 
+            files[file.url] = file
 
 

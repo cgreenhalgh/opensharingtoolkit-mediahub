@@ -6,7 +6,7 @@ db = require 'mydb'
 plugins = require 'plugins'
 
 # for registration of plugins
-require 'plugins/Track'
+require 'plugins/File'
 require 'plugins/Html'
 require 'plugins/Booklet'
 require 'plugins/Place'

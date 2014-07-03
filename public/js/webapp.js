@@ -78,7 +78,7 @@
 
   plugins = require('plugins');
 
-  require('plugins/Track');
+  require('plugins/File');
 
   require('plugins/Html');
 
@@ -1117,6 +1117,82 @@
   plugins.registerContentType(contentType.id, contentType);
 
 }).call(this);
+}, "plugins/File": function(exports, require, module) {(function() {
+  var File, FileEditView, FileInListView, FileList, FileListView, ThingBuilder, ThingView, attributes, contentType, plugins, superCreateView, updateRatings;
+
+  plugins = require('plugins');
+
+  File = require('models/File');
+
+  FileList = require('models/FileList');
+
+  FileListView = require('views/FileList');
+
+  FileInListView = require('views/FileInList');
+
+  ThingView = require('views/Thing');
+
+  FileEditView = require('views/FileEdit');
+
+  ThingBuilder = require('plugins/ThingBuilder');
+
+  attributes = {
+    id: 'file',
+    title: 'File',
+    description: 'A file to download/use, e.g. image, video, audio, PDF'
+  };
+
+  updateRatings = function(files, ratings) {
+    var err, file, row, _i, _len, _ref, _results;
+    try {
+      ratings = JSON.parse(ratings);
+    } catch (_error) {
+      err = _error;
+      console.log("Error parsing ratings: " + err.message + ": " + ratings);
+      return;
+    }
+    _ref = ratings.rows;
+    _results = [];
+    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+      row = _ref[_i];
+      files.ratings[row.key] = row.value;
+      file = files.get(row.key);
+      if (file != null) {
+        console.log("Set ratings on load-ratings " + file.id + " " + (JSON.stringify(row.value)));
+        _results.push(file.set({
+          ratingSum: row.value[0],
+          ratingCount: row.value[1]
+        }));
+      } else {
+        _results.push(void 0);
+      }
+    }
+    return _results;
+  };
+
+  contentType = ThingBuilder.createThingType(attributes, File, FileList, FileListView, FileInListView, ThingView, FileEditView);
+
+  superCreateView = contentType.createView;
+
+  contentType.createView = function() {
+    var thingsView;
+    thingsView = superCreateView();
+    thingsView.model.ratings = {};
+    $.ajax(window.mediahubconfig.dburl + '/_design/app/_view/rating?group=true', {
+      success: function(ratings) {
+        return updateRatings(thingsView.model, ratings);
+      },
+      dataType: "text",
+      error: function(xhr, status, err) {
+        return console.log("get ratings error " + xhr.status + ": " + err.message);
+      }
+    });
+    return thingsView;
+  };
+
+  plugins.registerContentType(contentType.id, contentType);
+
+}).call(this);
 }, "plugins/Html": function(exports, require, module) {(function() {
   var ThingBuilder, ThisThing, ThisThingEditView, ThisThingInListView, ThisThingList, ThisThingListView, ThisThingView, attributes, contentType, plugins;
 
@@ -1286,82 +1362,6 @@
     };
     return contentType;
   };
-
-}).call(this);
-}, "plugins/Track": function(exports, require, module) {(function() {
-  var File, FileEditView, FileInListView, FileList, FileListView, ThingBuilder, ThingView, attributes, contentType, plugins, superCreateView, updateRatings;
-
-  plugins = require('plugins');
-
-  File = require('models/File');
-
-  FileList = require('models/FileList');
-
-  FileListView = require('views/FileList');
-
-  FileInListView = require('views/FileInList');
-
-  ThingView = require('views/Thing');
-
-  FileEditView = require('views/FileEdit');
-
-  ThingBuilder = require('plugins/ThingBuilder');
-
-  attributes = {
-    id: 'file',
-    title: 'File/Track',
-    description: 'Initial test/development content type - part file, part audio track'
-  };
-
-  updateRatings = function(files, ratings) {
-    var err, file, row, _i, _len, _ref, _results;
-    try {
-      ratings = JSON.parse(ratings);
-    } catch (_error) {
-      err = _error;
-      console.log("Error parsing ratings: " + err.message + ": " + ratings);
-      return;
-    }
-    _ref = ratings.rows;
-    _results = [];
-    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-      row = _ref[_i];
-      files.ratings[row.key] = row.value;
-      file = files.get(row.key);
-      if (file != null) {
-        console.log("Set ratings on load-ratings " + file.id + " " + (JSON.stringify(row.value)));
-        _results.push(file.set({
-          ratingSum: row.value[0],
-          ratingCount: row.value[1]
-        }));
-      } else {
-        _results.push(void 0);
-      }
-    }
-    return _results;
-  };
-
-  contentType = ThingBuilder.createThingType(attributes, File, FileList, FileListView, FileInListView, ThingView, FileEditView);
-
-  superCreateView = contentType.createView;
-
-  contentType.createView = function() {
-    var thingsView;
-    thingsView = superCreateView();
-    thingsView.model.ratings = {};
-    $.ajax(window.mediahubconfig.dburl + '/_design/app/_view/rating?group=true', {
-      success: function(ratings) {
-        return updateRatings(thingsView.model, ratings);
-      },
-      dataType: "text",
-      error: function(xhr, status, err) {
-        return console.log("get ratings error " + xhr.status + ": " + err.message);
-      }
-    });
-    return thingsView;
-  };
-
-  plugins.registerContentType(contentType.id, contentType);
 
 }).call(this);
 }, "templates/AppEdit": function(exports, require, module) {module.exports = function(__obj) {
@@ -2869,6 +2869,7 @@
 
     function AppEditView() {
       this.checkThings = __bind(this.checkThings, this);
+      this.addFile = __bind(this.addFile, this);
       this.update = __bind(this.update, this);
       this.formToModel = __bind(this.formToModel, this);
       this.template = __bind(this.template, this);
@@ -2891,42 +2892,46 @@
     };
 
     AppEditView.prototype.update = function(ev) {
-      var files, items, thingIds;
+      var files, item, items, thingIds;
       ev.preventDefault();
       console.log("Update app for download...");
       this.formToModel();
-      items = [];
-      items.push({
+      items = {};
+      item = {
         type: this.model.attributes.type,
         id: this.model.id,
         url: config.dburl + "/" + encodeURIComponent(this.model.id)
-      });
-      files = [];
+      };
+      items[item.url] = item;
+      files = {};
       thingIds = this.model.attributes.thingIds;
       return this.checkThings(thingIds, items, files);
     };
 
     AppEditView.prototype.addUrl = function(files, url, title) {
+      var file;
       if ((url != null) && url !== '') {
-        return files.push({
+        file = {
           url: url,
           title: title
-        });
+        };
+        return files[file.url] = file;
       }
     };
 
     AppEditView.prototype.addHtml = function(files, html) {
-      var m, src, srcs, _results;
+      var file, m, src, srcs, _results;
       if (html != null) {
         srcs = /<[iI][mM][gG][^>]+src="?([^"\s>]+)"?[^>]*\/>/g;
         _results = [];
         while (m = srcs.exec(html)) {
           src = m[1];
           if (src.length > 0) {
-            _results.push(files.push({
+            file = {
               url: src,
               title: 'img'
-            }));
+            };
+            _results.push(files[file.url] = file);
           } else {
             _results.push(void 0);
           }
@@ -2935,8 +2940,20 @@
       }
     };
 
+    AppEditView.prototype.addFile = function(files, thing) {
+      var file;
+      if (thing.attributes.fileType != null) {
+        file = {
+          url: config.dburl + "/" + thing.id + "/bytes",
+          type: thing.get('fileType'),
+          title: thing.get('title')
+        };
+        return files[file.url] = file;
+      }
+    };
+
     AppEditView.prototype.checkThings = function(thingIds, items, files) {
-      var item, thing, thingId;
+      var file, item, thing, thingId, url;
       while (thingIds.length > 0) {
         thingId = (thingIds.splice(0, 1))[0];
         console.log("update for thing " + thingId + "...");
@@ -2949,15 +2966,44 @@
             id: thing.id,
             url: config.dburl + "/" + encodeURIComponent(thingId)
           };
-          items.push(item);
+          items[item.url] = item;
           console.log("thing: " + (JSON.stringify(thing.attributes)));
           this.addUrl(files, thing.attributes.coverurl, 'cover');
+          this.addUrl(files, thing.attributes.iconurl, 'icon');
+          this.addUrl(files, thing.attributes.mapiconurl, 'mapicon');
+          this.addUrl(files, thing.attributes.imageurl, 'image');
           this.addHtml(files, thing.attributes.content);
+          this.addHtml(files, thing.attributes.html);
+          this.addHtml(files, thing.attributes.description);
           if (thing.attributes.type === 'place' && (thing.attributes.lat != null) && (thing.attributes.lon != null)) {
             this.addPlace(files, thing.attributes.lat, thing.attributes.lon, thing.attributes.zoom);
           }
+          if (thing.attributes.thingIds != null) {
+            this.checkThings(thing.attributes.thingIds, items, files);
+          }
+          if (thing.attributes.type === 'file') {
+            this.addFile(files, thing);
+          }
         }
       }
+      items = (function() {
+        var _results;
+        _results = [];
+        for (url in items) {
+          item = items[url];
+          _results.push(item);
+        }
+        return _results;
+      })();
+      files = (function() {
+        var _results;
+        _results = [];
+        for (url in files) {
+          file = files[url];
+          _results.push(file);
+        }
+        return _results;
+      })();
       console.log("Checked all things, found " + items.length + " items and " + files.length + " files");
       return this.model.set({
         items: items,
@@ -2966,7 +3012,7 @@
     };
 
     AppEditView.prototype.addPlace = function(files, lat, lon, zoom) {
-      var latTile0, lonTile0, mapUrl, minZoom, mzoom, s, subdomains, tileRange, url, x, x1, x2, xmax, y, y1, y2, z, _i, _results;
+      var file, latTile0, lonTile0, mapUrl, minZoom, mzoom, s, subdomains, tileRange, url, x, x1, x2, xmax, y, y1, y2, z, _i, _results;
       console.log("add place " + lat + "," + lon + "," + zoom);
       if (zoom == null) {
         zoom = defaultZoom;
@@ -3007,10 +3053,11 @@
                 for (y = _k = y1; y1 <= y2 ? _k <= y2 : _k >= y2; y = y1 <= y2 ? ++_k : --_k) {
                   s = subdomains[Math.abs(x + y) % subdomains.length];
                   url = mapUrl.replace('{s}', s).replace('{z}', z).replace('{x}', x).replace('{y}', y);
-                  _results2.push(files.push({
+                  file = {
                     url: url,
                     title: 'map tile'
-                  }));
+                  };
+                  _results2.push(files[file.url] = file);
                 }
                 return _results2;
               })());

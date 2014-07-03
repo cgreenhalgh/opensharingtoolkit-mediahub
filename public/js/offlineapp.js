@@ -49,7 +49,7 @@
   }
   return this.require.define;
 }).call(this)({"app": function(exports, require, module) {(function() {
-  var App, BookletView, CacheStateWidgetView, HomeView, PlaceView, Router, ThingListView, ThingView, appcache, appid, checkConfig, checkThing, currentView, dburl, items, loadThing, loadThings, localdb, makeThing, refresh, topLevelThings,
+  var App, BookletView, CacheStateWidgetView, HomeView, HtmlView, ListView, PlaceView, Router, ThingListView, ThingView, appcache, appid, checkConfig, checkThing, currentView, dburl, items, loadThing, loadThings, localdb, makeThing, refresh, topLevelThings,
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
@@ -64,6 +64,10 @@
   ThingView = require('views/Thing');
 
   PlaceView = require('views/Place');
+
+  HtmlView = require('views/Html');
+
+  ListView = require('views/List');
 
   ThingListView = require('views/ThingList');
 
@@ -136,6 +140,14 @@
         currentView = new PlaceView({
           model: thing
         });
+      } else if (thing.attributes.type === 'html') {
+        currentView = new HtmlView({
+          model: thing
+        });
+      } else if (thing.attributes.type === 'list') {
+        currentView = new ListView({
+          model: thing
+        });
       } else if (thing.attributes.type != null) {
         currentView = new ThingView({
           model: thing
@@ -172,19 +184,24 @@
       if (thing.id) {
         items[thing.id] = thing;
       }
-      return collection.add(thing);
+      collection.add(thing);
+      if (data.thingIds != null) {
+        console.log("create new thing collection for " + thing.id);
+        thing.things = new Backbone.Collection();
+        return loadThings(data, thing.things);
+      }
     } catch (_error) {
       err = _error;
       return console.log("error making thing: " + err.message + ": " + data + "\n" + err.stack);
     }
   };
 
-  checkThing = function(app, data) {
+  checkThing = function(data, collection) {
     var err;
     try {
       data = JSON.parse(data);
       if (data.type != null) {
-        return makeThing(data, topLevelThings);
+        return makeThing(data, collection);
       } else {
         return console.log("unknown item type " + data.type + " - ignored");
       }
@@ -194,29 +211,29 @@
     }
   };
 
-  loadThing = function(app, thingId) {
+  loadThing = function(thingId, collection) {
     console.log("load thing " + thingId);
     return $.ajax(dburl + "/" + encodeURIComponent(thingId), {
       success: function(data) {
-        return checkThing(app, data);
+        return checkThing(data, collection);
       },
       dataType: "text",
       error: function(xhr, status, err) {
         console.log("get thing error " + xhr.status + ": " + err.message);
         if (xhr.status === 0 && xhr.responseText) {
-          return checkThing(app, xhr.responseText);
+          return checkThing(xhr.responseText, collection);
         }
       }
     });
   };
 
-  loadThings = function(app) {
+  loadThings = function(app, collection) {
     var thingId, _i, _len, _ref, _results;
     _ref = app.thingIds;
     _results = [];
     for (_i = 0, _len = _ref.length; _i < _len; _i++) {
       thingId = _ref[_i];
-      _results.push(loadThing(app, thingId));
+      _results.push(loadThing(thingId, collection));
     }
     return _results;
   };
@@ -226,7 +243,7 @@
     console.log("config(app): " + app);
     try {
       app = JSON.parse(app);
-      return loadThings(app);
+      return loadThings(app, topLevelThings);
     } catch (_error) {
       err = _error;
       return console.log("error parsing app config: " + err.message + ": " + app + " - " + err.stack);
@@ -274,6 +291,8 @@
                 console.log("exported, beforeSend " + options.type + " " + options.url + ", try .json");
                 options.url = options.url + '.json';
               }
+            } else if (options.url != null) {
+              console.log("unchanged ajax url " + options.url);
             }
             return true;
           }
@@ -1517,6 +1536,114 @@
   }).call(__obj);
   __obj.safe = __objSafe, __obj.escape = __escape;
   return __out.join('');
+}}, "templates/Html": function(exports, require, module) {module.exports = function(__obj) {
+  if (!__obj) __obj = {};
+  var __out = [], __capture = function(callback) {
+    var out = __out, result;
+    __out = [];
+    callback.call(this);
+    result = __out.join('');
+    __out = out;
+    return __safe(result);
+  }, __sanitize = function(value) {
+    if (value && value.ecoSafe) {
+      return value;
+    } else if (typeof value !== 'undefined' && value != null) {
+      return __escape(value);
+    } else {
+      return '';
+    }
+  }, __safe, __objSafe = __obj.safe, __escape = __obj.escape;
+  __safe = __obj.safe = function(value) {
+    if (value && value.ecoSafe) {
+      return value;
+    } else {
+      if (!(typeof value !== 'undefined' && value != null)) value = '';
+      var result = new String(value);
+      result.ecoSafe = true;
+      return result;
+    }
+  };
+  if (!__escape) {
+    __escape = __obj.escape = function(value) {
+      return ('' + value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    };
+  }
+  (function() {
+    (function() {
+      __out.push('<nav class="top-bar" data-topbar>\n  <ul class="title-area">\n    <li class="name">\n      <h1><a href="#">');
+    
+      __out.push(__sanitize(this.title));
+    
+      __out.push('</a></h1>\n    </li>\n  </ul>\n</nav>\n<div class="row">\n  <div class="columns large-12 small-12">\n    ');
+    
+      __out.push(this.html);
+    
+      __out.push('\n  </div>\n</div>\n');
+    
+    }).call(this);
+    
+  }).call(__obj);
+  __obj.safe = __objSafe, __obj.escape = __escape;
+  return __out.join('');
+}}, "templates/List": function(exports, require, module) {module.exports = function(__obj) {
+  if (!__obj) __obj = {};
+  var __out = [], __capture = function(callback) {
+    var out = __out, result;
+    __out = [];
+    callback.call(this);
+    result = __out.join('');
+    __out = out;
+    return __safe(result);
+  }, __sanitize = function(value) {
+    if (value && value.ecoSafe) {
+      return value;
+    } else if (typeof value !== 'undefined' && value != null) {
+      return __escape(value);
+    } else {
+      return '';
+    }
+  }, __safe, __objSafe = __obj.safe, __escape = __obj.escape;
+  __safe = __obj.safe = function(value) {
+    if (value && value.ecoSafe) {
+      return value;
+    } else {
+      if (!(typeof value !== 'undefined' && value != null)) value = '';
+      var result = new String(value);
+      result.ecoSafe = true;
+      return result;
+    }
+  };
+  if (!__escape) {
+    __escape = __obj.escape = function(value) {
+      return ('' + value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    };
+  }
+  (function() {
+    (function() {
+      __out.push('<nav class="top-bar" data-topbar>\n  <ul class="title-area">\n    <li class="name">\n      <h1><a href="#">');
+    
+      __out.push(__sanitize(this.title));
+    
+      __out.push('</a></h1>\n    </li>\n  </ul>\n</nav>\n<div class="row">\n  <div class="columns large-12 small-12">\n    ');
+    
+      __out.push(this.description);
+    
+      __out.push('\n  </div>\n</div>\n<div class="list-holder"></div>\n');
+    
+    }).call(this);
+    
+  }).call(__obj);
+  __obj.safe = __objSafe, __obj.escape = __escape;
+  return __out.join('');
 }}, "templates/LocaldbStateInList": function(exports, require, module) {module.exports = function(__obj) {
   if (!__obj) __obj = {};
   var __out = [], __capture = function(callback) {
@@ -2398,6 +2525,86 @@
   })(Backbone.View);
 
 }).call(this);
+}, "views/Html": function(exports, require, module) {(function() {
+  var HtmlView, ThingView, templateHtml,
+    __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
+    __hasProp = {}.hasOwnProperty,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+  templateHtml = require('templates/Html');
+
+  ThingView = require('views/Thing');
+
+  module.exports = HtmlView = (function(_super) {
+    __extends(HtmlView, _super);
+
+    function HtmlView() {
+      this.template = __bind(this.template, this);
+      return HtmlView.__super__.constructor.apply(this, arguments);
+    }
+
+    HtmlView.prototype.template = function(d) {
+      return templateHtml(d);
+    };
+
+    return HtmlView;
+
+  })(ThingView);
+
+}).call(this);
+}, "views/List": function(exports, require, module) {(function() {
+  var ListView, ThingListView, ThingView, templateList,
+    __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
+    __hasProp = {}.hasOwnProperty,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+  templateList = require('templates/List');
+
+  ThingListView = require('views/ThingList');
+
+  ThingView = require('views/Thing');
+
+  module.exports = ListView = (function(_super) {
+    __extends(ListView, _super);
+
+    function ListView() {
+      this.remove = __bind(this.remove, this);
+      this.render = __bind(this.render, this);
+      this.template = __bind(this.template, this);
+      return ListView.__super__.constructor.apply(this, arguments);
+    }
+
+    ListView.prototype.template = function(d) {
+      return templateList(d);
+    };
+
+    ListView.prototype.render = function() {
+      this.$el.html(this.template(this.model.attributes));
+      if (this.model.things != null) {
+        console.log("render ListView adding ThingListView");
+        this.listView = new ThingListView({
+          model: this.model.things
+        });
+        this.listView.render();
+        this.$el.append(this.listView.el);
+      } else if (this.model.attributes.thingIds != null) {
+        console.log("error: render ListView without @things (thingsIds=" + this.model.attributes.thingIds + ")");
+      }
+      return this;
+    };
+
+    ListView.prototype.remove = function() {
+      if (this.listView) {
+        this.listView.remove();
+      }
+      return ListView.__super__.remove.call(this);
+    };
+
+    return ListView;
+
+  })(ThingView);
+
+}).call(this);
 }, "views/LocaldbStateInList": function(exports, require, module) {(function() {
   var LocaldbStateInListView, templateLocaldbStateInList,
     __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
@@ -2556,7 +2763,7 @@
       this.$el.html(this.template(this.model.attributes));
       f = (function(_this) {
         return function() {
-          var layer, mapEl, options, re;
+          var exported, layer, mapEl, mapUrl, options, re;
           mapEl = $('.place-map', _this.$el).get(0);
           options = {
             fadeAnimation: false,
@@ -2564,7 +2771,13 @@
             keyboard: false
           };
           _this.map = L.map(mapEl, options).setView([_this.model.attributes.lat, _this.model.attributes.lon], _this.model.attributes.zoom);
-          layer = L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
+          mapUrl = 'http://{s}.tile.osm.org/{z}/{x}/{y}.png';
+          exported = $('meta[name="mediahub-exported"]').attr('content');
+          if (exported === 'true') {
+            mapUrl = "../../../../cache/{s}/tile/osm/org/{z}/{x}/{y}.png";
+            console.log("Using export map url " + mapUrl);
+          }
+          layer = L.tileLayer(mapUrl, {
             attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>',
             maxZoom: Math.min(maxZoom, _this.model.attributes.zoom + maxZoomIn),
             minZoom: Math.max(0, _this.model.attributes.zoom - maxZoomOut)

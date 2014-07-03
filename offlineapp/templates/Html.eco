@@ -1,0 +1,12 @@
+<nav class="top-bar" data-topbar>
+  <ul class="title-area">
+    <li class="name">
+      <h1><a href="#"><%= @title %></a></h1>
+    </li>
+  </ul>
+</nav>
+<div class="row">
+  <div class="columns large-12 small-12">
+    <%- @html %>
+  </div>
+</div>

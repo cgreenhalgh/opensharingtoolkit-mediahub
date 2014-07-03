@@ -38,7 +38,12 @@ module.exports = class PlaceView extends Backbone.View
         keyboard: false # buggy release focus?!
       @map = L.map(mapEl, options).setView [@model.attributes.lat, @model.attributes.lon], @model.attributes.zoom
       # E.g. OSM
-      layer = L.tileLayer 'http://{s}.tile.osm.org/{z}/{x}/{y}.png',  
+      mapUrl = 'http://{s}.tile.osm.org/{z}/{x}/{y}.png'
+      exported = $('meta[name="mediahub-exported"]').attr('content')
+      if exported=='true'
+        mapUrl = "../../../../cache/{s}/tile/osm/org/{z}/{x}/{y}.png"
+        console.log "Using export map url #{mapUrl}"
+      layer = L.tileLayer mapUrl,  
         attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>'
         maxZoom: Math.min(maxZoom, @model.attributes.zoom+maxZoomIn)
         minZoom: Math.max(0, @model.attributes.zoom-maxZoomOut)
