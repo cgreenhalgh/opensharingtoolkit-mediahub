@@ -63,7 +63,10 @@ readFile = (surl,fn) ->
     fn e
   req.end()
 
-doPost = (surl,body,fn) ->
+doPut = (surl,body,fn) ->
+  doPost surl,body,fn,'PUT'
+
+doPost = (surl,body,fn,method) ->
 
   url = parse_url surl
   options = 
@@ -71,13 +74,13 @@ doPost = (surl,body,fn) ->
     port: url.port
     path: url.path
     auth: url.auth
-    method: 'POST'
+    method: if method? then method else 'POST'
     headers: 
       'content-type': 'application/json'
 
   req = http.request options,(res) ->
     if res.statusCode != 200 and res.statusCode != 201
-      console.log "Error POSTing to #{surl}: response #{res.statusCode}"
+      console.log "Error #{method}ing to #{surl}: response #{res.statusCode}"
       return fn res
     lastmod = res.headers['last-modified']
     length = res.headers['content-length']
@@ -95,7 +98,7 @@ doPost = (surl,body,fn) ->
 # can we get the _local file to check checkpoint?
 checkpointpath = "/_local/#{encodeURIComponent config.uuid}"
 
-readFile couchurl+checkpointpath, (err,data,res) ->
+readFile couchurl+checkpointpath, (err,remoteCheckpoint,res) ->
   checkpoint = ''
   if err?
     if err.statusCode == 404
@@ -104,15 +107,21 @@ readFile couchurl+checkpointpath, (err,data,res) ->
     else
       console.log "Error getting checkpoint file (not 404) for #{couchurl} #{checkpointpath}: #{err}"
       process.exit -1
-  else
-    console.log "get checkpoint file #{data}"
-    if data.checkpoint
-      checkpoint = data.checkpoint
+    remoteCheckpoint = {}
+  else 
+    try 
+      remoteCheckpoint = JSON.parse remoteCheckpoint
+    catch err
+      console.log "error parsing checkpoint document #{remoteCheckpoint}: #{err.message}"
+      remoteCheckpoint = {}
+    console.log "got checkpoint file #{JSON.stringify remoteCheckpoint}"
+    if remoteCheckpoint.checkpoint?
+      checkpoint = remoteCheckpoint.checkpoint
   console.log "Use target checkpoint '#{checkpoint}'"
   # find checkpoint in cache
   cix = -1
   checkpointName = "#{checkpoint}"
-  for cp,ix in config.checkpoints when cp==checkpointName
+  for cp,ix in config.checkpoints when "#{cp}"==checkpointName
     cix = ix
   if cix<0
     console.log "Could not find checkpoint #{checkpoint} in cache #{cachedir} - using initial checkpoint"
@@ -240,9 +249,27 @@ readFile couchurl+checkpointpath, (err,data,res) ->
 
       return doRev () -> 
         doBulk () ->
-          doCheckpoint fn
+          if "#{remoteCheckpoint.checkpoint}" == "#{cp}"
+            console.log "no change to checkpoint #{cp}"
+            return doCheckpoint fn
+
+          remoteCheckpoint.checkpoint = "#{cp}"
+          console.log "updating remote checkpoint #{couchurl+checkpointpath} to #{remoteCheckpoint}"
+          doPut couchurl+checkpointpath, (JSON.stringify remoteCheckpoint), (err,data,res) ->
+            if err?
+              console.log "Error updating checkpoint: #{err}"
+              process.exit -1
+            console.log "updated checkpoint; got #{data}"
+            try
+              rep = JSON.parse data
+            catch err
+              console.log "error parsing response from checkpoint update: #{data}: #{err.message}"
+              process.exit -1
+            remoteCheckpoint._rev = rep.rev
+            doCheckpoint fn
 
   doCheckpoint () ->
     console.log "Done!"
+
     process.exit 0
 
