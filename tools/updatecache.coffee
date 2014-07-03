@@ -17,6 +17,14 @@ if !fs.existsSync(outdir)
   console.log "Error: output directory does not exist: #{outdir}"
   process.exit -1
 
+attachdir = "#{outdir}/attachments"
+if !fs.existsSync(attachdir)
+  try
+    fs.mkdirSync attachdir
+  catch err
+    console.log "Error: could not create attachment  directory #{attachdir}: #{err.message}"
+    process.exit -1
+
 # try to read config
 configpath = "#{outdir}/_updatecache.json"
 config = null
@@ -194,19 +202,66 @@ downloadFile couchurl+changespath,"#{outdir}/_changes.json", (err,path) ->
     if revs.length==0
       return fn()
     rev = (revs.splice 0,1)[0]
-    getpath="/#{encodeURIComponent rev.id}?rev=#{encodeURIComponent rev.rev}&revs=true&attachments=true"
+    getpath="/#{encodeURIComponent rev.id}?rev=#{encodeURIComponent rev.rev}&revs=true" #&attachments=true"
     # TODO atts_since based on last checkpoint!
     atts_since = []
     if oldResults? 
       for res in oldResults when res.id==rev.id
         for r in res.changes
           atts_since.push r.rev
-    if atts_since.length>0
-      getpath = getpath+"&atts_since=#{encodeURIComponent JSON.stringify atts_since}"
+    #if atts_since.length>0
+    #  getpath = getpath+"&atts_since=#{encodeURIComponent JSON.stringify atts_since}"
     downloadFile couchurl+getpath,"#{checkpointDir}/#{rev.id}/#{rev.rev}", (err,path) ->
       if err
         console.log "Error downloading #{getpath}: #{err}"
         process.exit -1
+      # TODO attachments...
+      try 
+        doc = JSON.parse fs.readFileSync path,encoding:'utf8'
+      catch err
+        console.log "Error reading downloaded doc #{path}: #{err}"
+        process.exit -1
+      if doc._attachments?
+        atts = []
+        for name,att of doc._attachments
+          atts.push {name:name, info:att}
+        getAtts = (fn) ->
+          if atts.length==0
+            return fn()
+          att = (atts.splice 0,1)[0]
+          console.log "- #{rev.id} attachment #{att.name} hash #{att.info.digest}"
+          docattachdir = "#{attachdir}/#{rev.id}"
+          if !fs.existsSync(docattachdir)
+            try
+              fs.mkdirSync docattachdir
+            catch err
+              console.log "Error: could not create attachment  directory #{docattachdir}: #{err.message}"
+              process.exit -1
+          # hopefully rev will ensure uniqueness/no race
+          attachpath = "/#{encodeURIComponent rev.id}/#{encodeURIComponent att.name}?rev=#{encodeURIComponent rev.rev}"
+          # / in base64 = bad
+          attachfile = "#{attachdir}/#{rev.id}/#{att.info.digest.replace '/', '_'}"
+          if fs.existsSync attachfile
+            try
+              state = fs.statSync attachfile
+              if state.isFile
+                # check size
+                if state.size == att.info.length
+                  console.log "skip download existing attachment #{attachfile}"
+                  return getAtts fn
+                console.log "Error: existing attachment wrong size #{state.size} vs #{att.info.length}"
+            catch err
+              console.log "Error: stat'ing #{attachfile}: #{err.message}"
+              process.exit -1
+
+          downloadFile couchurl+attachpath,attachfile, (err,path) ->
+            if err
+              console.log "Error downloading #{attachpath}: #{err}"
+              process.exit -1          
+            getAtts fn
+
+        return getAtts () -> getRevs fn
+
       getRevs fn 
 
   getRevs ()->
