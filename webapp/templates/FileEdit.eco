@@ -1,8 +1,8 @@
 <%# File add or edit, takes { data: File, add: true|false } as data (title, description, ...); parent is a row %>
 <div class="columns large-12">
-  <h2><%= if @add then 'Add' else 'Edit' %> File/Track</h2>
+  <h2><%= if @add then 'Add' else 'Edit' %> File</h2>
 </div>
-<form>
+<form  class="file-form" >
   <div class="columns large-12">
     <label>Title
       <input type="text" name="title" placeholder="title" value="<%= @data.title %>"/>
@@ -10,8 +10,29 @@
     <label>File (note: replacing a file is immediate - no undo!)
       <input type="file" name="file"/>
     </label>
+    <!-- often blocked by ajax! <label>URL (note: replacing a file is immediate - no undo!)
+      <input type="text" name="url" placeholder="URL" value=""/>
+      <input type="button" name="do-url" class="do-url" value="Load from URL"/> 
+    </label> -->
     <div class="drop-zone">Drop file here</div>
     <div class="file-detail">No File<!-- TODO --></div>
+    <label>Image <input type="button" class="do-edit-image" name="do-edit-image" value="Edit"/>
+    </label>
+      <div class="image-editor hide row">
+        <div class="columns large-12">
+          <h4>Edit image...</h4>
+        </div>
+        <div class="columns large-6 medium-8 small-12">
+          <img class="image-editor-image"/>
+        </div>
+        <div class="columns large-3 medium-4 small-12">
+          Tools...
+        </div>
+        <div class="columns large-12">
+          <input type="button" class="do-save-image" name="do-save-image" value="Save image"/>
+          <input type="button" class="do-cancel-image" name="do-cancel-image" value="Leave image"/>
+        </div>
+      </div>
     <label>Description
       <textarea name="description" placeholder="description" ><%= @data.description %></textarea>
     </label>

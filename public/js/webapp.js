@@ -1753,6 +1753,8 @@
         __out.push('\nNo file\n');
       } else if (this.state === 'error') {
         __out.push('\nError loading file\n');
+      } else if (this.state === 'downloading') {
+        __out.push('\nDownloading URL...\n');
       } else {
         __out.push('\n');
         __out.push(__sanitize(this.size));
@@ -1762,9 +1764,9 @@
         if (this.state === 'loading') {
           __out.push('\nLoading...\n');
         } else if (this.state === 'unchanged') {
-          __out.push('\n<a href="#-save" class="button tiny do-save">Save</a>\n');
+          __out.push('\n<a href="#-save" class="button tiny do-save">Download</a>\n');
         } else if (this.state === 'loaded') {
-          __out.push('\n<a href="#-save" class="button tiny do-save">Save (new)</a>\n');
+          __out.push('\n<a href="#-save" class="button tiny do-save">Download (new)</a>\n');
         } else {
           __out.push('\n(');
           __out.push(__sanitize(this.state));
@@ -1823,11 +1825,11 @@
     
       __out.push(__sanitize(this.add ? 'Add' : 'Edit'));
     
-      __out.push(' File/Track</h2>\n</div>\n<form>\n  <div class="columns large-12">\n    <label>Title\n      <input type="text" name="title" placeholder="title" value="');
+      __out.push(' File</h2>\n</div>\n<form  class="file-form" >\n  <div class="columns large-12">\n    <label>Title\n      <input type="text" name="title" placeholder="title" value="');
     
       __out.push(__sanitize(this.data.title));
     
-      __out.push('"/>\n    </label>\n    <label>File (note: replacing a file is immediate - no undo!)\n      <input type="file" name="file"/>\n    </label>\n    <div class="drop-zone">Drop file here</div>\n    <div class="file-detail">No File<!-- TODO --></div>\n    <label>Description\n      <textarea name="description" placeholder="description" >');
+      __out.push('"/>\n    </label>\n    <label>File (note: replacing a file is immediate - no undo!)\n      <input type="file" name="file"/>\n    </label>\n    <!-- often blocked by ajax! <label>URL (note: replacing a file is immediate - no undo!)\n      <input type="text" name="url" placeholder="URL" value=""/>\n      <input type="button" name="do-url" class="do-url" value="Load from URL"/> \n    </label> -->\n    <div class="drop-zone">Drop file here</div>\n    <div class="file-detail">No File<!-- TODO --></div>\n    <label>Image <input type="button" class="do-edit-image" name="do-edit-image" value="Edit"/>\n    </label>\n      <div class="image-editor hide row">\n        <div class="columns large-12">\n          <h4>Edit image...</h4>\n        </div>\n        <div class="columns large-6 medium-8 small-12">\n          <img class="image-editor-image"/>\n        </div>\n        <div class="columns large-3 medium-4 small-12">\n          Tools...\n        </div>\n        <div class="columns large-12">\n          <input type="button" class="do-save-image" name="do-save-image" value="Save image"/>\n          <input type="button" class="do-cancel-image" name="do-cancel-image" value="Leave image"/>\n        </div>\n      </div>\n    <label>Description\n      <textarea name="description" placeholder="description" >');
     
       __out.push(__sanitize(this.data.description));
     
@@ -3397,13 +3399,24 @@
     __extends(FileEditView, _super);
 
     function FileEditView(options) {
+      this.imageCancel = __bind(this.imageCancel, this);
+      this.imageSave = __bind(this.imageSave, this);
+      this.imageEdit = __bind(this.imageEdit, this);
+      this.nocrop = __bind(this.nocrop, this);
+      this.crop = __bind(this.crop, this);
+      this.removeJcrop = __bind(this.removeJcrop, this);
+      this.doUrl = __bind(this.doUrl, this);
       this.save = __bind(this.save, this);
       this.renderFileDetails = __bind(this.renderFileDetails, this);
+      this.loadBlob = __bind(this.loadBlob, this);
+      this.listFiles = __bind(this.listFiles, this);
       this.handleFileSelect = __bind(this.handleFileSelect, this);
       this.handleDrop = __bind(this.handleDrop, this);
       this.close = __bind(this.close, this);
+      this.remove = __bind(this.remove, this);
       this.cancel = __bind(this.cancel, this);
       this.submit = __bind(this.submit, this);
+      this.click = __bind(this.click, this);
       this.render = __bind(this.render, this);
       this.template = __bind(this.template, this);
       this.add = options.add != null ? options.add : options.add = false;
@@ -3415,15 +3428,10 @@
 
     FileEditView.prototype.className = 'row file-edit';
 
-    FileEditView.prototype.newfile = null;
-
-    FileEditView.prototype.fileState = 'unchanged';
-
-    FileEditView.prototype.cancelled = false;
-
-    FileEditView.prototype.created = false;
-
     FileEditView.prototype.initialize = function() {
+      this.fileState = 'unchanged';
+      this.cancelled = false;
+      this.created = false;
       return this.render();
     };
 
@@ -3449,13 +3457,22 @@
     FileEditView.prototype.events = {
       "submit": "submit",
       "click .do-cancel": "cancel",
+      "click .do-url": "doUrl",
+      "click .do-edit-image": "imageEdit",
+      "click .do-save-image": "imageSave",
+      "click .do-cancel-image": "imageCancel",
       "dragover .drop-zone": "handleDragOver",
       "drop .drop-zone": "handleDrop",
       "dragenter .drop-zone": "handleDragEnter",
       "dragleave .drop-zone": "handleDragLeave",
       "dragend .drop-zone": "handleDragLeave",
       'change input[name="file"]': "handleFileSelect",
-      "click .do-save": "save"
+      "click .do-save": "save",
+      "click": "click"
+    };
+
+    FileEditView.prototype.click = function(ev) {
+      return console.log("click " + ev.target + " classes " + ($(ev.target).attr('class')));
     };
 
     FileEditView.prototype.submit = function(ev) {
@@ -3486,6 +3503,11 @@
         this.files.remove(this.model);
       }
       return this.close();
+    };
+
+    FileEditView.prototype.remove = function() {
+      this.removeJcrop();
+      return FileEditView.__super__.remove.call(this);
     };
 
     FileEditView.prototype.close = function() {
@@ -3534,52 +3556,57 @@
       if (files.length > 0) {
         file = files[0];
         console.log("file " + file.name + " - " + file.type);
-        this.newfile = file;
         blob = file.slice(0, file.size, file.type);
         if ((file.name != null) && $('input[name="title"]', this.$el).val() === '') {
           $('input[name="title"]', this.$el).val(file.name);
         }
-        this.fileState = 'loading';
-        if (this.add) {
-          this.created = true;
-        }
-        $('input[type=submit]', this.$el).attr('disabled', 'disabled');
-        this.model.attach(blob, "bytes", file.type, (function(_this) {
-          return function(err, result) {
-            $('input[type=submit]', _this.$el).removeAttr('disabled');
-            if (_this.cancelled) {
-              console.log("attach on cancelled " + _this.model.id);
-              _this.model.destroy();
-              return;
-            }
-            if (err != null) {
-              console.log("Error attaching file " + file.name + ": " + err);
-              _this.fileState = 'error';
-              return _this.renderFileDetails();
-            } else {
-              console.log("Attached file " + file.name + " to " + _this.model.id + ": " + (JSON.stringify(result)));
-              _this.fileState = 'loaded';
-              _this.model.set('hasFile', true);
-              _this.model.set('fileSize', file.size);
-              _this.model.set('fileType', file.type);
-              if (file.lastModified != null) {
-                _this.model.set('fileLastModified', file.lastModified);
-              } else {
-                _this.model.unset('fileLastModified');
-              }
-              _this.model.save();
-              return _this.renderFileDetails();
-            }
-          };
-        })(this));
-        return this.renderFileDetails();
+        return this.loadBlob(blob, file);
       }
     };
 
+    FileEditView.prototype.loadBlob = function(blob, file) {
+      this.newblob = blob;
+      this.fileState = 'loading';
+      if (this.add) {
+        this.created = true;
+      }
+      $('input[type=submit]', this.$el).prop('disabled', true);
+      this.model.attach(blob, "bytes", blob.type, (function(_this) {
+        return function(err, result) {
+          $('input[type=submit]', _this.$el).prop('disabled', false);
+          if (_this.cancelled) {
+            console.log("attach on cancelled " + _this.model.id);
+            _this.model.destroy();
+            return;
+          }
+          if (err != null) {
+            console.log("Error attaching blob " + blob.name + ": " + err);
+            _this.fileState = 'error';
+            return _this.renderFileDetails();
+          } else {
+            console.log("Attached blob to " + _this.model.id + ": " + (JSON.stringify(result)));
+            _this.fileState = 'loaded';
+            _this.model.set('hasFile', true);
+            _this.model.set('fileSize', blob.size);
+            _this.model.set('fileType', blob.type);
+            if ((file != null) && (file.lastModified != null)) {
+              _this.model.set('fileLastModified', file.lastModified);
+            } else {
+              _this.model.unset('fileLastModified');
+            }
+            _this.model.save();
+            return _this.renderFileDetails();
+          }
+        };
+      })(this));
+      return this.renderFileDetails();
+    };
+
     FileEditView.prototype.renderFileDetails = function() {
-      var data, hasBytes;
+      var data, hasBytes, imageOk, type;
       console.log("renderFileDetails, " + this.fileState + " _rev=" + (this.model.get('_rev')));
       hasBytes = (this.model.get('hasFile')) || false;
+      imageOk = false;
       if (!hasBytes && this.fileState === 'unchanged') {
         data = {
           'state': 'nofile'
@@ -3587,21 +3614,204 @@
       } else if (this.fileState === 'loading') {
         data = {
           'state': this.fileState,
-          'type': this.newfile.type,
-          'size': this.newfile.size
+          'type': this.newblob.type,
+          'size': this.newblob.size
         };
       } else {
+        type = this.model.get('fileType');
         data = {
           'state': this.fileState,
           'type': this.model.get('fileType'),
           'size': this.model.get('fileSize')
         };
+        if ((type != null) && type.indexOf('image/') === 0) {
+          console.log("imageOk");
+          imageOk = true;
+          $('.do-edit-image', this.$el).prop('disabled', false);
+        }
+      }
+      if (!imageOk) {
+        $('.do-edit-image', this.$el).prop('disabled', true);
+        $('.image-editor', this.$el).addClass('hide');
       }
       return $('.file-detail', this.$el).html(templateFileDetail(data));
     };
 
     FileEditView.prototype.save = function(ev) {
       return this.model.download(ev);
+    };
+
+    FileEditView.prototype.doUrl = function(ev) {
+      var url;
+      ev.preventDefault();
+      url = $('input[name="url"]', this.$el).val();
+      console.log("doUrl " + url);
+      this.fileState = 'downloading';
+      this.renderFileDetails();
+      $('input[type=submit]', this.$el).prop('disabled', true);
+      $('input[name=do-url]', this.$el).prop('disabled', true);
+      return $.ajax(url, {
+        method: 'GET',
+        processData: false,
+        crossDomain: true,
+        error: (function(_this) {
+          return function(xhr, status, error) {
+            console.log("Error getting " + url + ": " + status + " (" + error + ")");
+            _this.fileState = 'error';
+            alert("Error getting " + url + ": " + status + " (" + error + ")");
+            _this.renderFileDetails();
+            $('input[type=submit]', _this.$el).prop('disabled', false);
+            return $('input[name=do-url]', _this.$el).prop('disabled', false);
+          };
+        })(this),
+        success: (function(_this) {
+          return function(data, status, xhr) {
+            console.log("Got " + url + " as " + (typeof data) + " length " + data.length + " (" + status + ")");
+            _this.fileState = 'loading';
+            _this.renderFileDetails();
+            $('input[type=submit]', _this.$el).prop('disabled', false);
+            return $('input[name=do-url]', _this.$el).prop('disabled', false);
+          };
+        })(this)
+      });
+    };
+
+    FileEditView.prototype.removeJcrop = function() {
+      var err;
+      console.log("remove jcrop " + this.jcrop);
+      if (this.jcrop) {
+        try {
+          this.jcrop.destroy();
+        } catch (_error) {
+          err = _error;
+          console.log("error destroying jcrop: " + err.message);
+        }
+        return this.jcrop = null;
+      }
+    };
+
+    FileEditView.prototype.crop = function(c) {
+      console.log("crop " + c.x + "," + c.y + " " + c.x2 + "," + c.y2 + "; image " + this.img.width + "x" + this.img.height);
+      return this.cropCoords = {
+        x: Math.floor(c.x),
+        y: Math.floor(c.y),
+        x2: Math.floor(c.x2),
+        y2: Math.floor(c.y2)
+      };
+    };
+
+    FileEditView.prototype.nocrop = function() {
+      console.log("nocrop");
+      return this.cropCoords = null;
+    };
+
+    FileEditView.prototype.imageEdit = function(ev) {
+      var fileurl, oldImage, self;
+      console.log("imageEdit");
+      ev.preventDefault();
+      this.removeJcrop();
+      this.cropCoords = null;
+      oldImage = this.img != null ? this.img : $('.image-editor-image', this.$el).get(0);
+      fileurl = "../../../../" + (encodeURIComponent(this.model.id)) + "/bytes";
+      this.img = new Image();
+      self = this;
+      this.img.onload = (function(_this) {
+        return function() {
+          var init;
+          console.log("Image real size " + _this.img.width + "x" + _this.img.height);
+          _this.trueSize = [_this.img.width, _this.img.height];
+          $(oldImage).replaceWith(_this.img);
+          init = function() {
+            console.log("init jcrop");
+            return $(_this.img).Jcrop({
+              boxWidth: 600,
+              boxHeight: 600,
+              trueSize: _this.trueSize,
+              onSelect: function(c) {
+                return self.crop(c);
+              },
+              onRelease: function() {
+                return self.nocrop();
+              }
+            }, function() {
+              self.jcrop = this;
+              return console.log("set @jcrop " + this);
+            });
+          };
+          return setTimeout(init, 0);
+        };
+      })(this);
+      this.img.src = fileurl;
+      return $('.image-editor', this.$el).removeClass('hide');
+    };
+
+    FileEditView.prototype.dataURItoBlob = function(dataURI) {
+      var byteString, content, err, i, mimestring, _i, _ref;
+      try {
+        if (dataURI.split(',')[0].indexOf('base64') !== -1) {
+          byteString = atob(dataURI.split(',')[1]);
+        } else {
+          byteString = decodeURI(dataURI.split(',')[1]);
+        }
+        mimestring = dataURI.split(',')[0].split(':')[1].split(';')[0];
+        content = new Array();
+        for (i = _i = 0, _ref = byteString.length - 1; 0 <= _ref ? _i <= _ref : _i >= _ref; i = 0 <= _ref ? ++_i : --_i) {
+          content[i] = byteString.charCodeAt(i);
+        }
+        return new Blob([new Uint8Array(content)], {
+          type: mimestring
+        });
+      } catch (_error) {
+        err = _error;
+        console.log("Error doing dataURItoBlob: " + err.message + " " + err.stack);
+        return null;
+      }
+    };
+
+    FileEditView.prototype.imageSave = function(ev) {
+      var blob, canvas, context, data, err, h, type, w;
+      console.log("image save");
+      ev.preventDefault();
+      $('.image-editor', this.$el).addClass('hide');
+      if ((this.img != null) && (this.cropCoords != null)) {
+        console.log("Crop " + (JSON.stringify(this.cropCoords)));
+        type = this.model.get('fileType');
+        if (type == null) {
+          console.log("Using default image type");
+          type = "image/png";
+        }
+        try {
+          canvas = document.createElement("canvas");
+          w = this.cropCoords.x2 - this.cropCoords.x + 1;
+          h = this.cropCoords.y2 - this.cropCoords.y + 1;
+          canvas.width = w;
+          canvas.height = h;
+          context = canvas.getContext("2d");
+          context.drawImage(this.img, this.cropCoords.x, this.cropCoords.y, w, h, 0, 0, w, h);
+          console.log("try to save as " + type);
+          data = canvas.toDataURL(type);
+          if (data == null) {
+            console.log("Could not get dataURL");
+            return;
+          }
+          blob = this.dataURItoBlob(data);
+          if (blob == null) {
+            console.log("Could not get blob");
+            return;
+          }
+          this.loadBlob(blob);
+          return console.log("initiated load blob");
+        } catch (_error) {
+          err = _error;
+          return console.log("error cropping image: " + err.message + " " + err.stack);
+        }
+      }
+    };
+
+    FileEditView.prototype.imageCancel = function(ev) {
+      console.log("image cancel");
+      ev.preventDefault();
+      return $('.image-editor', this.$el).addClass('hide');
     };
 
     return FileEditView;

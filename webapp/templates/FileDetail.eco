@@ -3,14 +3,16 @@
 No file
 <% else if @state == 'error': %>
 Error loading file
+<% else if @state == 'downloading': %>
+Downloading URL...
 <% else: %>
 <%= @size %> bytes, <%= if not @type? or @type=='' then 'unknown mimetype' else @type %>
 <% if @state == 'loading': %>
 Loading...
 <% else if @state == 'unchanged': %>
-<a href="#-save" class="button tiny do-save">Save</a>
+<a href="#-save" class="button tiny do-save">Download</a>
 <% else if @state == 'loaded': %>
-<a href="#-save" class="button tiny do-save">Save (new)</a>
+<a href="#-save" class="button tiny do-save">Download (new)</a>
 <% else: %>
 (<%= @state %>)
 <% end %>

@@ -49,7 +49,7 @@ $outline-color: $primary-color; //scale-color($primary-color, $lightness: -66%);
   border: 1px solid $outline-color;
   background-color: scale-color($outline-color, $lightness: 66%);
 
-  h3, h4 {
+  > h3, h4 {
     margin-bottom: 0.2rem;
   }
 }
@@ -70,15 +70,16 @@ $outline-color: $primary-color; //scale-color($primary-color, $lightness: -66%);
   border: 1px solid $outline-color;
   background-color: scale-color($outline-color, $lightness: 66%);
 
-  .action-button {
-     @extend .button;
-     @extend .tiny;
-     margin-bottom: 0;
-  };
-  h3, h4 {
+  > h3, h4 {
     margin-bottom: 0.2rem;
   }
 }
+
+.action-button {
+   @extend .button;
+   @extend .tiny;
+   margin-bottom: 0;
+};
 
 .image-select {
   @extend .columns;
@@ -108,10 +109,10 @@ $outline-color: $primary-color; //scale-color($primary-color, $lightness: -66%);
   left: 5%;
   //height: 
   overflow: hidden;
-  .dummy {
+  > .dummy {
     padding-top: 100%; //1:1 aspect
   };
-  .image-select-image {
+  > .image-select-image {
     width: 100%;
     position: absolute;
     top: 0;
@@ -144,5 +145,50 @@ $outline-color: $primary-color; //scale-color($primary-color, $lightness: -66%);
   width: 400px;
   height: 400px;
 }
+
+.image-editor-outer {
+  // see http://ansciath.tumblr.com/post/7347495869/css-aspect-ratio
+  position: relative;
+  width: 96%;
+  // center?
+  left: 2%;
+  //height: 
+  overflow: hidden;
+
+  > .dummy {
+    padding-top: 100%; //1:1 aspect
+  };
+  > .image-editor-inner {
+    border: 1px solid #888;
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background-color: #ddd;
+
+    > div {
+      position: static;
+      width: 100%;
+      height: 100%;
+ 
+      > img {
+        display: block;
+        vertical-align: middle;
+        border: 1px solid #fff;
+        max-width: 100%;
+        max-height: 100%;
+        margin: auto;
+      };
+    };
+  };
+};
+
+.image-editor-image {
+  max-width: 600px;
+  max-height: 600px;
+  height: auto;
+  //border: 1px solid #fff;
+};
 
 
