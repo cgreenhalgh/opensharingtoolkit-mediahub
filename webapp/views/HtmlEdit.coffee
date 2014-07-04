@@ -13,14 +13,8 @@ module.exports = class HtmlEditView extends ThingEditView
     replace = () -> 
       console.log "Set up CKEditor..."
       ckconfig = {}
-      path = window.location.pathname
-      ix = path.lastIndexOf '/'
-      if ix<0
-        console.log "Location path not valid: #{path}"
-      else
-        path = path.substring 0,(ix+1)
-        ckconfig.filebrowserBrowseUrl = path+'filebrowse.html'
-        ckconfig.filebrowserImageBrowseUrl = path+'filebrowse.html?type=image%2F'
+      ckconfig.filebrowserBrowseUrl = 'filebrowse.html'
+      ckconfig.filebrowserImageBrowseUrl = 'filebrowse.html?type=image%2F'
       #editor = CKEDITOR.instances['htmlfragment']
       #if editor 
       #  editor.destroy(true)

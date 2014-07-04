@@ -9,7 +9,8 @@ module.exports = class ImageSelectView extends Backbone.View
 
   initialize: ->
     config = window.mediahubconfig
-    @fileUrl = config.dburl+'/'+encodeURIComponent( @model.id )+'/bytes'
+    # NB relative URL
+    @fileUrl = "../../../../#{encodeURIComponent( @model.id )}/bytes"
     @listenTo @model, 'change', @render
     @render()
 

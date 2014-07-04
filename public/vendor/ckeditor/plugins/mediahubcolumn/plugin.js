@@ -12,7 +12,7 @@ CKEDITOR.plugins.add( 'mediahubcolumn', {
 		'  border-top-width: 1px;'+
 		'  border-left-style: solid;'+
 		'  border-left-width: 1px;'+
-		'  background-image: url("vendor/ckeditor/plugins/mediahubcolumn/icons/mediahubcolumn.png");'+
+		'  background-image: url('+CKEDITOR.getUrl( "plugins/mediahubcolumn/icons/mediahubcolumn.png" )+');'+
 		'  background-repeat: no-repeat;'+
 		'  height: 1em;'+
                 '  margin: 0.2em;'+

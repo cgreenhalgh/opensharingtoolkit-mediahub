@@ -22,15 +22,9 @@ module.exports = class BookletEditView extends ThingEditView
     replace = () -> 
       console.log "Set up CKEditor 'htmlcontent'..."
       ckconfig = {}
-      path = window.location.pathname
-      ix = path.lastIndexOf '/'
-      if ix<0
-        console.log "Location path not valid: #{path}"
-      else
-        path = path.substring 0,(ix+1)
-        ckconfig.customConfig = path+'ckeditor_config_booklet.js'
-        ckconfig.filebrowserBrowseUrl = path+'filebrowse.html'
-        ckconfig.filebrowserImageBrowseUrl = path+'filebrowse.html?type=image%2F'
+      ckconfig.customConfig = '../../ckeditor_config_booklet.js'
+      ckconfig.filebrowserBrowseUrl = 'filebrowse.html'
+      ckconfig.filebrowserImageBrowseUrl = 'filebrowse.html?type=image%2F'
       #ckconfig.extraPlugins = 'widget,mediahubcolumn'
       CKEDITOR.replace 'htmlcontent', ckconfig
     setTimeout replace,0

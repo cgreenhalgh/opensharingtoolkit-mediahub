@@ -12,7 +12,7 @@ CKEDITOR.plugins.add( 'mediahubcomment', {
 		'  border-top-width: 1px;'+
 		'  border-left-style: solid;'+
 		'  border-left-width: 1px;'+
-		'  background-image: url("vendor/ckeditor/plugins/mediahubcomment/icons/mediahubcomment.png");'+
+		'  background-image: url('+CKEDITOR.getUrl( "plugins/mediahubcomment/icons/mediahubcomment.png" )+');'+
 		'  background-repeat: no-repeat;'+
                 '  margin: 0.2em;'+
 		'  padding-left: 18px;'+

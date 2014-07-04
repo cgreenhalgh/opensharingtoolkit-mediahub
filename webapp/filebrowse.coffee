@@ -6,7 +6,7 @@ getParams = require 'getParams'
 
 db = require 'mydb'
 
-require 'plugins/Track'
+require 'plugins/File'
 
 
 App = 

@@ -219,7 +219,7 @@
 
   db = require('mydb');
 
-  require('plugins/Track');
+  require('plugins/File');
 
   App = {
     init: function() {
@@ -3162,19 +3162,12 @@
       var replace;
       BookletEditView.__super__.render.call(this);
       replace = function() {
-        var ckconfig, ix, path;
+        var ckconfig;
         console.log("Set up CKEditor 'htmlcontent'...");
         ckconfig = {};
-        path = window.location.pathname;
-        ix = path.lastIndexOf('/');
-        if (ix < 0) {
-          console.log("Location path not valid: " + path);
-        } else {
-          path = path.substring(0, ix + 1);
-          ckconfig.customConfig = path + 'ckeditor_config_booklet.js';
-          ckconfig.filebrowserBrowseUrl = path + 'filebrowse.html';
-          ckconfig.filebrowserImageBrowseUrl = path + 'filebrowse.html?type=image%2F';
-        }
+        ckconfig.customConfig = '../../ckeditor_config_booklet.js';
+        ckconfig.filebrowserBrowseUrl = 'filebrowse.html';
+        ckconfig.filebrowserImageBrowseUrl = 'filebrowse.html?type=image%2F';
         return CKEDITOR.replace('htmlcontent', ckconfig);
       };
       return setTimeout(replace, 0);
@@ -3752,18 +3745,11 @@
       var replace;
       HtmlEditView.__super__.render.call(this);
       replace = function() {
-        var ckconfig, ix, path;
+        var ckconfig;
         console.log("Set up CKEditor...");
         ckconfig = {};
-        path = window.location.pathname;
-        ix = path.lastIndexOf('/');
-        if (ix < 0) {
-          console.log("Location path not valid: " + path);
-        } else {
-          path = path.substring(0, ix + 1);
-          ckconfig.filebrowserBrowseUrl = path + 'filebrowse.html';
-          ckconfig.filebrowserImageBrowseUrl = path + 'filebrowse.html?type=image%2F';
-        }
+        ckconfig.filebrowserBrowseUrl = 'filebrowse.html';
+        ckconfig.filebrowserImageBrowseUrl = 'filebrowse.html?type=image%2F';
         return CKEDITOR.replace('htmlfragment', ckconfig);
       };
       return setTimeout(replace, 0);
@@ -3820,7 +3806,7 @@
     ImageSelectView.prototype.initialize = function() {
       var config;
       config = window.mediahubconfig;
-      this.fileUrl = config.dburl + '/' + encodeURIComponent(this.model.id) + '/bytes';
+      this.fileUrl = "../../../../" + (encodeURIComponent(this.model.id)) + "/bytes";
       this.listenTo(this.model, 'change', this.render);
       return this.render();
     };
@@ -4436,13 +4422,11 @@
         contentType: this.model.getContentType().attributes
       }));
       f = function() {
-        var ckconfig, ix, path;
+        var ckconfig;
         $('input[name="title"]', this.$el).focus();
         console.log("Set up CKEditor 'description'...");
-        path = window.location.pathname;
-        ix = path.lastIndexOf('/');
         ckconfig = {};
-        ckconfig.customConfig = path.substring(0, ix + 1) + 'ckeditor_config_description.js';
+        ckconfig.customConfig = '../../ckeditor_config_description.js';
         return CKEDITOR.replace('description', ckconfig);
       };
       setTimeout(f, 0);
@@ -4486,23 +4470,16 @@
     };
 
     ThingEditView.prototype.selectImage = function(ev, selector) {
-      var ix, path, self;
+      var self;
       console.log("selectImage " + selector + "...");
       ev.preventDefault();
-      path = window.location.pathname;
-      ix = path.lastIndexOf('/');
-      if (ix < 0) {
-        alert("Error in pathname: " + path);
-        return false;
-      }
-      path = path.substring(0, ix + 1);
       this.callback = window.nextMediahubCallback++;
       self = this;
       window.mediahubCallbacks[this.callback] = function(url) {
         console.log("set image " + url);
         return $(selector, self.$el).attr('src', url);
       };
-      return window.open(path + ("filebrowse.html?type=image%2F&mediahubCallback=" + this.callback), '_blank', "width=" + (0.8 * screen.width) + ", height=" + (0.7 * screen.height) + ", menubar=no, location=no, status=no, toolbar=no");
+      return window.open("filebrowse.html?type=image%2F&mediahubCallback=" + this.callback, '_blank', "width=" + (0.8 * screen.width) + ", height=" + (0.7 * screen.height) + ", menubar=no, location=no, status=no, toolbar=no");
     };
 
     ThingEditView.prototype.remove = function() {
