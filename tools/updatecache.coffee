@@ -137,6 +137,9 @@ writeConfig = () ->
     console.log "Error: writing initial config #{configpath}: #{err.message}"
     process.exit -1
 
+# TODO check / try to set sourcedb _local/updatecacheid with UUID to identify that
+# db definitively; store/check against config.
+
 # last checkpoint?
 checkpoint = config.checkpoint
 
