@@ -4378,13 +4378,13 @@
   geocoder = new google.maps.Geocoder();
 
   myIcon = L.icon({
-    iconUrl: 'vendor/leaflet/images/my-icon.png',
-    iconRetinaUrl: 'vendor/leaflet/images/my-icon-2x.png',
+    iconUrl: '../../vendor/leaflet/images/my-icon.png',
+    iconRetinaUrl: '../../vendor/leaflet/images/my-icon-2x.png',
     iconSize: [25, 41],
     iconAnchor: [12, 41],
     popupAnchor: [1, -34],
     shadowSize: [41, 41],
-    shadowUrl: 'vendor/leaflet/images/marker-shadow.png'
+    shadowUrl: '../../vendor/leaflet/images/marker-shadow.png'
   });
 
   maxZoom = 19;

@@ -6,5 +6,5 @@ if (ix>=0) {
 }
 console.log("config using dbname "+dbname);
 window.mediahubconfig = {
-  dburl: "http://admin:admin@"+window.location.host+"/"+dbname
+  dburl: "http://"+window.location.host+"/"+dbname
 };

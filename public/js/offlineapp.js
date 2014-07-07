@@ -166,7 +166,7 @@
 
     Router.prototype.bookletPage = function(id, page, anchor) {
       if ((currentView == null) || currentView.model.id !== id) {
-        if (!this.booklet(id)) {
+        if (!this.thing(id)) {
           return;
         }
       }

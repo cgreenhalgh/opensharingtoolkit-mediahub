@@ -77,7 +77,7 @@ class Router extends Backbone.Router
 
   bookletPage: (id,page,anchor) ->
     if not currentView? or currentView.model.id != id
-      if not @booklet id
+      if not @thing id
         return
     currentView.showPage page,anchor
 
