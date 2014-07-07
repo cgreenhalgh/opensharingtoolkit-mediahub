@@ -1829,7 +1829,7 @@
     
       __out.push(__sanitize(this.data.title));
     
-      __out.push('"/>\n    </label>\n    <label>File (note: replacing a file is immediate - no undo!)\n      <input type="file" name="file"/>\n    </label>\n    <!-- often blocked by ajax! <label>URL (note: replacing a file is immediate - no undo!)\n      <input type="text" name="url" placeholder="URL" value=""/>\n      <input type="button" name="do-url" class="do-url" value="Load from URL"/> \n    </label> -->\n    <div class="drop-zone">Drop file here</div>\n    <div class="file-detail">No File<!-- TODO --></div>\n    <label>Image <input type="button" class="do-edit-image" name="do-edit-image" value="Edit"/>\n    </label>\n      <div class="image-editor hide row">\n        <div class="columns large-12">\n          <h4>Edit image...</h4>\n        </div>\n        <div class="columns large-6 medium-8 small-12">\n          <img class="image-editor-image"/>\n        </div>\n        <div class="columns large-3 medium-4 small-12">\n          Tools...\n        </div>\n        <div class="columns large-12">\n          <input type="button" class="do-save-image" name="do-save-image" value="Save image"/>\n          <input type="button" class="do-cancel-image" name="do-cancel-image" value="Leave image"/>\n        </div>\n      </div>\n    <label>Description\n      <textarea name="description" placeholder="description" >');
+      __out.push('"/>\n    </label>\n    <label>File (note: replacing a file is immediate - no undo!)\n      <input type="file" name="file"/>\n    </label>\n    <!-- often blocked by ajax! <label>URL (note: replacing a file is immediate - no undo!)\n      <input type="text" name="url" placeholder="URL" value=""/>\n      <input type="button" name="do-url" class="do-url" value="Load from URL"/> \n    </label> -->\n    <div class="drop-zone">Drop file here</div>\n    <div class="file-detail">No File<!-- TODO --></div>\n    <label>Image\n    </label>\n      <div class="image-editor hide row">\n        <div class="columns large-6 medium-8 small-12">\n          <img class="image-editor-image"/>\n        </div>\n        <div class="columns large-3 medium-4 small-12">\n          <input type="button" class="do-save-image" name="do-save-image" value="Save edited image"/><br/>\n          <input type="button" class="do-reset-image" name="do-reset-image" value="Reset image"/><br/>\n          <div class="row">\n            <div class="columns large-4 small-4"> \n              <label>Size:</label>\n            </div>\n            <div class="columns large-4 small-4"> \n              <input type="text" size=10 name="image-width" disabled value=""/>\n            </div>\n            <div class="columns large-4 small-4"> \n              <input type="text" size=10 name="image-height" disabled value=""/>          \n            </div>\n          </div>\n          <label>Aspect Ratio\n            <select name="image-aspect">\n              <option value="" selected>Any</option>\n              <option value="fixed" >Fixed</option>\n              <option value="1" >1:1</option>\n              <option value="1.333333" >4:3</option>\n              <option value="1.5" >3:2</option>\n              <option value="0.75" >3:4</option>\n              <option value="0.666666" >2:3</option>\n            </select>\n          <label>\n          <input type="button" class="do-crop-image" name="do-crop-image" value="Crop image"/><br/>\n          <input type="button" class="do-scale-image" name="do-scale-96" value="Scale to 96px"/>\n          <input type="button" class="do-scale-image" name="do-scale-240" value="Scale to 240px"/>\n          <input type="button" class="do-scale-image" name="do-scale-640" value="Scale to 640px"/>\n          <input type="button" class="do-scale-image" name="do-scale-1024" value="Scale to 1024px"/><br/>\n          <input type="button" class="do-rotate-image" name="do-rotate-left" value="Rotate left"/>\n          <input type="button" class="do-rotate-image" name="do-rotate-right" value="Rotate right"/><br/>\n          <input type="button" class="do-flip-image" name="do-flip-horizontal" value="Flip horizontal"/>\n          <input type="button" class="do-flip-image" name="do-flip-vertical" value="Flip vertical"/>\n        </div>\n        <div class="columns large-3 medium-12 small-12"><!-- rest --></div>\n      </div>\n    <label>Description\n      <textarea name="description" placeholder="description" >');
     
       __out.push(__sanitize(this.data.description));
     
@@ -3399,7 +3399,13 @@
     __extends(FileEditView, _super);
 
     function FileEditView(options) {
-      this.imageCancel = __bind(this.imageCancel, this);
+      this.imageAspect = __bind(this.imageAspect, this);
+      this.imageRotate = __bind(this.imageRotate, this);
+      this.imageScale = __bind(this.imageScale, this);
+      this.imageFlip = __bind(this.imageFlip, this);
+      this.imageTransform = __bind(this.imageTransform, this);
+      this.imageCrop = __bind(this.imageCrop, this);
+      this.imageReset = __bind(this.imageReset, this);
       this.imageSave = __bind(this.imageSave, this);
       this.imageEdit = __bind(this.imageEdit, this);
       this.nocrop = __bind(this.nocrop, this);
@@ -3431,8 +3437,7 @@
     FileEditView.prototype.initialize = function() {
       this.fileState = 'unchanged';
       this.cancelled = false;
-      this.created = false;
-      return this.render();
+      return this.created = false;
     };
 
     FileEditView.prototype.template = function(d) {
@@ -3458,9 +3463,12 @@
       "submit": "submit",
       "click .do-cancel": "cancel",
       "click .do-url": "doUrl",
-      "click .do-edit-image": "imageEdit",
       "click .do-save-image": "imageSave",
-      "click .do-cancel-image": "imageCancel",
+      "click .do-reset-image": "imageReset",
+      "click .do-crop-image": "imageCrop",
+      "click .do-scale-image": "imageScale",
+      "click .do-flip-image": "imageFlip",
+      "click .do-rotate-image": "imageRotate",
       "dragover .drop-zone": "handleDragOver",
       "drop .drop-zone": "handleDrop",
       "dragenter .drop-zone": "handleDragEnter",
@@ -3468,7 +3476,8 @@
       "dragend .drop-zone": "handleDragLeave",
       'change input[name="file"]': "handleFileSelect",
       "click .do-save": "save",
-      "click": "click"
+      "click": "click",
+      "change select[name=image-aspect]": "imageAspect"
     };
 
     FileEditView.prototype.click = function(ev) {
@@ -3627,7 +3636,7 @@
         if ((type != null) && type.indexOf('image/') === 0) {
           console.log("imageOk");
           imageOk = true;
-          $('.do-edit-image', this.$el).prop('disabled', false);
+          setTimeout(this.imageEdit, 0);
         }
       }
       if (!imageOk) {
@@ -3692,23 +3701,33 @@
 
     FileEditView.prototype.crop = function(c) {
       console.log("crop " + c.x + "," + c.y + " " + c.x2 + "," + c.y2 + "; image " + this.img.width + "x" + this.img.height);
-      return this.cropCoords = {
+      this.cropCoords = {
         x: Math.floor(c.x),
         y: Math.floor(c.y),
         x2: Math.floor(c.x2),
         y2: Math.floor(c.y2)
       };
+      $('input[name=image-width]', this.$el).val("" + (this.cropCoords.x2 - this.cropCoords.x + 1));
+      $('input[name=image-height]', this.$el).val("" + (this.cropCoords.y2 - this.cropCoords.y + 1));
+      return $('input[name=do-crop-image]', this.$el).prop('disabled', false);
     };
 
     FileEditView.prototype.nocrop = function() {
       console.log("nocrop");
-      return this.cropCoords = null;
+      if (this.trueSize != null) {
+        $('input[name=image-width]', this.$el).val("" + this.trueSize[0]);
+        $('input[name=image-height]', this.$el).val("" + this.trueSize[1]);
+      }
+      this.cropCoords = null;
+      return $('input[name=do-crop-image]', this.$el).prop('disabled', true);
     };
 
-    FileEditView.prototype.imageEdit = function(ev) {
+    FileEditView.prototype.imageEdit = function(ev, url) {
       var fileurl, oldImage, self;
       console.log("imageEdit");
-      ev.preventDefault();
+      if (ev != null) {
+        ev.preventDefault();
+      }
       this.removeJcrop();
       this.cropCoords = null;
       oldImage = this.img != null ? this.img : $('.image-editor-image', this.$el).get(0);
@@ -3720,6 +3739,8 @@
           var init;
           console.log("Image real size " + _this.img.width + "x" + _this.img.height);
           _this.trueSize = [_this.img.width, _this.img.height];
+          $('input[name=image-width]', _this.$el).val("" + _this.trueSize[0]);
+          $('input[name=image-height]', _this.$el).val("" + _this.trueSize[1]);
           $(oldImage).replaceWith(_this.img);
           init = function() {
             console.log("init jcrop");
@@ -3741,7 +3762,16 @@
           return setTimeout(init, 0);
         };
       })(this);
-      this.img.src = fileurl;
+      if (url == null) {
+        this.img.src = fileurl;
+        $('input[name=do-save-image]', this.$el).prop('disabled', true);
+        $('input[name=do-reset-image]', this.$el).prop('disabled', true);
+      } else {
+        this.img.src = url;
+        $('input[name=do-save-image]', this.$el).prop('disabled', false);
+        $('input[name=do-reset-image]', this.$el).prop('disabled', false);
+      }
+      $('input[name=do-crop-image]', this.$el).prop('disabled', true);
       return $('.image-editor', this.$el).removeClass('hide');
     };
 
@@ -3769,10 +3799,41 @@
     };
 
     FileEditView.prototype.imageSave = function(ev) {
-      var blob, canvas, context, data, err, h, type, w;
+      var blob, data, err;
       console.log("image save");
       ev.preventDefault();
-      $('.image-editor', this.$el).addClass('hide');
+      if (this.img != null) {
+        data = this.img.src;
+        if ((data.indexOf('data:')) === 0) {
+          try {
+            blob = this.dataURItoBlob(data);
+            if (blob == null) {
+              console.log("Could not get blob");
+              return;
+            }
+            this.loadBlob(blob);
+            return console.log("initiated load blob");
+          } catch (_error) {
+            err = _error;
+            return console.log("error saving edited image: " + err.message + " " + err.stack);
+          }
+        } else {
+          return console.log("image src is not data url: " + data);
+        }
+      } else {
+        return console.log("img element not found");
+      }
+    };
+
+    FileEditView.prototype.imageReset = function(ev) {
+      ev.preventDefault();
+      console.log("imageReset");
+      return this.imageEdit();
+    };
+
+    FileEditView.prototype.imageCrop = function(ev) {
+      var canvas, context, data, err, h, type, w;
+      ev.preventDefault();
       if ((this.img != null) && (this.cropCoords != null)) {
         console.log("Crop " + (JSON.stringify(this.cropCoords)));
         type = this.model.get('fileType');
@@ -3794,24 +3855,122 @@
             console.log("Could not get dataURL");
             return;
           }
-          blob = this.dataURItoBlob(data);
-          if (blob == null) {
-            console.log("Could not get blob");
-            return;
-          }
-          this.loadBlob(blob);
-          return console.log("initiated load blob");
+          console.log("update image with dataurl");
+          return this.imageEdit(ev, data);
         } catch (_error) {
           err = _error;
-          return console.log("error cropping image: " + err.message + " " + err.stack);
+          return console.log("error doing crop: " + err.message + " " + err.stack);
+        }
+      } else {
+        return console.log("warning: imageCrop without img and/or cropCoords");
+      }
+    };
+
+    FileEditView.prototype.imageTransform = function(cw, ch, a, b, c, d, e, f) {
+      var canvas, context, data, err, type;
+      if ((this.img != null) && (this.trueSize != null)) {
+        type = this.model.get('fileType');
+        if (type == null) {
+          console.log("Using default image type");
+          type = "image/png";
+        }
+        try {
+          canvas = document.createElement("canvas");
+          canvas.width = cw;
+          canvas.height = ch;
+          context = canvas.getContext("2d");
+          context.transform(a, b, c, d, e, f);
+          context.drawImage(this.img, 0, 0);
+          console.log("try to save as " + type);
+          data = canvas.toDataURL(type);
+          if (data == null) {
+            console.log("Could not get dataURL");
+            return;
+          }
+          console.log("update image with dataurl");
+          return this.imageEdit(null, data);
+        } catch (_error) {
+          err = _error;
+          return console.log("error doing " + name + ": " + err.message + " " + err.stack);
         }
       }
     };
 
-    FileEditView.prototype.imageCancel = function(ev) {
-      console.log("image cancel");
+    FileEditView.prototype.imageFlip = function(ev) {
+      var name;
       ev.preventDefault();
-      return $('.image-editor', this.$el).addClass('hide');
+      name = $(ev.target).attr('name');
+      console.log("imageFlip " + name);
+      if ((this.img != null) && (this.trueSize != null)) {
+        if ((name.indexOf('horizontal')) >= 0) {
+          return this.imageTransform(this.trueSize[0], this.trueSize[1], -1, 0, 0, 1, this.trueSize[0], 0);
+        } else {
+          return this.imageTransform(this.trueSize[0], this.trueSize[1], 1, 0, 0, -1, 0, this.trueSize[1]);
+        }
+      }
+    };
+
+    FileEditView.prototype.imageScale = function(ev) {
+      var ix, name, sh, sw;
+      ev.preventDefault();
+      name = $(ev.target).attr('name');
+      console.log("imageScale " + name);
+      ix = name.lastIndexOf('-');
+      sw = Number(name.substring(ix + 1));
+      if ((this.img != null) && (this.trueSize != null)) {
+        sh = Math.round(sw * this.trueSize[1] / this.trueSize[0]);
+        console.log("Scale to " + sw + "x" + sh);
+        return this.imageTransform(sw, sh, sw / this.trueSize[0], 0, 0, sh / this.trueSize[1], 0, 0);
+      }
+    };
+
+    FileEditView.prototype.imageRotate = function(ev) {
+      var name;
+      ev.preventDefault();
+      name = $(ev.target).attr('name');
+      console.log("imageRotate " + name);
+      if ((this.img != null) && (this.trueSize != null)) {
+        if ((name.indexOf('left')) >= 0) {
+          return this.imageTransform(this.trueSize[1], this.trueSize[0], 0, -1, 1, 0, 0, this.trueSize[0]);
+        } else {
+          return this.imageTransform(this.trueSize[1], this.trueSize[0], 0, 1, -1, 0, this.trueSize[1], 0);
+        }
+      }
+    };
+
+    FileEditView.prototype.imageAspect = function(ev) {
+      var aspect, err;
+      ev.preventDefault();
+      aspect = $(ev.target).val();
+      console.log("aspect " + aspect);
+      if (this.jcrop == null) {
+        console.log("jcrop not set in imageAspect");
+        if (aspect !== '') {
+          $(ev.target).val('');
+        }
+        return false;
+      }
+      if (aspect === 'fixed') {
+        if (!this.trueSize) {
+          console.log("truSize not set in imageAspect fixed");
+          $(ev.target).val('');
+          return false;
+        }
+        aspect = this.trueSize[0] / this.trueSize[1];
+      } else if (aspect === '') {
+        aspect = null;
+      } else {
+        aspect = Number(aspect);
+      }
+      console.log("set image aspect ratio to " + aspect);
+      try {
+        return this.jcrop.setOptions({
+          aspectRatio: aspect
+        });
+      } catch (_error) {
+        err = _error;
+        return console.log("error setting aspect ratio to " + aspect + ": " + err.message + " " + err.stack);
+      }
     };
 
     return FileEditView;

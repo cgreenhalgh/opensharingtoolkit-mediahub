@@ -16,22 +16,48 @@
     </label> -->
     <div class="drop-zone">Drop file here</div>
     <div class="file-detail">No File<!-- TODO --></div>
-    <label>Image <input type="button" class="do-edit-image" name="do-edit-image" value="Edit"/>
+    <label>Image
     </label>
       <div class="image-editor hide row">
-        <div class="columns large-12">
-          <h4>Edit image...</h4>
-        </div>
         <div class="columns large-6 medium-8 small-12">
           <img class="image-editor-image"/>
         </div>
         <div class="columns large-3 medium-4 small-12">
-          Tools...
+          <input type="button" class="do-save-image" name="do-save-image" value="Save edited image"/><br/>
+          <input type="button" class="do-reset-image" name="do-reset-image" value="Reset image"/><br/>
+          <div class="row">
+            <div class="columns large-4 small-4"> 
+              <label>Size:</label>
+            </div>
+            <div class="columns large-4 small-4"> 
+              <input type="text" size=10 name="image-width" disabled value=""/>
+            </div>
+            <div class="columns large-4 small-4"> 
+              <input type="text" size=10 name="image-height" disabled value=""/>          
+            </div>
+          </div>
+          <label>Aspect Ratio
+            <select name="image-aspect">
+              <option value="" selected>Any</option>
+              <option value="fixed" >Fixed</option>
+              <option value="1" >1:1</option>
+              <option value="1.333333" >4:3</option>
+              <option value="1.5" >3:2</option>
+              <option value="0.75" >3:4</option>
+              <option value="0.666666" >2:3</option>
+            </select>
+          <label>
+          <input type="button" class="do-crop-image" name="do-crop-image" value="Crop image"/><br/>
+          <input type="button" class="do-scale-image" name="do-scale-96" value="Scale to 96px"/>
+          <input type="button" class="do-scale-image" name="do-scale-240" value="Scale to 240px"/>
+          <input type="button" class="do-scale-image" name="do-scale-640" value="Scale to 640px"/>
+          <input type="button" class="do-scale-image" name="do-scale-1024" value="Scale to 1024px"/><br/>
+          <input type="button" class="do-rotate-image" name="do-rotate-left" value="Rotate left"/>
+          <input type="button" class="do-rotate-image" name="do-rotate-right" value="Rotate right"/><br/>
+          <input type="button" class="do-flip-image" name="do-flip-horizontal" value="Flip horizontal"/>
+          <input type="button" class="do-flip-image" name="do-flip-vertical" value="Flip vertical"/>
         </div>
-        <div class="columns large-12">
-          <input type="button" class="do-save-image" name="do-save-image" value="Save image"/>
-          <input type="button" class="do-cancel-image" name="do-cancel-image" value="Leave image"/>
-        </div>
+        <div class="columns large-3 medium-12 small-12"><!-- rest --></div>
       </div>
     <label>Description
       <textarea name="description" placeholder="description" ><%= @data.description %></textarea>
