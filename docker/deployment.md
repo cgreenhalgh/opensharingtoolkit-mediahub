@@ -66,5 +66,11 @@ Delete container:
 sudo docker rm m1
 ```
 
+### SSL certificate
+
+[self-signed](http://httpd.apache.org/docs/2.2/ssl/ssl_faq.html#selfcert), for example. 
+```
+openssl req -new -x509 -nodes -out server.crt -keyout server.key
+```
 
 
