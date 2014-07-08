@@ -49,7 +49,7 @@ sudo docker build -t mediahub mediahub
 
 Run a container, e.g. `m1`
 ```
-sudo docker --name m1 -d -P mediahub
+sudo docker --name m1 -d -P -p 8081:80 -p 8022:22 mediahub
 ```
 Check running containers, and see port mappings:
 ```
