@@ -42,15 +42,7 @@ server {
 		try_files $uri $uri/ =404;
 	}
 
-	location /hub1/ {
-		# Need to use a 'real' (local or global) IP here...
-		proxy_pass http://10.0.2.15:8081/;
-		proxy_redirect off;
-                # no authorization on couchdb
-		#proxy_set_header Authorization "";
-		#proxy_set_header Host $host;
-		#proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-	}
+        include /etc/nginx/local-servers/*.conf;
 
 }
 

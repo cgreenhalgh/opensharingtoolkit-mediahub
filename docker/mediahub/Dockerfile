@@ -25,17 +25,16 @@ VOLUME /var/lib/couchdb
 #RUN mkdir -p /var/lib/couchdb
 COPY mediahub.couch /var/lib/couchdb/
 
-# couchdb direct external access (for testing ONLY!)
-#COPY local.ini /etc/couchdb/
-#EXPOSE 5984
-# end
+# couchdb access config (not admin party, but still needs guarding
+COPY local.ini /etc/couchdb/
+# testing only...
+EXPOSE 5984
 
 VOLUME /var/log
 
 # nginx config
-COPY nginx-mediahub /etc/nginx/sites-available/default
 RUN mkdir -p /etc/nginx/conf/
-COPY htpasswd /etc/nginx/conf/
+# See template for specific configuration...
 
 CMD ["/usr/sbin/sshd", "/usr/sbin/nginx"]
 
