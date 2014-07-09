@@ -172,6 +172,20 @@ ddoc.filters.typeApp = function(doc) {
   }
   return false;
 };
+// filter type Taskconfig
+ddoc.filters.typeTaskconfig = function(doc) {
+  if (doc.type && doc.type === 'taskconfig') {
+    return true;
+  }
+  return false;
+};
+// filter type Taskstate
+ddoc.filters.typeTaskstate = function(doc) {
+  if (doc.type && doc.type === 'taskstate') {
+    return true;
+  }
+  return false;
+};
 // filter type Thing, i.e. anything for now!
 ddoc.filters.typeThing = function(doc) {
   if (doc.type) {

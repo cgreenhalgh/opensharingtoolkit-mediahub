@@ -3,9 +3,9 @@ plugins = require 'plugins'
 ThisThing = require 'models/TaskConfig'
 ThisThingList = require 'models/TaskConfigList'
 ThisThingListView = require 'views/TaskConfigList'
-ThisThingInListView = require 'views/ThingInList'
+ThisThingInListView = require 'views/TaskConfigInList'
 ThisThingView = require 'views/Thing'
-ThisThingEditView = require 'views/ThingEdit' # TODO
+ThisThingEditView = require 'views/TaskConfigEdit' 
 
 ThingBuilder = require 'plugins/ThingBuilder'
 

@@ -17,7 +17,7 @@ module.exports = class TaskConfigList extends Backbone.Collection
       changes: 
         include_docs: true
         continuous: true
-        filter: 'app/typeTaskConfig'
+        filter: 'app/typeTaskconfig'
 
   parse: (result) ->
     console.log "parse #{JSON.stringify result}"

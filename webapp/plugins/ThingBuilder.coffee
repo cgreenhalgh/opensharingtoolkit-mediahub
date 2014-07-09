@@ -9,15 +9,19 @@ module.exports.createThingType = (attributes, ThisThing, ThisThingList, ThisThin
 
   ThisThing.contentType = contentType
   ThisThing.prototype.getContentType = () -> contentType
+  ThisThing.addingThings = {}
 
   # special case for generic ThingListView
   contentType.getThingView = (thing) ->
     new ThisThingInListView model: thing
 
+  things = new ThisThingList()
+
+  #contentType.getThings = () -> things
+
   # Router entry point
   contentType.createView = () ->
     console.log "create #{contentType.id} view"
-    things = new ThisThingList()
     thingsView = new ThisThingListView model:things
     thingsView.render()
 
@@ -37,7 +41,15 @@ module.exports.createThingType = (attributes, ThisThing, ThisThingList, ThisThin
           if not id?
             # work-around backbone-pouchdb attach presumes Math.uuid
             id = contentType.id+':'+uuid()
-          thing = new ThisThing _id: id
+
+          if ThisThing.addingThings? 
+            adding = ThisThing.addingThings[id]
+            if adding?
+              adding._id = id
+              console.log "addedit using addingThing #{adding}"
+              thing = new ThisThing adding
+            else
+              thing = new ThisThing _id: id
           console.log "new id #{thing.id}"
           #things.add thing
           return new ThisThingEditView {model: thing, add: true, things: things}

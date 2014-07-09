@@ -1,6 +1,8 @@
 # AppInList View
 templateAppInList = require 'templates/AppInList'
 ThingInListView = require 'views/ThingInList'
+TaskConfig = require 'models/TaskConfig'
+
 offline = require 'offline'
 
 module.exports = class AppInListView extends ThingInListView
@@ -29,5 +31,11 @@ module.exports = class AppInListView extends ThingInListView
     if ix>=0
       id = id.substring ix+1
     id = 'taskconfig:'+id
+    model = 
+          _id:id 
+          subjectId: @model.id
+          taskType: 'exportapp'
+          enabled: true
+    TaskConfig.addingThings[id] = model       
     window.router.navigate "#ContentType/taskconfig/editadd/#{encodeURIComponent id}", trigger:true
 

@@ -5,7 +5,7 @@ stitch  = require("stitch")
 fs = require('fs')
 argv    = process.argv.slice(2)
 
-buildapp = (from,to) ->
+buildapp = (from,to,extrasource) ->
   console.log "compile #{from} to #{to}..."
   pckg1 = stitch.createPackage(
     # Specify the paths you want Stitch to automatically bundle up
@@ -21,6 +21,7 @@ buildapp = (from,to) ->
   pckg1.compile(
     (err, source) ->
       if (err) then throw err
+      if extrasource? then source = source+extrasource
       fs.writeFile(to, source, 
         (err) ->
         console.log "Compiled #{from} to #{to}"
@@ -29,4 +30,5 @@ buildapp = (from,to) ->
 
 buildapp '/webapp','public/js/webapp.js'
 buildapp '/offlineapp','public/js/offlineapp.js'
+#buildapp '/tools','tools.js','require("exportapp");'
 

@@ -1,0 +1,18 @@
+<%# TaskConfig add or edit, takes { attributes..., add: true|false } ; parent is a row %>
+<div class="columns large-12">
+  <h2><%= if @add then 'Add' else 'Edit' %> Background Task</h2>
+</div>
+<form>
+  <div class="columns large-12">
+    <p>Task: <%= @taskType %></p>
+    <p>Subject: <%= @subject.title %> (<%= @subjectId %>)</p>
+    <p>Last changed: <%= if @lastChanged? then new Date(@lastChanged).toUTCString() %></p>
+    <label>Active
+      <input type="checkbox" name="enabled" value="enabled" <%= if @enabled then 'checked' else '' %>/>
+    </label>
+    <input type="submit" value="<%= if @add then 'Add' else 'Save changes' %>"/>
+    <input type="reset" value="Clear"/>
+    <input type="button" value="Cancel" class="do-cancel"/>
+  </div>
+</form>
+
