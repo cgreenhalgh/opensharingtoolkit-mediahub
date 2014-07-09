@@ -12,6 +12,7 @@ require 'plugins/Booklet'
 require 'plugins/Place'
 require 'plugins/List'
 require 'plugins/App'
+require 'plugins/TaskConfig'
 
 config = window.mediahubconfig
 

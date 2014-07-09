@@ -1,9 +1,9 @@
-# list of App
-App = require('models/App')
+# list of TaskConfig
+TaskConfig = require('models/TaskConfig')
 
-module.exports = class AppList extends Backbone.Collection
+module.exports = class TaskConfigList extends Backbone.Collection
 
-  model: App
+  model: TaskConfig
 
   pouch: 
     fetch: 'query' 
@@ -12,12 +12,12 @@ module.exports = class AppList extends Backbone.Collection
       query: 
         include_docs: true
         fun: 'app/type'
-        startkey: 'app'
-        endkey: 'app'
+        startkey: 'taskconfig'
+        endkey: 'taskconfig'
       changes: 
         include_docs: true
         continuous: true
-        filter: 'app/typeApp'
+        filter: 'app/typeTaskConfig'
 
   parse: (result) ->
     console.log "parse #{JSON.stringify result}"

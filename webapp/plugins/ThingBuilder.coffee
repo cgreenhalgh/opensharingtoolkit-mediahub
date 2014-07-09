@@ -27,12 +27,20 @@ module.exports.createThingType = (attributes, ThisThing, ThisThingList, ThisThin
 
   # Router entry point
   contentType.createActionView = (action,id) ->
-    if action=='edit'
+    if action=='edit' or action=='editadd' 
       if not ThisThingEditView?
-        alert "Sorry, cannot edit this kind of thing"
+        alert "Sorry, cannot #{action} this kind of thing"
         return
       thing = things.get id
       if not thing?
+        if action=='editadd'
+          if not id?
+            # work-around backbone-pouchdb attach presumes Math.uuid
+            id = contentType.id+':'+uuid()
+          thing = new ThisThing _id: id
+          console.log "new id #{thing.id}"
+          #things.add thing
+          return new ThisThingEditView {model: thing, add: true, things: things}
         alert "could not find #{contentType.id} #{id}"
         return
       return new ThisThingEditView model: thing
