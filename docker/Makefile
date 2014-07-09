@@ -19,7 +19,7 @@ mediahub/image.timestamp: cfengine/image.timestamp mediahub/Dockerfile mediahub/
 mediahub-$(NAME):
 	mkdir mediahub-$(NAME)
 
-newpass = $(shell openssl rand -base64 6 | sed -e 's/\//-/g')
+newpass = $(shell openssl rand -base64 6)
 
 mediahub-$(NAME)/password: mediahub-$(NAME)
 # new password...!
@@ -29,7 +29,7 @@ password = $(shell cat mediahub-$(NAME)/password)
 passwd = $(shell openssl passwd $(password) )
 
 mediahub-$(NAME)/htpasswd: mediahub-$(NAME) mediahub/htpasswd.template mediahub-$(NAME)/password
-	cat mediahub/htpasswd.template | sed -e "s/#{NAME}/$(NAME)/g" -e "s/#{PASSWD}/$(passwd)/g" > mediahub-$(NAME)/htpasswd
+	cat mediahub/htpasswd.template | sed -e "s/#{NAME}/$(NAME)/g" -e "s_#{PASSWD}_$(passwd)_g" > mediahub-$(NAME)/htpasswd
 
 mediahub-$(NAME)/nginx-mediahub: mediahub-$(NAME) mediahub/nginx-mediahub.template 
 	cat mediahub/nginx-mediahub.template | sed -e "s/#{NAME}/$(NAME)/g" > mediahub-$(NAME)/nginx-mediahub

@@ -1,10 +1,16 @@
 // config.js
-var dbname = window.location.pathname.substring(1);
-var ix = dbname.indexOf('/');
+console.log( "Window.location = "+window.location.href );
+var url = window.location.href;
+var ix = url.indexOf('/_design/');
 if (ix>=0) {
-  dbname = dbname.substring(0,ix);
+  url = url.substring(0, ix);
+} else {
+  alert("The page URL was not what was expected; this probably won't work! ("+url+")");
+  console.log("The page URL was not what was expected; this probably won't work! ("+url+")");
+  ix = url.lastIndexOf('/');
+  if (ix>=0)
+    url = url.substring(0,ix);
 }
-console.log("config using dbname "+dbname);
 window.mediahubconfig = {
-  dburl: "http://"+window.location.host+"/"+dbname
+  dburl: url
 };
