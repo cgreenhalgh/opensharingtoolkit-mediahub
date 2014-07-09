@@ -6,7 +6,10 @@ cfengine/image.timestamp: cfengine/Dockerfile
 	sudo docker build -t cfengine cfengine
 	touch cfengine/image.timestamp
 
-mediahub/image.timestamp: cfengine/image.timestamp mediahub/Dockerfile 
+mediahub/mediahub.couch:
+	$(error "You need to create/copy an initial mediahub database file to mediahub/mediahub.couch - see the deployment documentation")
+
+mediahub/image.timestamp: cfengine/image.timestamp mediahub/Dockerfile mediahub/mediahub.couch
 	sudo docker build -t mediahub mediahub
 	touch mediahub/image.timestamp
 
@@ -42,16 +45,10 @@ mediahub-$(NAME)/image.timestamp: mediahub-$(NAME)/Dockerfile mediahub-$(NAME)/h
 .PHONY: image run restart stop start
 image: mediahub-$(NAME)/image.timestamp 
 
-mediahub-$(NAME)/couchdb/mediahub.couch: mediahub-$(NAME)/couchdb mediahub/mediahub.couch
-	cp mediahub/mediahub.couch mediahub-$(NAME)/couchdb/
-
-mediahub-$(NAME)/couchdb:
-	mkdir mediahub-$(NAME)/couchdb
-
 ROOT_DIR := $(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 
-run: mediahub-$(NAME)/image.timestamp mediahub-$(NAME)/couchdb mediahub-$(NAME)/couchdb/mediahub.couch
-	sudo docker run --name $(NAME) -h $(NAME) -v $(ROOT_DIR)/mediahub-$(NAME)/couchdb:/var/lib/couchdb -d mediahub-$(NAME)
+run: mediahub-$(NAME)/image.timestamp 
+	sudo docker run --name $(NAME) -h $(NAME) -d mediahub-$(NAME)
 
 restart: 
 	sudo docker restart $(NAME)

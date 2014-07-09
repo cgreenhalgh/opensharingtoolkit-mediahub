@@ -58,17 +58,11 @@ Generic cfengine dockerfile is [`cfengine/Dockerfile`](cfengine/Dockerfile). Gen
 make NAME=example run
 ```
 
-Note that it will require an initial snapshot of the `mediahub.couch` database file in `mediahub\`. See below for instructions.
+Note that this will require an initial snapshot of the `mediahub.couch` database file in `mediahub\`. See above for instructions.
 
-Each `mediahub-NAME` subdirectory include:
+Each `mediahub-NAME` subdirectory includes `password`, the auto-generated password required to access that instance (username is instance name).
 
-- `password` - the auto-generated password required to access that instance (username is instance name)
-- `couchdb/` - the couch database files of the instance, which can be copied away for backup, etc.
-
-```
-sudo docker build -t cfengine cfengine
-sudo docker build -t mediahub mediahub
-```
+You should update the public-facing proxy configuration after running a new mediahub instance - see below (`make nginx`).
 
 ## Public web access
 

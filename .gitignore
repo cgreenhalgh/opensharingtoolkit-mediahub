@@ -4,3 +4,9 @@ bower_components/*
 public/*.DS_Store
 public/stylesheets/*
 *~
+*.timestamp
+docker/mediahub/mediahub.couch
+docker/nginx/local-servers/*
+docker/nginx/server.crt
+docker/nginx/server.key
+docker/mediahub-*
