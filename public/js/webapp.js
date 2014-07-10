@@ -2524,17 +2524,17 @@
     
       __out.push(__sanitize(this.add ? 'Add' : 'Edit'));
     
-      __out.push(' Background Task</h2>\n</div>\n<form>\n  <div class="columns large-12">\n    <p>Task: ');
+      __out.push(' Background Task</h2>\n</div>\n<form>\n  <div class="columns large-12">\n    <h4>');
     
-      __out.push(__sanitize(this.taskType));
+      __out.push(__sanitize(this.taskType === 'exportapp' ? 'Publish app to webserver' : this.taskType));
     
-      __out.push('</p>\n    <div class="subject-holder">');
+      __out.push('</h4>\n    <div class="subject-holder">');
     
       __out.push(this.subjectHtml != null ? this.subjectHtml : void 0);
     
       __out.push(__sanitize(this.subjectHtml == null ? "(" + this.subjectId + ")" : void 0));
     
-      __out.push('</div>\n    <p>Last changed: ');
+      __out.push('</div>\n    <p>Task was last updated/requested ');
     
       __out.push(__sanitize(this.lastChanged != null ? new Date(this.lastChanged).toUTCString() : void 0));
     
@@ -2612,7 +2612,7 @@
     
       __out.push(__sanitize(this.state));
     
-      __out.push('</p> -->\n<p>Up to date: ');
+      __out.push('</p> -->\n<p>Up to date with ');
     
       __out.push(__sanitize(this.lastConfigChanged != null ? new Date(this.lastConfigChanged).toUTCString() : void 0));
     
@@ -5211,6 +5211,7 @@
       if (this.add && (this.things != null)) {
         if ((this.things.get(this.model.id)) != null) {
           console.log("Add TaskConfigEdit -> edit (already exists)");
+          setTimeout(this.remove, 0);
           window.router.navigate("#ContentType/taskconfig/edit/" + (encodeURIComponent(this.model.id)), {
             trigger: true,
             replace: true

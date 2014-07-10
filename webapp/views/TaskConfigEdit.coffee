@@ -22,6 +22,7 @@ module.exports = class TaskConfigEditView extends Backbone.View
       # we might actually exist!
       if (@things.get @model.id)?
         console.log "Add TaskConfigEdit -> edit (already exists)"
+        setTimeout @remove,0
         window.router.navigate "#ContentType/taskconfig/edit/#{encodeURIComponent @model.id}",
           {trigger:true, replace: true}
         return
