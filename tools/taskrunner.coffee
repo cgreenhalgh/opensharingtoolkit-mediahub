@@ -1,5 +1,4 @@
 # node task runner for mediahub
-PouchDB = require 'pouchdb'
 fs = require('fs')
 spawn = require('child_process').spawn
    
@@ -13,46 +12,60 @@ approot = '/home/pszcmg/tmp/apps'
 MAX_PROCESS_TIME = 30000
 
 log "connect to #{dburl}"
-db = new PouchDB dburl
+db = require('nano') dburl
+# errors?
+
 
 tasks = {} 
 
-db.changes
-  include_docs: true
-  filter: 'app/typeTaskstate'
-.on 'change', (change)->
-  #log "state: #{JSON.stringify change.doc}"
-  state = change.doc
-  id = state._id
-  ix = id.indexOf ':'
-  if ix>=0 then id = id.substring ix+1
-  task = tasks[id]
-  if not task?
-    tasks[id] = task = { id: id }
-  log "#{if task.serverState? then 'update' else 'add'} task #{id} serverState #{JSON.stringify state}"
-  task.serverState = state
-.on 'complete', ()->
-  log "state complete - getting tasks..."
-  startTasks()
-.on 'error', (err)->
-  log "state error #{err}"
+db.list
+    include_docs: true
+    startkey: 'taskstate:'
+    endkey: 'taskstate;'
+  , (err, body) ->
+    if err?
+      log "state error #{err}"
+    else
+      log "state got #{body.rows.length} rows"
+      for row in body.rows
+        state = row.doc
+        log "got state #{JSON.stringify state}"
+        id = state._id
+        ix = id.indexOf ':'
+        if ix>=0 then id = id.substring ix+1
+        task = tasks[id]
+        if not task?
+          tasks[id] = task = { id: id }
+        log "#{if task.serverState? then 'update' else 'add'} task #{id} serverState #{JSON.stringify state}"
+        task.serverState = state
+    log "state complete - getting tasks..."
+    startTasks()
 
 taskQueue = []
 activeTask = null
 
 startTasks = () ->
-  db.changes
+  getChanges()
+
+lastSequence = null
+
+getChanges = () ->
+  params = 
     include_docs: true
-    live: true
+    #live: true
     filter: 'app/typeTaskconfig'
-  .on 'change', (change)->
-    #log "config: #{JSON.stringify change.doc}"
-    updateConfig change.doc
-  .on 'complete', ()->
-    log "config complete"
-  .on 'error', (err)->
-    log "config error #{err}"
-    #process.exit -1
+    feed: 'longpoll'
+  if lastSequence?
+    params.since = lastSequence
+  feed = db.changes params, (err,changes)->
+    if err?
+      log "getChanges: error getting changes: #{err.message}"
+      setTimeout getChanges,5000
+      return
+    lastSequence = changes.last_seq
+    log "change config: #{changes.results.length} changes, last_seq #{changes.last_seq}"
+    for change in changes.results
+      updateConfig change.doc
 
 # couchdb config
 stdin = process.openStdin()
@@ -165,7 +178,7 @@ sendState = (task) ->
   if not task.serverState?
     task.sendingState = JSON.parse (JSON.stringify task.targetState)
     log "sendState: create state #{task.targetState._id}"
-    db.put task.sendingState, (err,response) ->
+    db.insert task.sendingState, (err,response) ->
       if err?
         log "sendState: create error #{err}"
         task.sendingState = null
@@ -182,7 +195,7 @@ sendState = (task) ->
     task.sendingState = JSON.parse (JSON.stringify task.targetState)
     task.sendingState._rev = task.serverState._rev
     log "sendState: update state #{task.targetState._id} rev #{task.serverState._rev}"
-    db.put task.sendingState, (err,response) ->
+    db.insert task.sendingState, (err,response) ->
       if err?
         log "sendState: update error #{err}"
         task.sendingState = null
