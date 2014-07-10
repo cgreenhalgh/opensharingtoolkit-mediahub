@@ -37,5 +37,5 @@ module.exports = class AppInListView extends ThingInListView
           taskType: 'exportapp'
           enabled: true
     TaskConfig.addingThings[id] = model       
-    window.router.navigate "#ContentType/taskconfig/editadd/#{encodeURIComponent id}", trigger:true
+    window.router.navigate "#ContentType/taskconfig/add/#{encodeURIComponent id}", trigger:true
 

@@ -31,28 +31,12 @@ module.exports.createThingType = (attributes, ThisThing, ThisThingList, ThisThin
 
   # Router entry point
   contentType.createActionView = (action,id) ->
-    if action=='edit' or action=='editadd' 
+    if action=='edit' 
       if not ThisThingEditView?
         alert "Sorry, cannot #{action} this kind of thing"
         return
       thing = things.get id
       if not thing?
-        if action=='editadd'
-          if not id?
-            # work-around backbone-pouchdb attach presumes Math.uuid
-            id = contentType.id+':'+uuid()
-
-          if ThisThing.addingThings? 
-            adding = ThisThing.addingThings[id]
-            if adding?
-              adding._id = id
-              console.log "addedit using addingThing #{adding}"
-              thing = new ThisThing adding
-            else
-              thing = new ThisThing _id: id
-          console.log "new id #{thing.id}"
-          #things.add thing
-          return new ThisThingEditView {model: thing, add: true, things: things}
         alert "could not find #{contentType.id} #{id}"
         return
       return new ThisThingEditView model: thing
@@ -69,8 +53,18 @@ module.exports.createThingType = (attributes, ThisThing, ThisThingList, ThisThin
       if not ThisThingEditView?
         alert "Sorry, cannot add this kind of thing"
         return
-      # work-around backbone-pouchdb attach presumes Math.uuid
-      thing = new ThisThing _id: contentType.id+':'+uuid()
+      if not id?
+        # work-around backbone-pouchdb attach presumes Math.uuid
+        id = contentType.id+':'+uuid()
+
+      if ThisThing.addingThings? 
+        adding = ThisThing.addingThings[id]
+        if adding?
+          adding._id = id
+          console.log "add using addingThing #{adding}"
+          thing = new ThisThing adding
+        else
+          thing = new ThisThing _id: id
       console.log "new id #{thing.id}"
       #things.add thing
       return new ThisThingEditView {model: thing, add: true, things: things}

@@ -90,6 +90,8 @@
 
   require('plugins/App');
 
+  require('plugins/TaskConfig');
+
   config = window.mediahubconfig;
 
   tempViews = [];
@@ -322,7 +324,7 @@
         changes: {
           include_docs: true,
           continuous: true,
-          filter: 'app/appList'
+          filter: 'app/typeApp'
         }
       }
     };
@@ -794,6 +796,117 @@
     };
 
     return PlaceList;
+
+  })(Backbone.Collection);
+
+}).call(this);
+}, "models/TaskConfig": function(exports, require, module) {(function() {
+  var TaskConfig,
+    __hasProp = {}.hasOwnProperty,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+  module.exports = TaskConfig = (function(_super) {
+    __extends(TaskConfig, _super);
+
+    function TaskConfig() {
+      return TaskConfig.__super__.constructor.apply(this, arguments);
+    }
+
+    TaskConfig.prototype.defaults = {
+      type: 'taskconfig',
+      subjectId: '',
+      path: '',
+      url: '',
+      taskType: '',
+      enabled: true,
+      lastChanged: null
+    };
+
+    return TaskConfig;
+
+  })(Backbone.Model);
+
+}).call(this);
+}, "models/TaskConfigList": function(exports, require, module) {(function() {
+  var TaskConfig, TaskConfigList,
+    __hasProp = {}.hasOwnProperty,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+  TaskConfig = require('models/TaskConfig');
+
+  module.exports = TaskConfigList = (function(_super) {
+    __extends(TaskConfigList, _super);
+
+    function TaskConfigList() {
+      return TaskConfigList.__super__.constructor.apply(this, arguments);
+    }
+
+    TaskConfigList.prototype.model = TaskConfig;
+
+    TaskConfigList.prototype.pouch = {
+      fetch: 'query',
+      listen: true,
+      options: {
+        query: {
+          include_docs: true,
+          fun: 'app/type',
+          startkey: 'taskconfig',
+          endkey: 'taskconfig'
+        },
+        changes: {
+          include_docs: true,
+          continuous: true,
+          filter: 'app/typeTaskconfig'
+        }
+      }
+    };
+
+    TaskConfigList.prototype.parse = function(result) {
+      console.log("parse " + (JSON.stringify(result)));
+      return _.pluck(result.rows, 'doc');
+    };
+
+    return TaskConfigList;
+
+  })(Backbone.Collection);
+
+}).call(this);
+}, "models/TaskStateList": function(exports, require, module) {(function() {
+  var TaskConfigList,
+    __hasProp = {}.hasOwnProperty,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+  module.exports = TaskConfigList = (function(_super) {
+    __extends(TaskConfigList, _super);
+
+    function TaskConfigList() {
+      return TaskConfigList.__super__.constructor.apply(this, arguments);
+    }
+
+    TaskConfigList.prototype.pouch = {
+      fetch: 'query',
+      listen: true,
+      options: {
+        query: {
+          include_docs: true,
+          fun: 'app/type',
+          startkey: 'taskstate',
+          endkey: 'taskstate'
+        },
+        changes: {
+          include_docs: true,
+          continuous: true,
+          filter: 'app/typeTaskstate'
+        }
+      }
+    };
+
+    TaskConfigList.prototype.parse = function(result) {
+      console.log("parse " + (JSON.stringify(result)));
+      return _.pluck(result.rows, 'doc');
+    };
+
+    return TaskConfigList;
 
   })(Backbone.Collection);
 
@@ -1283,6 +1396,36 @@
   plugins.registerContentType(contentType.id, contentType);
 
 }).call(this);
+}, "plugins/TaskConfig": function(exports, require, module) {(function() {
+  var ThingBuilder, ThisThing, ThisThingEditView, ThisThingInListView, ThisThingList, ThisThingListView, ThisThingView, attributes, contentType, plugins;
+
+  plugins = require('plugins');
+
+  ThisThing = require('models/TaskConfig');
+
+  ThisThingList = require('models/TaskConfigList');
+
+  ThisThingListView = require('views/TaskConfigList');
+
+  ThisThingInListView = require('views/TaskConfigInList');
+
+  ThisThingView = require('views/Thing');
+
+  ThisThingEditView = require('views/TaskConfigEdit');
+
+  ThingBuilder = require('plugins/ThingBuilder');
+
+  attributes = {
+    id: 'taskconfig',
+    title: 'Background Task',
+    description: 'A background task on the server, e.g. exporting content'
+  };
+
+  contentType = ThingBuilder.createThingType(attributes, ThisThing, ThisThingList, ThisThingListView, ThisThingInListView, ThisThingView, ThisThingEditView);
+
+  plugins.registerContentType(contentType.id, contentType);
+
+}).call(this);
 }, "plugins/ThingBuilder": function(exports, require, module) {(function() {
   var ContentType, plugins;
 
@@ -1298,15 +1441,16 @@
     ThisThing.prototype.getContentType = function() {
       return contentType;
     };
+    ThisThing.addingThings = {};
     contentType.getThingView = function(thing) {
       return new ThisThingInListView({
         model: thing
       });
     };
+    things = new ThisThingList();
     contentType.createView = function() {
       var thingsView;
       console.log("create " + contentType.id + " view");
-      things = new ThisThingList();
       thingsView = new ThisThingListView({
         model: things
       });
@@ -1315,10 +1459,10 @@
       return thingsView;
     };
     contentType.createActionView = function(action, id) {
-      var thing;
+      var adding, thing;
       if (action === 'edit') {
         if (ThisThingEditView == null) {
-          alert("Sorry, cannot edit this kind of thing");
+          alert("Sorry, cannot " + action + " this kind of thing");
           return;
         }
         thing = things.get(id);
@@ -1347,9 +1491,21 @@
           alert("Sorry, cannot add this kind of thing");
           return;
         }
-        thing = new ThisThing({
-          _id: contentType.id + ':' + uuid()
-        });
+        if (id == null) {
+          id = contentType.id + ':' + uuid();
+        }
+        if (ThisThing.addingThings != null) {
+          adding = ThisThing.addingThings[id];
+          if (adding != null) {
+            adding._id = id;
+            console.log("add using addingThing " + adding);
+            thing = new ThisThing(adding);
+          } else {
+            thing = new ThisThing({
+              _id: id
+            });
+          }
+        }
         console.log("new id " + thing.id);
         return new ThisThingEditView({
           model: thing,
@@ -1361,6 +1517,23 @@
       }
     };
     return contentType;
+  };
+
+}).call(this);
+}, "taskstates": function(exports, require, module) {(function() {
+  var TaskStateList, singleton;
+
+  TaskStateList = require('models/TaskStateList');
+
+  singleton = null;
+
+  module.exports.get = function() {
+    if (singleton == null) {
+      console.log("initialising TaskStateList for taskstates");
+      singleton = new TaskStateList();
+      singleton.fetch();
+    }
+    return singleton;
   };
 
 }).call(this);
@@ -1473,7 +1646,7 @@
     
       __out.push(__sanitize(this.title));
     
-      __out.push('\n  <a href="#" class="action-button do-delete-file right">Delete</a>\n  <a href="#" class="action-button do-edit-file right">Edit</a>\n  <!-- <a href="#" class="action-button do-view-file right">View</a> -->\n  <a href="#" class="action-button do-testapp right">Test Offline</a>\n</h3>\n');
+      __out.push('\n  <a href="#" class="action-button do-delete-file right">Delete</a>\n  <a href="#" class="action-button do-edit-file right">Edit</a>\n  <!-- <a href="#" class="action-button do-view-file right">View</a> -->\n  <a href="#" class="action-button do-testapp right">Test Offline</a>\n  <a href="#" class="action-button do-export right">Export...</a>\n</h3>\n');
     
     }).call(this);
     
@@ -2308,6 +2481,298 @@
   }).call(__obj);
   __obj.safe = __objSafe, __obj.escape = __escape;
   return __out.join('');
+}}, "templates/TaskConfigEdit": function(exports, require, module) {module.exports = function(__obj) {
+  if (!__obj) __obj = {};
+  var __out = [], __capture = function(callback) {
+    var out = __out, result;
+    __out = [];
+    callback.call(this);
+    result = __out.join('');
+    __out = out;
+    return __safe(result);
+  }, __sanitize = function(value) {
+    if (value && value.ecoSafe) {
+      return value;
+    } else if (typeof value !== 'undefined' && value != null) {
+      return __escape(value);
+    } else {
+      return '';
+    }
+  }, __safe, __objSafe = __obj.safe, __escape = __obj.escape;
+  __safe = __obj.safe = function(value) {
+    if (value && value.ecoSafe) {
+      return value;
+    } else {
+      if (!(typeof value !== 'undefined' && value != null)) value = '';
+      var result = new String(value);
+      result.ecoSafe = true;
+      return result;
+    }
+  };
+  if (!__escape) {
+    __escape = __obj.escape = function(value) {
+      return ('' + value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    };
+  }
+  (function() {
+    (function() {
+      __out.push('\n<div class="columns large-12">\n  <h2>');
+    
+      __out.push(__sanitize(this.add ? 'Add' : 'Edit'));
+    
+      __out.push(' Background Task</h2>\n</div>\n<form>\n  <div class="columns large-12">\n    <p>Task: ');
+    
+      __out.push(__sanitize(this.taskType));
+    
+      __out.push('</p>\n    <div class="subject-holder">');
+    
+      __out.push(this.subjectHtml != null ? this.subjectHtml : void 0);
+    
+      __out.push(__sanitize(this.subjectHtml == null ? "(" + this.subjectId + ")" : void 0));
+    
+      __out.push('</div>\n    <p>Last changed: ');
+    
+      __out.push(__sanitize(this.lastChanged != null ? new Date(this.lastChanged).toUTCString() : void 0));
+    
+      __out.push('</p>\n    <div class="state-holder">');
+    
+      __out.push(this.stateHtml != null ? this.stateHtml : void 0);
+    
+      __out.push('</div>\n    <label>Active\n      <input type="checkbox" name="enabled" value="enabled" ');
+    
+      __out.push(__sanitize(this.enabled ? 'checked' : ''));
+    
+      __out.push('/>\n    </label>\n    <input type="submit" value="');
+    
+      __out.push(__sanitize(this.add ? 'Create' : 'Update'));
+    
+      __out.push('"/>\n    <input type="reset" value="Clear"/>\n    <input type="button" value="Cancel" class="do-cancel"/>\n  </div>\n</form>\n\n');
+    
+    }).call(this);
+    
+  }).call(__obj);
+  __obj.safe = __objSafe, __obj.escape = __escape;
+  return __out.join('');
+}}, "templates/TaskConfigEditState": function(exports, require, module) {module.exports = function(__obj) {
+  if (!__obj) __obj = {};
+  var __out = [], __capture = function(callback) {
+    var out = __out, result;
+    __out = [];
+    callback.call(this);
+    result = __out.join('');
+    __out = out;
+    return __safe(result);
+  }, __sanitize = function(value) {
+    if (value && value.ecoSafe) {
+      return value;
+    } else if (typeof value !== 'undefined' && value != null) {
+      return __escape(value);
+    } else {
+      return '';
+    }
+  }, __safe, __objSafe = __obj.safe, __escape = __obj.escape;
+  __safe = __obj.safe = function(value) {
+    if (value && value.ecoSafe) {
+      return value;
+    } else {
+      if (!(typeof value !== 'undefined' && value != null)) value = '';
+      var result = new String(value);
+      result.ecoSafe = true;
+      return result;
+    }
+  };
+  if (!__escape) {
+    __escape = __obj.escape = function(value) {
+      return ('' + value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    };
+  }
+  (function() {
+    (function() {
+      __out.push('<h4>Task status:</h4>\n<div data-alert class="alert-box ');
+    
+      __out.push(__sanitize(this.state === 'done' ? 'success' : this.state === 'disabled' ? 'secondary' : this.state === 'starting' ? 'info' : this.state === 'error' ? 'alert' : 'warning'));
+    
+      __out.push('">\n  ');
+    
+      __out.push(__sanitize(this.message));
+    
+      __out.push('<br/>\n  (Last update: ');
+    
+      __out.push(__sanitize(this.lastUpdate != null ? new Date(this.lastUpdate).toUTCString() : void 0));
+    
+      __out.push(')\n</div>\n<!-- <p>State: ');
+    
+      __out.push(__sanitize(this.state));
+    
+      __out.push('</p> -->\n<p>Up to date: ');
+    
+      __out.push(__sanitize(this.lastConfigChanged != null ? new Date(this.lastConfigChanged).toUTCString() : void 0));
+    
+      __out.push('</p>\n\n');
+    
+    }).call(this);
+    
+  }).call(__obj);
+  __obj.safe = __objSafe, __obj.escape = __escape;
+  return __out.join('');
+}}, "templates/TaskConfigEditSubject": function(exports, require, module) {module.exports = function(__obj) {
+  if (!__obj) __obj = {};
+  var __out = [], __capture = function(callback) {
+    var out = __out, result;
+    __out = [];
+    callback.call(this);
+    result = __out.join('');
+    __out = out;
+    return __safe(result);
+  }, __sanitize = function(value) {
+    if (value && value.ecoSafe) {
+      return value;
+    } else if (typeof value !== 'undefined' && value != null) {
+      return __escape(value);
+    } else {
+      return '';
+    }
+  }, __safe, __objSafe = __obj.safe, __escape = __obj.escape;
+  __safe = __obj.safe = function(value) {
+    if (value && value.ecoSafe) {
+      return value;
+    } else {
+      if (!(typeof value !== 'undefined' && value != null)) value = '';
+      var result = new String(value);
+      result.ecoSafe = true;
+      return result;
+    }
+  };
+  if (!__escape) {
+    __escape = __obj.escape = function(value) {
+      return ('' + value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    };
+  }
+  (function() {
+    (function() {
+      __out.push('<p>Subject: ');
+    
+      __out.push(__sanitize(this.title));
+    
+      __out.push('</p>\n\n');
+    
+    }).call(this);
+    
+  }).call(__obj);
+  __obj.safe = __objSafe, __obj.escape = __escape;
+  return __out.join('');
+}}, "templates/TaskConfigInList": function(exports, require, module) {module.exports = function(__obj) {
+  if (!__obj) __obj = {};
+  var __out = [], __capture = function(callback) {
+    var out = __out, result;
+    __out = [];
+    callback.call(this);
+    result = __out.join('');
+    __out = out;
+    return __safe(result);
+  }, __sanitize = function(value) {
+    if (value && value.ecoSafe) {
+      return value;
+    } else if (typeof value !== 'undefined' && value != null) {
+      return __escape(value);
+    } else {
+      return '';
+    }
+  }, __safe, __objSafe = __obj.safe, __escape = __obj.escape;
+  __safe = __obj.safe = function(value) {
+    if (value && value.ecoSafe) {
+      return value;
+    } else {
+      if (!(typeof value !== 'undefined' && value != null)) value = '';
+      var result = new String(value);
+      result.ecoSafe = true;
+      return result;
+    }
+  };
+  if (!__escape) {
+    __escape = __obj.escape = function(value) {
+      return ('' + value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    };
+  }
+  (function() {
+    (function() {
+      __out.push('\n<h4 class="clearfix">');
+    
+      __out.push(__sanitize(this.taskType));
+    
+      __out.push('\n  ');
+    
+      __out.push(__sanitize(this.subject.title ? this.subject.title : this.subjectId));
+    
+      __out.push('\n  <!--<a href="#" class="action-button do-delete right">Delete</a>-->\n  <a href="#" class="action-button do-edit-file right">Edit</a>\n  <!--<a href="#" class="action-button do-view right">View</a>-->\n</h4>\n');
+    
+    }).call(this);
+    
+  }).call(__obj);
+  __obj.safe = __objSafe, __obj.escape = __escape;
+  return __out.join('');
+}}, "templates/TaskConfigList": function(exports, require, module) {module.exports = function(__obj) {
+  if (!__obj) __obj = {};
+  var __out = [], __capture = function(callback) {
+    var out = __out, result;
+    __out = [];
+    callback.call(this);
+    result = __out.join('');
+    __out = out;
+    return __safe(result);
+  }, __sanitize = function(value) {
+    if (value && value.ecoSafe) {
+      return value;
+    } else if (typeof value !== 'undefined' && value != null) {
+      return __escape(value);
+    } else {
+      return '';
+    }
+  }, __safe, __objSafe = __obj.safe, __escape = __obj.escape;
+  __safe = __obj.safe = function(value) {
+    if (value && value.ecoSafe) {
+      return value;
+    } else {
+      if (!(typeof value !== 'undefined' && value != null)) value = '';
+      var result = new String(value);
+      result.ecoSafe = true;
+      return result;
+    }
+  };
+  if (!__escape) {
+    __escape = __obj.escape = function(value) {
+      return ('' + value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    };
+  }
+  (function() {
+    (function() {
+      __out.push('\n  <div class="columns large-12 small-12">\n    <h2>Background Task List</h2>\n  </div>\n\n');
+    
+    }).call(this);
+    
+  }).call(__obj);
+  __obj.safe = __objSafe, __obj.escape = __escape;
+  return __out.join('');
 }}, "templates/Thing": function(exports, require, module) {module.exports = function(__obj) {
   if (!__obj) __obj = {};
   var __out = [], __capture = function(callback) {
@@ -3079,7 +3544,7 @@
 
 }).call(this);
 }, "views/AppInList": function(exports, require, module) {(function() {
-  var AppInListView, ThingInListView, offline, templateAppInList,
+  var AppInListView, TaskConfig, ThingInListView, offline, templateAppInList,
     __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -3088,12 +3553,15 @@
 
   ThingInListView = require('views/ThingInList');
 
+  TaskConfig = require('models/TaskConfig');
+
   offline = require('offline');
 
   module.exports = AppInListView = (function(_super) {
     __extends(AppInListView, _super);
 
     function AppInListView() {
+      this["export"] = __bind(this["export"], this);
       this.testapp = __bind(this.testapp, this);
       this.template = __bind(this.template, this);
       return AppInListView.__super__.constructor.apply(this, arguments);
@@ -3107,12 +3575,35 @@
       "click .do-edit-file": "edit",
       "click .do-delete-file": "delete",
       "click .do-save": "save",
-      "click .do-testapp": "testapp"
+      "click .do-testapp": "testapp",
+      "click .do-export": "export"
     };
 
     AppInListView.prototype.testapp = function(ev) {
       ev.preventDefault();
       return offline.testApp(this.model);
+    };
+
+    AppInListView.prototype["export"] = function(ev) {
+      var id, ix, model;
+      ev.preventDefault();
+      console.log("Export app " + this.model.id);
+      id = this.model.id;
+      ix = id.indexOf(':');
+      if (ix >= 0) {
+        id = id.substring(ix + 1);
+      }
+      id = 'taskconfig:' + id;
+      model = {
+        _id: id,
+        subjectId: this.model.id,
+        taskType: 'exportapp',
+        enabled: true
+      };
+      TaskConfig.addingThings[id] = model;
+      return window.router.navigate("#ContentType/taskconfig/add/" + (encodeURIComponent(id)), {
+        trigger: true
+      });
     };
 
     return AppInListView;
@@ -4670,6 +5161,268 @@
     return PlaceEditView;
 
   })(ThingEditView);
+
+}).call(this);
+}, "views/TaskConfigEdit": function(exports, require, module) {(function() {
+  var TaskConfigEditView, allthings, taskstates, templateTaskConfigEdit, templateTaskConfigEditState, templateTaskConfigEditSubject,
+    __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
+    __hasProp = {}.hasOwnProperty,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+  templateTaskConfigEdit = require('templates/TaskConfigEdit');
+
+  templateTaskConfigEditSubject = require('templates/TaskConfigEditSubject');
+
+  templateTaskConfigEditState = require('templates/TaskConfigEditState');
+
+  allthings = require('allthings');
+
+  taskstates = require('taskstates');
+
+  module.exports = TaskConfigEditView = (function(_super) {
+    __extends(TaskConfigEditView, _super);
+
+    function TaskConfigEditView(options) {
+      this.remove = __bind(this.remove, this);
+      this.close = __bind(this.close, this);
+      this.cancel = __bind(this.cancel, this);
+      this.submit = __bind(this.submit, this);
+      this.formToModel = __bind(this.formToModel, this);
+      this.render = __bind(this.render, this);
+      this.template = __bind(this.template, this);
+      this.renderState = __bind(this.renderState, this);
+      this.addState = __bind(this.addState, this);
+      this.addThing = __bind(this.addThing, this);
+      this.addThis = __bind(this.addThis, this);
+      this.initialize = __bind(this.initialize, this);
+      this.add = options.add != null ? options.add : options.add = false;
+      this.things = options.things != null ? options.things : options.things = null;
+      TaskConfigEditView.__super__.constructor.call(this, options);
+    }
+
+    TaskConfigEditView.prototype.tagName = 'div';
+
+    TaskConfigEditView.prototype.className = 'row thing-edit';
+
+    TaskConfigEditView.prototype.cancelled = false;
+
+    TaskConfigEditView.prototype.initialize = function() {
+      var ix;
+      if (this.add && (this.things != null)) {
+        if ((this.things.get(this.model.id)) != null) {
+          console.log("Add TaskConfigEdit -> edit (already exists)");
+          window.router.navigate("#ContentType/taskconfig/edit/" + (encodeURIComponent(this.model.id)), {
+            trigger: true,
+            replace: true
+          });
+          return;
+        }
+        console.log("Add TaskConfigEdit - listening in case exist");
+        this.listenTo(this.things, 'add', this.addThis);
+      } else {
+        console.log("TaskConfigEdit - Edit or real add? add=" + this.add + ", things=" + this.things);
+      }
+      this.allthings = allthings.get();
+      if (this.model.attributes.subjectId) {
+        this.subject = this.allthings.get(this.model.attributes.subjectId);
+        if (this.subject == null) {
+          console.log("Could not find subject " + this.model.attributes.subjectId + " on start-up; listening...");
+          this.listenTo(this.allthings, 'add', this.addThing);
+        } else {
+          console.log("taskconfig subject = " + this.subject);
+        }
+      }
+      this.taskstates = taskstates.get();
+      ix = this.model.id.indexOf(':');
+      this.taskstateid = 'taskstate:' + this.model.id.substring(ix + 1);
+      this.taskstate = this.taskstates.get(this.taskstateid);
+      if (this.taskstate == null) {
+        console.log("Could not find taskstate " + this.taskstateid + " on start-up; listening...");
+        return this.listenTo(this.taskstates, 'add', this.addState);
+      } else {
+        return console.log("taskconfig state = " + this.taskstate);
+      }
+    };
+
+    TaskConfigEditView.prototype.addThis = function(thing) {
+      if (thing.id === this.model.id) {
+        console.log("Found self in add " + thing.id);
+        return window.router.navigate("#ContentType/taskconfig/edit/" + (encodeURIComponent(this.model.id)), {
+          trigger: true,
+          replace: true
+        });
+      }
+    };
+
+    TaskConfigEditView.prototype.addThing = function(thing) {
+      if ((this.subject == null) && thing.id === this.model.attributes.subjectId) {
+        console.log("Found subject " + thing.id);
+        this.subject = thing;
+        $('.subject-holder', this.$el).html(templateTaskConfigEditSubject(this.subject.attributes));
+        return this.stopListening(this.allthings);
+      }
+    };
+
+    TaskConfigEditView.prototype.addState = function(state) {
+      if ((this.taskstate == null) && state.id === this.taskstateid) {
+        console.log("Found state " + state.id);
+        this.taskstate = state;
+        this.stopListening(this.taskstates);
+        this.listenTo(this.taskstate, 'change', this.renderState);
+        return this.renderState();
+      }
+    };
+
+    TaskConfigEditView.prototype.renderState = function() {
+      console.log("renderState " + this.taskstate.id);
+      if (this.taskstate) {
+        return $('.state-holder', this.$el).html(templateTaskConfigEditState(this.taskstate.attributes));
+      }
+    };
+
+    TaskConfigEditView.prototype.template = function(d) {
+      return templateTaskConfigEdit(d);
+    };
+
+    TaskConfigEditView.prototype.render = function() {
+      var stateHtml, subjectHtml;
+      console.log("render TaskConfigEdit " + this.model.attributes._id);
+      subjectHtml = null;
+      if (this.subject != null) {
+        subjectHtml = templateTaskConfigEditSubject(this.subject.attributes);
+      }
+      stateHtml = null;
+      if (this.taskstate != null) {
+        stateHtml = templateTaskConfigEditState(this.taskstate.attributes);
+      }
+      return this.$el.html(this.template(_.extend({
+        add: this.add,
+        subjectHtml: subjectHtml,
+        stateHtml: stateHtml
+      }, this.model.attributes)));
+    };
+
+    TaskConfigEditView.prototype.events = {
+      "submit": "submit",
+      "click .do-cancel": "cancel"
+    };
+
+    TaskConfigEditView.prototype.formToModel = function() {
+      var enabled, time;
+      enabled = $('input[name=enabled]').prop('checked');
+      time = new Date().getTime();
+      return this.model.set({
+        enabled: enabled,
+        lastChanged: time
+      });
+    };
+
+    TaskConfigEditView.prototype.submit = function(ev) {
+      console.log("submit...");
+      if (this.things) {
+        this.stopListening(this.things);
+      }
+      ev.preventDefault();
+      this.formToModel();
+      this.model.save();
+      if (this.add) {
+        return window.router.navigate("#ContentType/taskconfig/edit/" + (encodeURIComponent(this.model.id)), {
+          trigger: true,
+          replace: true
+        });
+      }
+    };
+
+    TaskConfigEditView.prototype.cancel = function() {
+      console.log("cancel");
+      this.cancelled = true;
+      if ((this.model.id != null) && (this.things != null)) {
+        console.log("try remove on cancel for " + this.model.id);
+      }
+      return this.close();
+    };
+
+    TaskConfigEditView.prototype.close = function() {
+      return window.history.back();
+    };
+
+    TaskConfigEditView.prototype.remove = function() {
+      return TaskConfigEditView.__super__.remove.call(this);
+    };
+
+    return TaskConfigEditView;
+
+  })(Backbone.View);
+
+}).call(this);
+}, "views/TaskConfigInList": function(exports, require, module) {(function() {
+  var TaskConfigInListView, ThingInListView, allthings, templateTaskConfigInList,
+    __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
+    __hasProp = {}.hasOwnProperty,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+  ThingInListView = require('views/ThingInList');
+
+  templateTaskConfigInList = require('templates/TaskConfigInList');
+
+  allthings = require('allthings');
+
+  module.exports = TaskConfigInListView = (function(_super) {
+    __extends(TaskConfigInListView, _super);
+
+    function TaskConfigInListView() {
+      this.template = __bind(this.template, this);
+      return TaskConfigInListView.__super__.constructor.apply(this, arguments);
+    }
+
+    TaskConfigInListView.prototype.initialize = function() {
+      return TaskConfigInListView.__super__.initialize.call(this);
+    };
+
+    TaskConfigInListView.prototype.template = function(d) {
+      var things;
+      if (!this.subject) {
+        if (this.model.attributes.subjectId != null) {
+          things = allthings.get();
+          this.subject = things.get(this.model.attributes.subjectId);
+        }
+      }
+      console.log("template TaskConfigInList subject=" + this.subject);
+      return templateTaskConfigInList(_.extend({
+        subject: this.subject != null ? this.subject.attributes : {}
+      }, d));
+    };
+
+    return TaskConfigInListView;
+
+  })(ThingInListView);
+
+}).call(this);
+}, "views/TaskConfigList": function(exports, require, module) {(function() {
+  var TaskConfigList, ThingListView, templateTaskConfigList,
+    __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
+    __hasProp = {}.hasOwnProperty,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+  ThingListView = require('views/ThingList');
+
+  templateTaskConfigList = require('templates/TaskConfigList');
+
+  module.exports = TaskConfigList = (function(_super) {
+    __extends(TaskConfigList, _super);
+
+    function TaskConfigList() {
+      this.template = __bind(this.template, this);
+      return TaskConfigList.__super__.constructor.apply(this, arguments);
+    }
+
+    TaskConfigList.prototype.template = function(d) {
+      return templateTaskConfigList(d);
+    };
+
+    return TaskConfigList;
+
+  })(ThingListView);
 
 }).call(this);
 }, "views/Thing": function(exports, require, module) {(function() {
