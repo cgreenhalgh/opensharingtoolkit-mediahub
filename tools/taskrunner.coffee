@@ -66,6 +66,7 @@ getChanges = () ->
     log "change config: #{changes.results.length} changes, last_seq #{changes.last_seq}"
     for change in changes.results
       updateConfig change.doc
+    setTimeout getChanges,100
 
 # couchdb config
 stdin = process.openStdin()
