@@ -10,7 +10,8 @@ RUN apt-get -y install nginx
 RUN apt-get -y install couchdb 
 RUN mkdir -p /var/run/couchdb
 
-RUN apt-get -y install npm
+RUN apt-get -y install npm nodejs-legacy
+
 
 EXPOSE 80
 EXPOSE 443

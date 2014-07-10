@@ -188,7 +188,7 @@ ddoc.filters.typeTaskstate = function(doc) {
 };
 // filter type Thing, i.e. anything for now!
 ddoc.filters.typeThing = function(doc) {
-  if (doc.type) {
+  if (doc.type && doc.type !== 'taskstate') {
     return true;
   }
   return false;
