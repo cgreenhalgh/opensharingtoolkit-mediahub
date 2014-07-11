@@ -17,6 +17,9 @@ module.exports.createThingType = (attributes, ThisThing, ThisThingList, ThisThin
 
   things = new ThisThingList()
 
+  contentType.init = () ->
+    things.fetch()
+
   #contentType.getThings = () -> things
 
   # Router entry point
@@ -24,8 +27,6 @@ module.exports.createThingType = (attributes, ThisThing, ThisThingList, ThisThin
     console.log "create #{contentType.id} view"
     thingsView = new ThisThingListView model:things
     thingsView.render()
-
-    things.fetch()
 
     return thingsView
 

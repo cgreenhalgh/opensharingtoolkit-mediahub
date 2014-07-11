@@ -4,4 +4,4 @@ module.exports = class App extends Backbone.Model
     title: ''
     description: ''
     type: 'app'
-    thingsIds: []    
+    thingIds: []    

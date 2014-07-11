@@ -256,7 +256,8 @@
       _.extend(Backbone.Model.prototype, BackbonePouch.attachments());
       contentTypes = new ContentTypeList();
       plugins.forEachContentType(function(ct, name) {
-        return contentTypes.add(ct);
+        contentTypes.add(ct);
+        return ct.init();
       });
       contentTypesView = new ContentTypeListView({
         model: contentTypes
@@ -349,7 +350,7 @@
       title: '',
       description: '',
       type: 'app',
-      thingsIds: []
+      thingIds: []
     };
 
     return App;
@@ -1510,6 +1511,9 @@
       });
     };
     things = new ThisThingList();
+    contentType.init = function() {
+      return things.fetch();
+    };
     contentType.createView = function() {
       var thingsView;
       console.log("create " + contentType.id + " view");
@@ -1517,7 +1521,6 @@
         model: things
       });
       thingsView.render();
-      things.fetch();
       return thingsView;
     };
     contentType.createActionView = function(action, id) {
@@ -2691,7 +2694,7 @@
     
       __out.push('</p> -->\n<p>');
     
-      __out.push(__sanitize((this.lastChanged != null) && this.lastChanged > this.lastConfigChanged ? 'Out of date; last done for request ' : 'Up to date with '));
+      __out.push(__sanitize(this.lastConfigChanged == null ? 'Not yet done' : (this.lastChanged != null) && this.lastChanged > this.lastConfigChanged ? 'Out of date; last done for request ' : 'Up to date with '));
     
       __out.push(__sanitize(this.lastConfigChanged != null ? new Date(this.lastConfigChanged).toUTCString() : void 0));
     
@@ -5326,6 +5329,7 @@
       this.renderState = __bind(this.renderState, this);
       this.addState = __bind(this.addState, this);
       this.addThing = __bind(this.addThing, this);
+      this.addToEdit = __bind(this.addToEdit, this);
       this.addThis = __bind(this.addThis, this);
       this.initialize = __bind(this.initialize, this);
       this.add = options.add != null ? options.add : options.add = false;
@@ -5340,7 +5344,7 @@
     TaskConfigEditView.prototype.cancelled = false;
 
     TaskConfigEditView.prototype.initialize = function() {
-      var ix;
+      var ix, thing;
       TaskConfigEditView.__super__.initialize.call(this);
       if (this.add && !this.model.attributes.taskType) {
         console.log("Block TaskConfig add without taskType (i.e. with addingThings data)");
@@ -5349,13 +5353,9 @@
         return;
       }
       if (this.add && (this.things != null)) {
-        if ((this.things.get(this.model.id)) != null) {
+        if ((thing = this.things.get(this.model.id)) != null) {
           console.log("Add TaskConfigEdit -> edit (already exists)");
-          setTimeout(this.remove, 0);
-          window.router.navigate("#ContentType/taskconfig/edit/" + (encodeURIComponent(this.model.id)), {
-            trigger: true,
-            replace: true
-          });
+          this.addToEdit(thing);
           return;
         }
         console.log("Add TaskConfigEdit - listening in case exist");
@@ -5388,10 +5388,18 @@
     TaskConfigEditView.prototype.addThis = function(thing) {
       if (thing.id === this.model.id) {
         console.log("Found self in add " + thing.id);
-        return window.router.navigate("#ContentType/taskconfig/edit/" + (encodeURIComponent(this.model.id)), {
-          trigger: true,
-          replace: true
-        });
+        return this.addToEdit(thing);
+      }
+    };
+
+    TaskConfigEditView.prototype.addToEdit = function(thing) {
+      setTimeout(this.remove, 0);
+      window.router.navigate("#ContentType/taskconfig/edit/" + (encodeURIComponent(this.model.id)), {
+        trigger: true,
+        replace: true
+      });
+      if (thing.attributes.taskType !== this.model.attributes.taskType || thing.attributes.subjectId !== this.model.attributes.subjectId) {
+        return alert("Sorry, that path is already assigned to this task");
       }
     };
 

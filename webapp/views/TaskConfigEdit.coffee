@@ -26,11 +26,9 @@ module.exports = class TaskConfigEditView extends Backbone.View
       return
     if @add and @things?
       # we might actually exist!
-      if (@things.get @model.id)?
+      if (thing=(@things.get @model.id))?
         console.log "Add TaskConfigEdit -> edit (already exists)"
-        setTimeout @remove,0
-        window.router.navigate "#ContentType/taskconfig/edit/#{encodeURIComponent @model.id}",
-          {trigger:true, replace: true}
+        @addToEdit(thing)
         return
       console.log "Add TaskConfigEdit - listening in case exist"
       @listenTo @things,'add', @addThis
@@ -60,8 +58,14 @@ module.exports = class TaskConfigEditView extends Backbone.View
   addThis: (thing) =>
     if thing.id==@model.id
       console.log "Found self in add #{thing.id}"
-      window.router.navigate "#ContentType/taskconfig/edit/#{encodeURIComponent @model.id}",
+      @addToEdit(thing)
+
+  addToEdit: (thing) =>
+    setTimeout @remove,0
+    window.router.navigate "#ContentType/taskconfig/edit/#{encodeURIComponent @model.id}",
           {trigger:true, replace: true}
+    if thing.attributes.taskType!=@model.attributes.taskType or thing.attributes.subjectId!=@model.attributes.subjectId
+      alert "Sorry, that path is already assigned to this task"
 
   addThing: (thing) =>
     if not @subject? and thing.id==@model.attributes.subjectId

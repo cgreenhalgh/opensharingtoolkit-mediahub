@@ -107,6 +107,7 @@ App =
     contentTypes = new ContentTypeList()
     plugins.forEachContentType (ct,name) ->
       contentTypes.add ct
+      ct.init()
     contentTypesView = new ContentTypeListView model:contentTypes
     contentTypesView.render()
     $('body').append contentTypesView.el
