@@ -145,7 +145,7 @@ schedule = () ->
     sendState next
     return
   # start?
-  if next.serverState.lastConfigChanged? and not next.targetState.lastConfigChanged?
+  if next.serverState? and next.serverState.lastConfigChanged? and not next.targetState.lastConfigChanged?
     next.targetState.lastConfigChanged = next.serverState.lastConfigChanged
   if next.targetState.lastConfigChanged >= next.config.lastChanged
     log "schedule: task #{next.id} done since last update #{next.targetState.lastConfigChanged} / #{next.config.lastChanged}"
@@ -256,12 +256,27 @@ doExportapp = (task) ->
     return taskError task, "App to export was not specified ('subjectId')"
   appurl = "#{dburl}/_design/app/_show/app/#{appId}"
   path = task.config.path
-  if path? 
-    if (path.indexOf '/')!=0
-      path = '/'+path
+  if path? and path.length!=0 
+    els = path.split '/'
+    path = ''
+    for el in els
+      if el=='.'
+        continue
+      if el=='..'
+        return taskError task,"Path must not contain '..': #{next.config.path}"
+      if el==''
+        return taskError task,"Path must not contain '//' or leading/trailing '/': #{next.config.path}"
+      path = path+"/#{el}"
+      if !fs.existsSync approot+path
+        log "create output dir #{approot+path}"
+        try
+          fs.mkdirSync approot+path
+        catch err
+          log "Could not create output dir #{approot+path}: #{err.message}"
+          return taskError task, "Could not create output directory #{path}: #{err.message}"
     path = approot+path
   else
-    path = approot
+    return taskError task, "Cannot output into top-level directory (empty path)"
   doSpawn task, "/usr/local/bin/coffee", ["#{__dirname}/exportapp.coffee",appurl], path
 
 doSpawn = (task, cmd, args, cwd) ->

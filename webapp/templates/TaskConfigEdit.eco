@@ -11,7 +11,7 @@
     <p>Will export app to <a href="<%= appurl %>"><%= appurl %></a></p>
 <% end %>
     <div class="subject-holder"><%- if @subjectHtml? then @subjectHtml %><%= if not @subjectHtml? then "(#{@subjectId})" %></div>
-    <p>Task was last updated/requested <%= if @lastChanged? then new Date(@lastChanged).toUTCString() %></p>
+    <p><%= if @lastChanged? then "Task was last updated/requested #{new Date(@lastChanged).toUTCString()}" else "Task is new" %></p>
     <div class="state-holder"><%- if @stateHtml? then @stateHtml %></div>
     <label>Active
       <input type="checkbox" name="enabled" value="enabled" <%= if @enabled then 'checked' else '' %>/>

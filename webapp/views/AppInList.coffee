@@ -2,6 +2,7 @@
 templateAppInList = require 'templates/AppInList'
 ThingInListView = require 'views/ThingInList'
 TaskConfig = require 'models/TaskConfig'
+addTaskConfig = require 'addTaskConfig'
 
 offline = require 'offline'
 
@@ -36,6 +37,7 @@ module.exports = class AppInListView extends ThingInListView
           subjectId: @model.id
           taskType: 'exportapp'
           enabled: true
-    TaskConfig.addingThings[id] = model       
-    window.router.navigate "#ContentType/taskconfig/add/#{encodeURIComponent id}", trigger:true
+    #TaskConfig.addingThings[id] = model
+    # need path!
+    addTaskConfig.add model     
 

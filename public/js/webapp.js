@@ -48,7 +48,69 @@
     };
   }
   return this.require.define;
-}).call(this)({"allthings": function(exports, require, module) {(function() {
+}).call(this)({"addTaskConfig": function(exports, require, module) {(function() {
+  var TaskConfig, currentModel, templateTaskConfigPathModal;
+
+  templateTaskConfigPathModal = require('templates/TaskConfigPathModal');
+
+  TaskConfig = require('models/TaskConfig');
+
+  currentModel = null;
+
+  $('#taskConfigPathModalHolder').on('closed.fndtn.reveal', function() {
+    console.log("taskConfigPathModalHolder closed.fndtn.reveal");
+    return currentModel = null;
+  });
+
+  $('#taskConfigPathModalHolder').on('opened.fndtn.reveal', function() {
+    console.log("taskConfigPathModalHolder opened");
+    return $('#taskConfigPathModalHolder input[name=path]').focus();
+  });
+
+  $('#taskConfigPathModalHolder').on('submit', function(ev) {
+    var path;
+    ev.preventDefault();
+    path = $('#taskConfigPathModalHolder input[name=path]').val();
+    console.log("do-ok " + currentModel._id + " '" + path + "'");
+    while ((path.indexOf('/')) === 0) {
+      path = path.substring(1);
+    }
+    while (path.length > 0 && (path.lastIndexOf('/')) === (path.length - 1)) {
+      path = path.substring(0, path.length - 1);
+    }
+    if (path.length === 0) {
+      return;
+    }
+    currentModel.path = path;
+    currentModel._id = "taskconfig:" + (encodeURIComponent(path));
+    $('#taskConfigPathModalHolder').foundation('reveal', 'close');
+    if ((currentModel != null) && currentModel._id) {
+      console.log("try #ContentType/taskconfig/add/" + (encodeURIComponent(currentModel._id)) + " with " + (JSON.stringify(currentModel)));
+      TaskConfig.addingThings[currentModel._id] = currentModel;
+      window.router.navigate("#ContentType/taskconfig/add/" + (encodeURIComponent(currentModel._id)), {
+        trigger: true
+      });
+      return currentModel = null;
+    } else {
+      return console.log("error: taskConfigPathModalHolder do-ok with null currentModel");
+    }
+  });
+
+  $('#taskConfigPathModalHolder').on('click', '.do-close', function(ev) {
+    console.log("taskConfigPathModalHolder do-close");
+    currentModel = null;
+    return $('#taskConfigPathModalHolder').foundation('reveal', 'close');
+  });
+
+  module.exports.add = function(attributes) {
+    console.log("addTaskConfig " + attributes._id);
+    currentModel = attributes;
+    $('#taskConfigPathModalHolder').html(templateTaskConfigPathModal(attributes));
+    return $('#taskConfigPathModalHolder').foundation('reveal', 'open');
+  };
+
+}).call(this);
+}, "allthings": function(exports, require, module) {(function() {
   var ThingList, singleton;
 
   ThingList = require('models/ThingList');
@@ -2549,9 +2611,9 @@
     
       __out.push(__sanitize(this.subjectHtml == null ? "(" + this.subjectId + ")" : void 0));
     
-      __out.push('</div>\n    <p>Task was last updated/requested ');
+      __out.push('</div>\n    <p>');
     
-      __out.push(__sanitize(this.lastChanged != null ? new Date(this.lastChanged).toUTCString() : void 0));
+      __out.push(__sanitize(this.lastChanged != null ? "Task was last updated/requested " + (new Date(this.lastChanged).toUTCString()) : "Task is new"));
     
       __out.push('</p>\n    <div class="state-holder">');
     
@@ -2737,6 +2799,10 @@
     
       __out.push(__sanitize(this.subject.title ? this.subject.title : this.subjectId));
     
+      __out.push('\n  ');
+    
+      __out.push(__sanitize((this.path != null) && this.path.length > 0 ? " to " + this.path : void 0));
+    
       __out.push('\n  <!--<a href="#" class="action-button do-delete right">Delete</a>-->\n  <a href="#" class="action-button do-edit-file right">Edit</a>\n  <!--<a href="#" class="action-button do-view right">View</a>-->\n</h4>\n');
     
     }).call(this);
@@ -2784,6 +2850,56 @@
   (function() {
     (function() {
       __out.push('\n  <div class="columns large-12 small-12">\n    <h2>Background Task List</h2>\n  </div>\n\n');
+    
+    }).call(this);
+    
+  }).call(__obj);
+  __obj.safe = __objSafe, __obj.escape = __escape;
+  return __out.join('');
+}}, "templates/TaskConfigPathModal": function(exports, require, module) {module.exports = function(__obj) {
+  if (!__obj) __obj = {};
+  var __out = [], __capture = function(callback) {
+    var out = __out, result;
+    __out = [];
+    callback.call(this);
+    result = __out.join('');
+    __out = out;
+    return __safe(result);
+  }, __sanitize = function(value) {
+    if (value && value.ecoSafe) {
+      return value;
+    } else if (typeof value !== 'undefined' && value != null) {
+      return __escape(value);
+    } else {
+      return '';
+    }
+  }, __safe, __objSafe = __obj.safe, __escape = __obj.escape;
+  __safe = __obj.safe = function(value) {
+    if (value && value.ecoSafe) {
+      return value;
+    } else {
+      if (!(typeof value !== 'undefined' && value != null)) value = '';
+      var result = new String(value);
+      result.ecoSafe = true;
+      return result;
+    }
+  };
+  if (!__escape) {
+    __escape = __obj.escape = function(value) {
+      return ('' + value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    };
+  }
+  (function() {
+    (function() {
+      __out.push('\n');
+    
+      __out.push('\n  <h2>Please specify the web server sub-directory</h2>\n  <form>\n    <input name="path" type="text" size="30" placeholder="directory name/path"/>\n    <input type="submit" value="OK"/>\n  </form>\n  <a class="close-reveal-modal">&#215;</a>\n');
+    
+      __out.push('\n\n');
     
     }).call(this);
     
@@ -3561,7 +3677,7 @@
 
 }).call(this);
 }, "views/AppInList": function(exports, require, module) {(function() {
-  var AppInListView, TaskConfig, ThingInListView, offline, templateAppInList,
+  var AppInListView, TaskConfig, ThingInListView, addTaskConfig, offline, templateAppInList,
     __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -3571,6 +3687,8 @@
   ThingInListView = require('views/ThingInList');
 
   TaskConfig = require('models/TaskConfig');
+
+  addTaskConfig = require('addTaskConfig');
 
   offline = require('offline');
 
@@ -3617,10 +3735,7 @@
         taskType: 'exportapp',
         enabled: true
       };
-      TaskConfig.addingThings[id] = model;
-      return window.router.navigate("#ContentType/taskconfig/add/" + (encodeURIComponent(id)), {
-        trigger: true
-      });
+      return addTaskConfig.add(model);
     };
 
     return AppInListView;
@@ -5226,6 +5341,13 @@
 
     TaskConfigEditView.prototype.initialize = function() {
       var ix;
+      TaskConfigEditView.__super__.initialize.call(this);
+      if (this.add && !this.model.attributes.taskType) {
+        console.log("Block TaskConfig add without taskType (i.e. with addingThings data)");
+        setTimeout(this.remove, 0);
+        alert("Sorry, there is not enough information to add a new task");
+        return;
+      }
       if (this.add && (this.things != null)) {
         if ((this.things.get(this.model.id)) != null) {
           console.log("Add TaskConfigEdit -> edit (already exists)");
@@ -5351,10 +5473,17 @@
       this.formToModel();
       this.model.save();
       if (this.add) {
-        return window.router.navigate("#ContentType/taskconfig/edit/" + (encodeURIComponent(this.model.id)), {
-          trigger: true,
-          replace: true
-        });
+        if (this.things) {
+          this.things.add(this.model);
+        }
+        return setTimeout((function(_this) {
+          return function() {
+            return window.router.navigate("#ContentType/taskconfig/edit/" + (encodeURIComponent(_this.model.id)), {
+              trigger: true,
+              replace: true
+            });
+          };
+        })(this), 0);
       } else {
         return this.render();
       }

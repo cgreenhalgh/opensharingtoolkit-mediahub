@@ -1,0 +1,10 @@
+<%# specify task config path %>
+<%# <div id="taskConfigPathModal" class="reveal-modal" data-reveal> %>
+  <h2>Please specify the web server sub-directory</h2>
+  <form>
+    <input name="path" type="text" size="30" placeholder="directory name/path"/>
+    <input type="submit" value="OK"/>
+  </form>
+  <a class="close-reveal-modal">&#215;</a>
+<%# </div> %>
+

@@ -18,6 +18,12 @@ module.exports = class TaskConfigEditView extends Backbone.View
   cancelled: false
 
   initialize: =>
+    super()
+    if @add and not @model.attributes.taskType
+      console.log "Block TaskConfig add without taskType (i.e. with addingThings data)"
+      setTimeout @remove, 0
+      alert "Sorry, there is not enough information to add a new task"
+      return
     if @add and @things?
       # we might actually exist!
       if (@things.get @model.id)?
@@ -113,8 +119,13 @@ module.exports = class TaskConfigEditView extends Backbone.View
     @formToModel()    
     @model.save()
     if @add
-      window.router.navigate "#ContentType/taskconfig/edit/#{encodeURIComponent @model.id}",
-          {trigger:true, replace: true}
+      # dangerous! shouldn't we wait for it to arrive?!
+      if @things
+        @things.add @model
+      setTimeout ()=>
+          window.router.navigate "#ContentType/taskconfig/edit/#{encodeURIComponent @model.id}",
+            {trigger:true, replace: true}
+        ,0
     else
       @render()
     #  window.router.navigate "#ContentType/taskconfig",
