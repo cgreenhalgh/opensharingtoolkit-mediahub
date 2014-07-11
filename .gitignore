@@ -10,3 +10,4 @@ docker/nginx/local-servers/*
 docker/nginx/server.crt
 docker/nginx/server.key
 docker/mediahub-*
+docker/nginxdev/html/*
