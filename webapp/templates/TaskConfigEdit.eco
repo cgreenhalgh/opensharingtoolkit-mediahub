@@ -5,6 +5,11 @@
 <form>
   <div class="columns large-12">
     <h4><%= if @taskType=='exportapp' then 'Publish app to webserver' else @taskType %></h4>
+<% if @taskType=='exportapp': %>
+<%# cf taskrunner.coffee %>
+<%   appurl = "#{window.mediahubconfig.publicurl}/apps/#{@path}/_design/app/_show/app/#{@subjectId}.html" %>
+    <p>Will export app to <a href="<%= appurl %>"><%= appurl %></a></p>
+<% end %>
     <div class="subject-holder"><%- if @subjectHtml? then @subjectHtml %><%= if not @subjectHtml? then "(#{@subjectId})" %></div>
     <p>Task was last updated/requested <%= if @lastChanged? then new Date(@lastChanged).toUTCString() %></p>
     <div class="state-holder"><%- if @stateHtml? then @stateHtml %></div>

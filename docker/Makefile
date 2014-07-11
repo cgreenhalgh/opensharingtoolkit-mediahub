@@ -13,6 +13,11 @@ mediahub/image.timestamp: cfengine/image.timestamp mediahub/Dockerfile mediahub/
 	sudo docker build -t mediahub mediahub
 	touch mediahub/image.timestamp
 
+nginxdev/image.timestamp: nginxdev/Dockerfile 
+	sudo docker build -t nginxdev nginxdev
+	touch nginxdev/image.timestamp
+
+
 #replace := $(shell echo $(NAME) | 's/#{NAME}/'$(NAME)'/g'
 # better password...!
 
@@ -106,4 +111,13 @@ nginx/container.timestamp: nginx/image.timestamp
 	sudo docker run --name nginx -h nginx -v $(ROOT_DIR)/nginx/local-servers:/etc/nginx/local-servers/ -d -p 80:80 -p 443:443 nginx
 	touch nginx/container.timestamp
 
+.PHONY: nginxdev
+
+nginxdev/container.timestamp: nginxdev/image.timestamp
+	-mkdir nginxdev/html
+	-mkdir nginxdev/html/public
+	sudo docker run --name nginxdev -h nginxdev -v $(ROOT_DIR)/nginxdev/html:/usr/share/nginx/html/:ro -d -p 8080:80 nginxdev
+	touch nginxdev/container.timestamp
+
+nginxdev: nginxdev/container.timestamp 
 

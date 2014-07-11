@@ -34,6 +34,10 @@ In terms of initial security and http request routing:
 
 Install docker as per [docker ubuntu install guide](https://docs.docker.com/installation/ubuntulinux/) - I am testing with 14.04, latest docker (currently 1.1.0).
 
+## Just testing...
+
+There is a docker image `nginxdev` and makefile target which is an nginx VM exposed on port `8080`, which serves content from `nginxdev/html`. This is intended for use in development, i.e. when running couchdb outside of the deployment framework of docker/nginx.
+
 ## Initialising couchdb
 
 You will need an initial version of the couchapp in a couchdb file in order to create/deploy instances.

@@ -1,8 +1,8 @@
 <h4>Task status:</h4>
-<div data-alert class="alert-box <%= if @state=='done' then 'success' else if @state=='disabled' then 'secondary' else if @state=='starting' then 'info' else if @state=='error' then 'alert' else 'warning'  %>">
+<div data-alert class="alert-box <%= if @state=='done' then ( if @lastChanged? and @lastChanged > @lastConfigChanged then 'warning' else 'success' ) else if @state=='disabled' then 'secondary' else if @state=='starting' then 'info' else if @state=='error' then 'alert' else 'warning'  %>">
   <%= @message %><br/>
   (Last update: <%= if @lastUpdate? then new Date(@lastUpdate).toUTCString() %>)
 </div>
 <!-- <p>State: <%= @state %></p> -->
-<p>Up to date with <%= if @lastConfigChanged? then new Date(@lastConfigChanged).toUTCString() %></p>
+<p><%= if @lastChanged? and @lastChanged > @lastConfigChanged then 'Out of date; last done for request ' else 'Up to date with ' %><%= if @lastConfigChanged? then new Date(@lastConfigChanged).toUTCString() %></p>
 

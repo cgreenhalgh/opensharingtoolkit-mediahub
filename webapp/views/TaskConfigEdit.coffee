@@ -75,7 +75,10 @@ module.exports = class TaskConfigEditView extends Backbone.View
   renderState: () =>
     console.log "renderState #{@taskstate.id}"
     if @taskstate
-      $('.state-holder', @$el).html templateTaskConfigEditState @taskstate.attributes
+      $('.state-holder', @$el).html @templateState @taskstate.attributes
+
+  templateState: (d) =>
+    templateTaskConfigEditState _.extend { lastChanged: @model.attributes.lastChanged }, d
 
   # syntax ok?? or (x...) -> 
   template: (d) =>
@@ -88,7 +91,7 @@ module.exports = class TaskConfigEditView extends Backbone.View
       subjectHtml = templateTaskConfigEditSubject @subject.attributes
     stateHtml = null
     if @taskstate?
-      stateHtml = templateTaskConfigEditState @taskstate.attributes
+      stateHtml = @templateState @taskstate.attributes
     @$el.html @template _.extend { add: @add, subjectHtml: subjectHtml, stateHtml: stateHtml }, @model.attributes
 
   events:
@@ -110,11 +113,13 @@ module.exports = class TaskConfigEditView extends Backbone.View
     @formToModel()    
     @model.save()
     if @add
-      #window.router.navigate "#ContentType/taskconfig",
-      #    {trigger:true, replace: true}
-      # test...
       window.router.navigate "#ContentType/taskconfig/edit/#{encodeURIComponent @model.id}",
           {trigger:true, replace: true}
+    else
+      @render()
+    #  window.router.navigate "#ContentType/taskconfig",
+    #    {trigger:true, replace: true}
+    # test...
 
   cancel: =>
     console.log "cancel"

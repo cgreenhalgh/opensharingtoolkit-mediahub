@@ -81,7 +81,17 @@ curl -X PUT http://admin:ADMINPASSWORD@127.0.0.1:5984/mediahub/_security --data-
 ```
 You can check out how things are going with futon, [http://127.0.0.1:5984/_utils](http://127.0.0.1:5984/_utils)
 
-Runs as server on port 9294 by default:
+
+Some function presume a web server is also running, e.g. for development try `docker/nginxdev` (see [notes](docker/deployment.md)). 
+
+Background tasks require `tools/taskrunner.coffee` to be running. This can be configured as a couchdb external process, or run directly:
 ```
-coffee index.coffee
+cd tools; echo "{}" | coffee taskrunner.coffee
 ```
+
+
+## deployment
+
+see [docker/deployment.md](docker/deployment.md).
+
+

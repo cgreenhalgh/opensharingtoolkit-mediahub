@@ -6,23 +6,58 @@ log = (msg) ->
   # compatible with couchdb external processes
   console.log JSON.stringify ["log", msg]
 
-# TODO fixme!
 dburl = 'http://127.0.0.1:5984/mediahub'
-approot = '/home/pszcmg/tmp/apps'
+publicwebdir = '../docker/nginxdev/html/public'
 MAX_PROCESS_TIME = 30000
 
-log "connect to #{dburl}"
-db = require('nano') dburl
-# errors?
+started = false
+# couchdb config
+stdin = process.openStdin()
+stdin.on 'data', (d) ->
+  log "config data: #{d}"
+  try
+    conf = JSON.parse d
+    if conf.dburl?
+      dburl = conf.dburl
+    if conf.publicwebdir?
+      publicwebdir = conf.publicwebdir
+    if !started
+      started = true
+      start()
 
+  catch err
+    log "Error reading config #{d}: #{err.message}"
+
+log 'requesting config like { "dburl": "http://127.0.0.1:5984/mediahub", "publicwebdir": "/..." }'
+console.log JSON.stringify ["get", "taskrunner"]
 
 tasks = {} 
 
-db.list
+db = null
+approot = null
+publicwebdirerror = true
+
+start = () ->
+  log "connect to #{dburl}"
+  db = require('nano') dburl
+  # errors?
+
+  log "using publicwebdir #{publicwebdir}"
+  if fs.existsSync publicwebdir
+    publicwebdirerror = false
+
+  approot = "#{publicwebdir}/apps"
+  if not fs.existsSync approot and not publicwebdirerror
+    try
+      fs.mkdirSync approot
+    catch err
+      log "Error creating approot #{approot}: #{err.message}"
+
+  db.list
     include_docs: true
     startkey: 'taskstate:'
     endkey: 'taskstate;'
-  , (err, body) ->
+   , (err, body) ->
     if err?
       log "state error #{err}"
     else
@@ -67,11 +102,6 @@ getChanges = () ->
     for change in changes.results
       updateConfig change.doc
     setTimeout getChanges,100
-
-# couchdb config
-stdin = process.openStdin()
-stdin.on 'data', (d) ->
-  log "config data: #{d}"
 
 updateConfig = (config) ->
   id = config._id
@@ -135,6 +165,8 @@ schedule = () ->
   activeTask = next
 
   if next.config.taskType=='exportapp'
+    if publicwebdirerror
+      return taskError next,"Public web directory not found (#{publicwebdir})"
     doExportapp next
   else if next.config.taskType=='dummy'
     # TEST...  

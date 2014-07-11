@@ -2520,6 +2520,8 @@
   }
   (function() {
     (function() {
+      var appurl;
+    
       __out.push('\n<div class="columns large-12">\n  <h2>');
     
       __out.push(__sanitize(this.add ? 'Add' : 'Edit'));
@@ -2528,7 +2530,20 @@
     
       __out.push(__sanitize(this.taskType === 'exportapp' ? 'Publish app to webserver' : this.taskType));
     
-      __out.push('</h4>\n    <div class="subject-holder">');
+      __out.push('</h4>\n');
+    
+      if (this.taskType === 'exportapp') {
+        __out.push('\n');
+        __out.push('\n');
+        appurl = "" + window.mediahubconfig.publicurl + "/apps/" + this.path + "/_design/app/_show/app/" + this.subjectId + ".html";
+        __out.push('\n    <p>Will export app to <a href="');
+        __out.push(__sanitize(appurl));
+        __out.push('">');
+        __out.push(__sanitize(appurl));
+        __out.push('</a></p>\n');
+      }
+    
+      __out.push('\n    <div class="subject-holder">');
     
       __out.push(this.subjectHtml != null ? this.subjectHtml : void 0);
     
@@ -2598,7 +2613,7 @@
     (function() {
       __out.push('<h4>Task status:</h4>\n<div data-alert class="alert-box ');
     
-      __out.push(__sanitize(this.state === 'done' ? 'success' : this.state === 'disabled' ? 'secondary' : this.state === 'starting' ? 'info' : this.state === 'error' ? 'alert' : 'warning'));
+      __out.push(__sanitize(this.state === 'done' ? ((this.lastChanged != null) && this.lastChanged > this.lastConfigChanged ? 'warning' : 'success') : this.state === 'disabled' ? 'secondary' : this.state === 'starting' ? 'info' : this.state === 'error' ? 'alert' : 'warning'));
     
       __out.push('">\n  ');
     
@@ -2612,7 +2627,9 @@
     
       __out.push(__sanitize(this.state));
     
-      __out.push('</p> -->\n<p>Up to date with ');
+      __out.push('</p> -->\n<p>');
+    
+      __out.push(__sanitize((this.lastChanged != null) && this.lastChanged > this.lastConfigChanged ? 'Out of date; last done for request ' : 'Up to date with '));
     
       __out.push(__sanitize(this.lastConfigChanged != null ? new Date(this.lastConfigChanged).toUTCString() : void 0));
     
@@ -5190,6 +5207,7 @@
       this.formToModel = __bind(this.formToModel, this);
       this.render = __bind(this.render, this);
       this.template = __bind(this.template, this);
+      this.templateState = __bind(this.templateState, this);
       this.renderState = __bind(this.renderState, this);
       this.addState = __bind(this.addState, this);
       this.addThing = __bind(this.addThing, this);
@@ -5277,8 +5295,14 @@
     TaskConfigEditView.prototype.renderState = function() {
       console.log("renderState " + this.taskstate.id);
       if (this.taskstate) {
-        return $('.state-holder', this.$el).html(templateTaskConfigEditState(this.taskstate.attributes));
+        return $('.state-holder', this.$el).html(this.templateState(this.taskstate.attributes));
       }
+    };
+
+    TaskConfigEditView.prototype.templateState = function(d) {
+      return templateTaskConfigEditState(_.extend({
+        lastChanged: this.model.attributes.lastChanged
+      }, d));
     };
 
     TaskConfigEditView.prototype.template = function(d) {
@@ -5294,7 +5318,7 @@
       }
       stateHtml = null;
       if (this.taskstate != null) {
-        stateHtml = templateTaskConfigEditState(this.taskstate.attributes);
+        stateHtml = this.templateState(this.taskstate.attributes);
       }
       return this.$el.html(this.template(_.extend({
         add: this.add,
@@ -5331,6 +5355,8 @@
           trigger: true,
           replace: true
         });
+      } else {
+        return this.render();
       }
     };
 

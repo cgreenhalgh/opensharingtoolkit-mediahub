@@ -12,5 +12,7 @@ if (ix>=0) {
     url = url.substring(0,ix);
 }
 window.mediahubconfig = {
-  dburl: url
+  dburl: url,
+  // default dev setting only!! e.g. docker nginxdev
+  publicurl: 'http://localhost:8080/public'
 };
