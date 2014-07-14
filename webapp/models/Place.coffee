@@ -11,3 +11,6 @@ module.exports = class Place extends Backbone.Model
     address: ''
     zoom: 0 # assuming single tile for now, i.e. 256x256
     
+  idAttribute: '_id'
+
+

@@ -4,13 +4,45 @@
 </div>
 <form>
   <div class="columns large-12">
-    <h4><%= if @taskType=='exportapp' then 'Publish app to webserver' else @taskType %></h4>
 <% if @taskType=='exportapp': %>
+    <h4>Publish app to webserver</h4>
 <%# cf taskrunner.coffee %>
 <%   appurl = "#{window.mediahubconfig.publicurl}/apps/#{@path}/_design/app/_show/app/#{@subjectId}.html" %>
-    <p>Will export app to <a href="<%= appurl %>"><%= appurl %></a></p>
+<%   tarfile = "#{window.mediahubconfig.publicurl}/#{@path}.tgz" %>
+    <p>Will export app to <a href="<%= appurl %>"><%= appurl %></a> (Tar file <a href="<%= tarfile %>"><%= tarfile %></a>)</p>
+
+<% else if @taskType=='tar': %>
+    <h4>Tar webserver directory</h4>
+<%# cf taskrunner.coffee %>
+<%   tarfile = "#{window.mediahubconfig.publicurl}/#{@path}.tgz" %>
+    <p>Will create tarfile <a href="<%= tarfile %>"><%= tarfile %></a></p>
+
+<% else if @taskType=='rm': %>
+    <h4>Delete webserver directory/file</h4>
+<%# cf taskrunner.coffee %>
+    <p>Will delete file/directory <%= @path %></p>
+
+<% else if @taskType=='backup': %>
+    <h4>Backup main Couch database to webserver directory</h4>
+<%# cf taskrunner.coffee %>
+<%   file = "#{window.mediahubconfig.publicurl}/#{@path}/mediahub.couch" %>
+<%   tarfile = "#{window.mediahubconfig.publicurl}/#{@path}.tgz" %>
+    <p>Will create DB file <a href="<%= file %>"><%= file %></a> (Tar file <a href="<%= tarfile %>"><%= tarfile %></a>)</p>
+
+<% else if @taskType=='checkpoint': %>
+    <h4>Update checkpoint of editable content in webserver directory</h4>
+<%# cf taskrunner.coffee %>
+<%   file = "#{window.mediahubconfig.publicurl}/#{@path}/" %>
+<%   tarfile = "#{window.mediahubconfig.publicurl}/#{@path}.tgz" %>
+    <p>Will update checkpoint in directory <a href="<%= file %>"><%= file %></a> (Tar file <a href="<%= tarfile %>"><%= tarfile %></a>)</a></p>
+
+<% else : %>
+     <h4><%= @taskType %></h4>
+     <p>(Whatever that is)</p>
 <% end %>
-    <div class="subject-holder"><%- if @subjectHtml? then @subjectHtml %><%= if not @subjectHtml? then "(#{@subjectId})" %></div>
+    <% if @subjectId? and @subjectId.length>0 : %>
+      <div class="subject-holder"><%- if @subjectHtml? then @subjectHtml %><%= if not @subjectHtml? then "(#{@subjectId})" %></div>
+    <% end %>
     <p><%= if @lastChanged? then "Task was last updated/requested #{new Date(@lastChanged).toUTCString()}" else "Task is new" %></p>
     <div class="state-holder"><%- if @stateHtml? then @stateHtml %></div>
     <label>Active

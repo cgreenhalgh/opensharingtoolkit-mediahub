@@ -12,9 +12,10 @@ $('#deleteModalHolder').on 'click', '.do-delete', (ev)->
   console.log "do-delete #{currentModel.id}"
   if currentModel?
     server.working 'destroy (delete)'
-    if false==currentModel.destroy 
+    if false==currentModel.destroy {
         success: server.success
         error: server.error
+      }
       console.log "destroy (delete) #{currentModel.id} returned false"
       server.success currentModel,null,{}
     currentModel = null

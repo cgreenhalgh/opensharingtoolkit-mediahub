@@ -97,9 +97,10 @@ module.exports = class FileEditView extends Backbone.View
     if @created and @model.id?
       console.log "try destroy on cancel for #{@model.id}"
       server.working 'destroy (cancel)'
-      if false==@model.destroy
+      if false==@model.destroy {
           success: server.success
           error: server.error
+        }
         console.log "destroy (cancel) #{@model.id} returned false"
         server.success @model,null,{}
     @close()
@@ -173,9 +174,10 @@ module.exports = class FileEditView extends Backbone.View
         if @cancelled
           console.log "attach on cancelled #{@model.id}"
           server.working 'destroy (loadBlob cancelled)'
-          if false==@model.destroy
+          if false==@model.destroy {
               success: server.success
               error: server.error
+            }
             console.log "destroy (loadBlob cancelled) #{@model.id} returned false"
             server.success @model,null,{}
           return

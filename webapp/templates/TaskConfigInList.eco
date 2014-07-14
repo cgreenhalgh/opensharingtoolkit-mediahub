@@ -1,8 +1,9 @@
 <%# TaskConfig in Thing List, takes Thing as data (title, description, ...) %>
-<h4 class="clearfix"><%= @taskType %>
+<h4 class="clearfix">
+  <%= if @path? and @path.length>0 then "#{@path}: " %>
+  <%= @taskType %>
   <%= if @subject.title then @subject.title else @subjectId %>
-  <%= if @path? and @path.length>0 then " to #{@path}" %>
-  <!--<a href="#" class="action-button do-delete right">Delete</a>-->
+  <a href="#" class="action-button do-delete-file right">Delete</a>
   <a href="#" class="action-button do-edit-file right">Edit</a>
   <!--<a href="#" class="action-button do-view right">View</a>-->
 </h4>

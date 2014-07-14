@@ -6,3 +6,7 @@ module.exports = class Booklet extends Backbone.Model
     type: 'booklet'
     coverurl: ''
     columns: []
+
+  idAttribute: '_id'
+
+

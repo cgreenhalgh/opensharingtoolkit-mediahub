@@ -5,6 +5,8 @@ module.exports = class Thing extends Backbone.Model
     description: ''
     #iconurl:
 
+  idAttribute: '_id'
+
   getSortValue: () =>
     typeName = ''
     if @id?

@@ -112,9 +112,10 @@ module.exports = class ThingRefListView extends Backbone.View
     for tr in @getSelectedModels()
       console.log "remove selected ThingRef #{tr.id}"
       server.working 'destroy (removeSelected)'
-      if false==tr.destroy
+      if false==tr.destroy {
           success: server.success
           error: server.error
+        }
         console.log "destroy (removeSelected) #{tr.id} returned false"
         server.success tr,null,{}
 

@@ -5,3 +5,7 @@ module.exports = class Place extends Backbone.Model
     description: ''
     type: 'list'
     thingsIds: []    
+
+  idAttribute: '_id'
+
+

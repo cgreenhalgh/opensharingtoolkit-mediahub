@@ -21,6 +21,8 @@ stdin.on 'data', (d) ->
       dburl = conf.dburl
     if conf.publicwebdir?
       publicwebdir = conf.publicwebdir
+      if publicwebdir.length>0 and (publicwebdir.lastIndexOf '/')==publicwebdir.length-1
+        publicwebdir = publicwebdir.substring 0, publicwebdir.length-1
     if !started
       started = true
       start()
@@ -34,7 +36,6 @@ console.log JSON.stringify ["get", "taskrunner"]
 tasks = {} 
 
 db = null
-approot = null
 publicwebdirerror = true
 
 start = () ->
@@ -45,13 +46,6 @@ start = () ->
   log "using publicwebdir #{publicwebdir}"
   if fs.existsSync publicwebdir
     publicwebdirerror = false
-
-  approot = "#{publicwebdir}/apps"
-  if not fs.existsSync approot and not publicwebdirerror
-    try
-      fs.mkdirSync approot
-    catch err
-      log "Error creating approot #{approot}: #{err.message}"
 
   db.list
     include_docs: true
@@ -164,10 +158,18 @@ schedule = () ->
   sendState next
   activeTask = next
 
+  if publicwebdirerror
+    return taskError next,"Public web directory not found (#{publicwebdir})"
   if next.config.taskType=='exportapp'
-    if publicwebdirerror
-      return taskError next,"Public web directory not found (#{publicwebdir})"
     doExportapp next
+  else if next.config.taskType=='tar'
+    doTar next
+  else if next.config.taskType=='rm'
+    doRm next
+  else if next.config.taskType=='backup'
+    doBackup next
+  else if next.config.taskType=='checkpoint'
+    doCheckpoint next
   else if next.config.taskType=='dummy'
     # TEST...  
     dummy = () ->
@@ -250,11 +252,7 @@ checkServerState = (task) ->
     task.serverState = doc
     sendState task
 
-doExportapp = (task) ->
-  appId = task.config.subjectId
-  if not appId?
-    return taskError task, "App to export was not specified ('subjectId')"
-  appurl = "#{dburl}/_design/app/_show/app/#{appId}"
+checkPath = (task,root,create) ->
   path = task.config.path
   if path? and path.length!=0 
     els = path.split '/'
@@ -267,30 +265,90 @@ doExportapp = (task) ->
       if el==''
         return taskError task,"Path must not contain '//' or leading/trailing '/': #{next.config.path}"
       path = path+"/#{el}"
-      if !fs.existsSync approot+path
-        log "create output dir #{approot+path}"
+      if !fs.existsSync root+path
+        if !create
+          taskError task, "Output directory does not exist: #{root+path}"
+          return null
+        log "create output dir #{root+path}"
         try
-          fs.mkdirSync approot+path
+          fs.mkdirSync root+path
         catch err
-          log "Could not create output dir #{approot+path}: #{err.message}"
-          return taskError task, "Could not create output directory #{path}: #{err.message}"
-    path = approot+path
+          log "Could not create output dir #{root+path}: #{err.message}"
+          taskError task, "Could not create output directory #{path}: #{err.message}"
+          return null
+    return root+path
   else
-    return taskError task, "Cannot output into top-level directory (empty path)"
-  doSpawn task, "/usr/local/bin/coffee", ["#{__dirname}/exportapp.coffee",appurl], path
+    taskError task, "Cannot output into top-level directory (empty path)"
+    return null
 
-doSpawn = (task, cmd, args, cwd) ->
+addTarTask = (task) ->
+  config = 
+    taskType: 'tar'
+    path: task.config.path
+    _id: "#{task.config._id}:tar"
+    lastChanged: new Date().getTime()
+    enabled: true
+  log "addTarTask #{config._id}"
+  updateConfig config
+
+doExportapp = (task) ->
+  appId = task.config.subjectId
+  if not appId?
+    return taskError task, "App to export was not specified ('subjectId')"
+  appurl = "#{dburl}/_design/app/_show/app/#{appId}"
+  if (path=(checkPath task, publicwebdir, true))?
+    doSpawn task, "/usr/local/bin/coffee", ["#{__dirname}/exportapp.coffee",appurl], path, true
+    addTarTask task
+
+doBackup = (task) ->
+  dbfile = "/var/lib/couchdb/mediahub.couch"
+  if (path=(checkPath task, publicwebdir, true))?
+    doSpawn task, "cp", [dbfile,path], path, true
+    addTarTask task
+
+doCheckpoint = (task) ->
+  if (path=(checkPath task, publicwebdir, true))?
+    doSpawn task, "/usr/local/bin/coffee", ["#{__dirname}/updatecache.coffee", ".", dburl], path, true
+    addTarTask task
+
+doTar = (task) ->
+  path = task.config.path
+  if (path=(checkPath task, publicwebdir, false))?
+    file = path
+    ix = file.lastIndexOf '/'
+    if ix>=0
+      file = file.substring ix+1
+    tar = "../#{file}.tgz"
+    doSpawn task, "tar", ["czf", tar, '.'], path, false
+
+doRm = (task) ->
+  path = task.config.path
+  if (path=(checkPath task, publicwebdir, false))?
+    if !fs.existsSync path
+      log "rm: file/path does not exist: #{path}"
+      return taskDone task
+    if (path.indexOf publicwebdir)==0
+      dir = path.substring publicwebdir.length+1
+      cwd = path.substring 0, publicwebdir.length
+      doSpawn task, "rm", ["-r", dir], cwd, false
+    else
+      return taskError task, "Could not split dir/path #{path}"
+
+doSpawn = (task, cmd, args, cwd, dolog) ->
   log "doSpawn: #{cmd} #{JSON.stringify args} in #{cwd}"
-  try
-    out = fs.openSync("#{cwd}/out.log", 'a')
-    err = fs.openSync("#{cwd}/out.log", 'a')
-  catch err
-    log "doSpawn: error opening log file #{err.message}"
-    return taskError task, "Unable to open task log files"
-
+  if dolog
+    try
+      out = fs.openSync("#{cwd}/out.log", 'a')
+      err = fs.openSync("#{cwd}/out.log", 'a')
+      logstdio = [ 'ignore', out, err ]
+    catch err
+      log "doSpawn: error opening log file #{err.message}"
+      return taskError task, "Unable to open task log files"
+  else
+    logstdio = ['ignore','ignore','ignore']
   try
     child = spawn cmd, args, 
-      stdio: [ 'ignore', out, err ]
+      stdio: logstdio
       env: process.env
       cwd: cwd
   catch err
@@ -298,14 +356,15 @@ doSpawn = (task, cmd, args, cwd) ->
     child = null
 
   # just in parent?!      
-  try
-    fs.close out,(err)->if err? then log "doSpawn: error closing out #{out}"
-  catch err
-    log "doSpawn: error closing out #{err.message}"
-  try
-    fs.close err,(err)->if err? then log "doSpawn: error closing err #{out}"
-  catch err
-    log "doSpawn: error closing out #{err.message}"
+  if dolog
+    try
+      fs.close out,(err)->if err? then log "doSpawn: error closing out #{out}"
+    catch err
+      log "doSpawn: error closing out #{err.message}"
+    try
+      fs.close err,(err)->if err? then log "doSpawn: error closing err #{out}"
+    catch err
+      log "doSpawn: error closing out #{err.message}"
 
   if not child?
     return taskError task, "Unable to run task script"

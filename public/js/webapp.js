@@ -83,6 +83,10 @@
     }
     currentModel.path = path;
     currentModel._id = "taskconfig:" + (encodeURIComponent(path));
+    if (currentModel._suffix != null) {
+      currentModel._id = currentModel._id + currentModel._suffix;
+      delete currentModel._suffix;
+    }
     $('#taskConfigPathModalHolder').foundation('reveal', 'close');
     if ((currentModel != null) && currentModel._id) {
       console.log("try #ContentType/taskconfig/add/" + (encodeURIComponent(currentModel._id)) + " with " + (JSON.stringify(currentModel)));
@@ -375,6 +379,8 @@
       thingIds: []
     };
 
+    App.prototype.idAttribute = '_id';
+
     return App;
 
   })(Backbone.Model);
@@ -443,6 +449,8 @@
       coverurl: '',
       columns: []
     };
+
+    Booklet.prototype.idAttribute = '_id';
 
     return Booklet;
 
@@ -560,6 +568,8 @@
       ratingCount: 0
     };
 
+    File.prototype.idAttribute = '_id';
+
     File.prototype.download = function(ev) {
       if (ev != null) {
         ev.preventDefault();
@@ -649,6 +659,8 @@
       description: '',
       type: 'html'
     };
+
+    Html.prototype.idAttribute = '_id';
 
     return Html;
 
@@ -763,6 +775,8 @@
       thingsIds: []
     };
 
+    Place.prototype.idAttribute = '_id';
+
     return Place;
 
   })(Backbone.Model);
@@ -836,6 +850,8 @@
       zoom: 0
     };
 
+    Place.prototype.idAttribute = '_id';
+
     return Place;
 
   })(Backbone.Model);
@@ -906,6 +922,8 @@
       enabled: true,
       lastChanged: null
     };
+
+    TaskConfig.prototype.idAttribute = '_id';
 
     return TaskConfig;
 
@@ -1014,6 +1032,8 @@
       title: '',
       description: ''
     };
+
+    Thing.prototype.idAttribute = '_id';
 
     Thing.prototype.getSortValue = function() {
       var ix, typeName;
@@ -2738,36 +2758,89 @@
   }
   (function() {
     (function() {
-      var appurl;
+      var appurl, file, tarfile;
     
       __out.push('\n<div class="columns large-12">\n  <h2>');
     
       __out.push(__sanitize(this.add ? 'Add' : 'Edit'));
     
-      __out.push(' Background Task</h2>\n</div>\n<form>\n  <div class="columns large-12">\n    <h4>');
-    
-      __out.push(__sanitize(this.taskType === 'exportapp' ? 'Publish app to webserver' : this.taskType));
-    
-      __out.push('</h4>\n');
+      __out.push(' Background Task</h2>\n</div>\n<form>\n  <div class="columns large-12">\n');
     
       if (this.taskType === 'exportapp') {
-        __out.push('\n');
+        __out.push('\n    <h4>Publish app to webserver</h4>\n');
         __out.push('\n');
         appurl = "" + window.mediahubconfig.publicurl + "/apps/" + this.path + "/_design/app/_show/app/" + this.subjectId + ".html";
+        __out.push('\n');
+        tarfile = "" + window.mediahubconfig.publicurl + "/" + this.path + ".tgz";
         __out.push('\n    <p>Will export app to <a href="');
         __out.push(__sanitize(appurl));
         __out.push('">');
         __out.push(__sanitize(appurl));
-        __out.push('</a></p>\n');
+        __out.push('</a> (Tar file <a href="');
+        __out.push(__sanitize(tarfile));
+        __out.push('">');
+        __out.push(__sanitize(tarfile));
+        __out.push('</a>)</p>\n\n');
+      } else if (this.taskType === 'tar') {
+        __out.push('\n    <h4>Tar webserver directory</h4>\n');
+        __out.push('\n');
+        tarfile = "" + window.mediahubconfig.publicurl + "/" + this.path + ".tgz";
+        __out.push('\n    <p>Will create tarfile <a href="');
+        __out.push(__sanitize(tarfile));
+        __out.push('">');
+        __out.push(__sanitize(tarfile));
+        __out.push('</a></p>\n\n');
+      } else if (this.taskType === 'rm') {
+        __out.push('\n    <h4>Delete webserver directory/file</h4>\n');
+        __out.push('\n    <p>Will delete file/directory ');
+        __out.push(__sanitize(this.path));
+        __out.push('</p>\n\n');
+      } else if (this.taskType === 'backup') {
+        __out.push('\n    <h4>Backup main Couch database to webserver directory</h4>\n');
+        __out.push('\n');
+        file = "" + window.mediahubconfig.publicurl + "/" + this.path + "/mediahub.couch";
+        __out.push('\n');
+        tarfile = "" + window.mediahubconfig.publicurl + "/" + this.path + ".tgz";
+        __out.push('\n    <p>Will create DB file <a href="');
+        __out.push(__sanitize(file));
+        __out.push('">');
+        __out.push(__sanitize(file));
+        __out.push('</a> (Tar file <a href="');
+        __out.push(__sanitize(tarfile));
+        __out.push('">');
+        __out.push(__sanitize(tarfile));
+        __out.push('</a>)</p>\n\n');
+      } else if (this.taskType === 'checkpoint') {
+        __out.push('\n    <h4>Update checkpoint of editable content in webserver directory</h4>\n');
+        __out.push('\n');
+        file = "" + window.mediahubconfig.publicurl + "/" + this.path + "/";
+        __out.push('\n');
+        tarfile = "" + window.mediahubconfig.publicurl + "/" + this.path + ".tgz";
+        __out.push('\n    <p>Will update checkpoint in directory <a href="');
+        __out.push(__sanitize(file));
+        __out.push('">');
+        __out.push(__sanitize(file));
+        __out.push('</a> (Tar file <a href="');
+        __out.push(__sanitize(tarfile));
+        __out.push('">');
+        __out.push(__sanitize(tarfile));
+        __out.push('</a>)</a></p>\n\n');
+      } else {
+        __out.push('\n     <h4>');
+        __out.push(__sanitize(this.taskType));
+        __out.push('</h4>\n     <p>(Whatever that is)</p>\n');
       }
     
-      __out.push('\n    <div class="subject-holder">');
+      __out.push('\n    ');
     
-      __out.push(this.subjectHtml != null ? this.subjectHtml : void 0);
+      if ((this.subjectId != null) && this.subjectId.length > 0) {
+        __out.push('\n      <div class="subject-holder">');
+        __out.push(this.subjectHtml != null ? this.subjectHtml : void 0);
+        __out.push(__sanitize(this.subjectHtml == null ? "(" + this.subjectId + ")" : void 0));
+        __out.push('</div>\n    ');
+      }
     
-      __out.push(__sanitize(this.subjectHtml == null ? "(" + this.subjectId + ")" : void 0));
-    
-      __out.push('</div>\n    <p>');
+      __out.push('\n    <p>');
     
       __out.push(__sanitize(this.lastChanged != null ? "Task was last updated/requested " + (new Date(this.lastChanged).toUTCString()) : "Task is new"));
     
@@ -2947,7 +3020,11 @@
   }
   (function() {
     (function() {
-      __out.push('\n<h4 class="clearfix">');
+      __out.push('\n<h4 class="clearfix">\n  ');
+    
+      __out.push(__sanitize((this.path != null) && this.path.length > 0 ? "" + this.path + ": " : void 0));
+    
+      __out.push('\n  ');
     
       __out.push(__sanitize(this.taskType));
     
@@ -2955,11 +3032,7 @@
     
       __out.push(__sanitize(this.subject.title ? this.subject.title : this.subjectId));
     
-      __out.push('\n  ');
-    
-      __out.push(__sanitize((this.path != null) && this.path.length > 0 ? " to " + this.path : void 0));
-    
-      __out.push('\n  <!--<a href="#" class="action-button do-delete right">Delete</a>-->\n  <a href="#" class="action-button do-edit-file right">Edit</a>\n  <!--<a href="#" class="action-button do-view right">View</a>-->\n</h4>\n');
+      __out.push('\n  <a href="#" class="action-button do-delete-file right">Delete</a>\n  <a href="#" class="action-button do-edit-file right">Edit</a>\n  <!--<a href="#" class="action-button do-view right">View</a>-->\n</h4>\n');
     
     }).call(this);
     
@@ -3005,7 +3078,7 @@
   }
   (function() {
     (function() {
-      __out.push('\n  <div class="columns large-12 small-12">\n    <h2>Background Task List</h2>\n  </div>\n\n');
+      __out.push('\n  <div class="columns large-12 small-12">\n    <h2>Background Task List</h2>\n    <a href="#" class="button do-add-task-tar">Tar...</a>\n    <a href="#" class="button do-add-task-rm">Rm -f...</a>\n    <a href="#" class="button do-add-task-backup">Backup...</a>\n    <a href="#" class="button do-add-task-checkpoint">Checkpoint...</a>\n  </div>\n\n');
     
     }).call(this);
     
@@ -3574,14 +3647,13 @@
     console.log("do-delete " + currentModel.id);
     if (currentModel != null) {
       server.working('destroy (delete)');
-      if (false === currentModel.destroy) {
-        ({
-          success: server.success,
-          error: server.error
-        });
+      if (false === currentModel.destroy({
+        success: server.success,
+        error: server.error
+      })) {
+        console.log("destroy (delete) " + currentModel.id + " returned false");
+        server.success(currentModel, null, {});
       }
-      console.log("destroy (delete) " + currentModel.id + " returned false");
-      server.success(currentModel, null, {});
       currentModel = null;
     }
     return $('#deleteModalHolder').foundation('reveal', 'close');
@@ -4318,14 +4390,13 @@
       if (this.created && (this.model.id != null)) {
         console.log("try destroy on cancel for " + this.model.id);
         server.working('destroy (cancel)');
-        if (false === this.model.destroy) {
-          ({
-            success: server.success,
-            error: server.error
-          });
+        if (false === this.model.destroy({
+          success: server.success,
+          error: server.error
+        })) {
+          console.log("destroy (cancel) " + this.model.id + " returned false");
+          server.success(this.model, null, {});
         }
-        console.log("destroy (cancel) " + this.model.id + " returned false");
-        server.success(this.model, null, {});
       }
       return this.close();
     };
@@ -4408,14 +4479,13 @@
           if (_this.cancelled) {
             console.log("attach on cancelled " + _this.model.id);
             server.working('destroy (loadBlob cancelled)');
-            if (false === _this.model.destroy) {
-              ({
-                success: server.success,
-                error: server.error
-              });
+            if (false === _this.model.destroy({
+              success: server.success,
+              error: server.error
+            })) {
+              console.log("destroy (loadBlob cancelled) " + _this.model.id + " returned false");
+              server.success(_this.model, null, {});
             }
-            console.log("destroy (loadBlob cancelled) " + _this.model.id + " returned false");
-            server.success(_this.model, null, {});
             return;
           }
           if (err != null) {
@@ -5788,7 +5858,7 @@
 
 }).call(this);
 }, "views/TaskConfigList": function(exports, require, module) {(function() {
-  var TaskConfigList, ThingListView, templateTaskConfigList,
+  var TaskConfigList, ThingListView, addTaskConfig, templateTaskConfigList,
     __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -5797,16 +5867,56 @@
 
   templateTaskConfigList = require('templates/TaskConfigList');
 
+  addTaskConfig = require('addTaskConfig');
+
   module.exports = TaskConfigList = (function(_super) {
     __extends(TaskConfigList, _super);
 
     function TaskConfigList() {
+      this.addTaskCheckpoint = __bind(this.addTaskCheckpoint, this);
+      this.addTaskBackup = __bind(this.addTaskBackup, this);
+      this.addTaskRm = __bind(this.addTaskRm, this);
+      this.addTaskTar = __bind(this.addTaskTar, this);
       this.template = __bind(this.template, this);
       return TaskConfigList.__super__.constructor.apply(this, arguments);
     }
 
     TaskConfigList.prototype.template = function(d) {
       return templateTaskConfigList(d);
+    };
+
+    TaskConfigList.prototype.events = {
+      "click .do-add-task-tar": "addTaskTar",
+      "click .do-add-task-rm": "addTaskRm",
+      "click .do-add-task-backup": "addTaskBackup",
+      "click .do-add-task-checkpoint": "addTaskCheckpoint"
+    };
+
+    TaskConfigList.prototype.addTask = function(ev, taskType, _suffix) {
+      var model;
+      ev.preventDefault();
+      model = {
+        taskType: taskType,
+        enabled: true,
+        _suffix: _suffix
+      };
+      return addTaskConfig.add(model);
+    };
+
+    TaskConfigList.prototype.addTaskTar = function(ev) {
+      return this.addTask(ev, 'tar', ':tar');
+    };
+
+    TaskConfigList.prototype.addTaskRm = function(ev) {
+      return this.addTask(ev, 'rm', ':rm');
+    };
+
+    TaskConfigList.prototype.addTaskBackup = function(ev) {
+      return this.addTask(ev, 'backup');
+    };
+
+    TaskConfigList.prototype.addTaskCheckpoint = function(ev) {
+      return this.addTask(ev, 'checkpoint');
     };
 
     return TaskConfigList;
@@ -6489,14 +6599,13 @@
       ev.preventDefault();
       console.log("remove " + this.model.attributes._id);
       server.working('destroy (removeFromList)');
-      if (false === this.model.destroy) {
-        ({
-          success: server.success,
-          error: server.error
-        });
+      if (false === this.model.destroy({
+        success: server.success,
+        error: server.error
+      })) {
+        console.log("destroy (removeFromList) " + this.model.attributes._id + " returned false");
+        return server.success(this.model, null, {});
       }
-      console.log("destroy (removeFromList) " + this.model.attributes._id + " returned false");
-      return server.success(this.model, null, {});
     };
 
     return ThingRefInListView;
@@ -6703,14 +6812,15 @@
         tr = _ref[_i];
         console.log("remove selected ThingRef " + tr.id);
         server.working('destroy (removeSelected)');
-        if (false === tr.destroy) {
-          ({
-            success: server.success,
-            error: server.error
-          });
+        if (false === tr.destroy({
+          success: server.success,
+          error: server.error
+        })) {
+          console.log("destroy (removeSelected) " + tr.id + " returned false");
+          _results.push(server.success(tr, null, {}));
+        } else {
+          _results.push(void 0);
         }
-        console.log("destroy (removeSelected) " + tr.id + " returned false");
-        _results.push(server.success(tr, null, {}));
       }
       return _results;
     };

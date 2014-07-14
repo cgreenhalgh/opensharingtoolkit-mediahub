@@ -6,3 +6,6 @@ module.exports = class Html extends Backbone.Model
     type: 'html'
     #html
 
+  idAttribute: '_id'
+
+

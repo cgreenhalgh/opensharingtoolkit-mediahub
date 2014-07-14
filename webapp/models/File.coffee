@@ -7,6 +7,8 @@ module.exports = class File extends Backbone.Model
     ratingSum: 0
     ratingCount: 0
 
+  idAttribute: '_id'
+
   download: (ev) =>
     if ev?
       ev.preventDefault()

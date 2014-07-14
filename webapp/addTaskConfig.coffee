@@ -31,6 +31,9 @@ $('#taskConfigPathModalHolder').on 'submit', (ev)->
   # mutate!
   currentModel.path = path
   currentModel._id = "taskconfig:#{encodeURIComponent path}"
+  if currentModel._suffix?
+    currentModel._id = currentModel._id+currentModel._suffix
+    delete currentModel._suffix
 
   $('#taskConfigPathModalHolder').foundation 'reveal', 'close'
 

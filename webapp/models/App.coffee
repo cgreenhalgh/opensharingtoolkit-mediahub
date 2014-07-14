@@ -5,3 +5,7 @@ module.exports = class App extends Backbone.Model
     description: ''
     type: 'app'
     thingIds: []    
+
+  idAttribute: '_id'
+
+

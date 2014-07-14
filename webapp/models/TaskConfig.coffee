@@ -9,3 +9,6 @@ module.exports = class TaskConfig extends Backbone.Model
     enabled: true
     lastChanged: null
 
+  idAttribute: '_id'
+
+

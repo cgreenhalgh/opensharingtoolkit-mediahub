@@ -37,9 +37,10 @@ module.exports = class ThingRefInListView extends Backbone.View
     # TODO
     console.log "remove #{@model.attributes._id}"
     server.working 'destroy (removeFromList)'
-    if false==@model.destroy
+    if false==@model.destroy {
         success: server.success
         error: server.error
+      }
       console.log "destroy (removeFromList) #{@model.attributes._id} returned false"
       server.success @model,null,{}
 
