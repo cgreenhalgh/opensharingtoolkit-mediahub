@@ -1,6 +1,6 @@
 # list of TaskState, esp singleton
 
-module.exports = class TaskConfigList extends Backbone.Collection
+module.exports = class TaskStaListet extends Backbone.Collection
 
   pouch: 
     fetch: 'query' 

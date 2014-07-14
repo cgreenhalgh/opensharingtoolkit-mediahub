@@ -82,6 +82,8 @@ module.exports = class TaskConfigEditView extends Backbone.View
       @stopListening @taskstates
       @listenTo @taskstate, 'change', @renderState
       @renderState()
+    else
+      console.log "Igore new state #{state.id} (@taskstatid=#{@taskstateid}, @taskstate=#{@taskstate})"
 
   renderState: () =>
     console.log "renderState #{@taskstate.id}"

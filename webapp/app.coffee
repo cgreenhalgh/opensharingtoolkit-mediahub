@@ -6,6 +6,7 @@ db = require 'mydb'
 plugins = require 'plugins'
 server = require 'server'
 allthings = require 'allthings'
+taskstates = require 'taskstates'
 
 # for registration of plugins
 require 'plugins/File'
@@ -121,6 +122,7 @@ App =
     
     Backbone.history.start()
     allthings.get()
+    taskstates.get()
     server.success null,null,{}
 
 module.exports = App

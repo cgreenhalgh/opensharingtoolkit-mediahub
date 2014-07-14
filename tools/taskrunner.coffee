@@ -330,7 +330,7 @@ doSpawn = (task, cmd, args, cwd) ->
         taskError task, "Script exiting reporting error #{code}"
     state[0] = 'closed'
       
-killTask = (status,child,task) ->
+killTask = (state,child,task) ->
   log "killing task #{task.id}"
   state[0]='killing'
   taskError task,"The task has taken too long - it probably isn't working"

@@ -134,7 +134,7 @@
 
 }).call(this);
 }, "app": function(exports, require, module) {(function() {
-  var App, ContentTypeList, ContentTypeListView, Router, allthings, config, db, plugins, server, tempViews,
+  var App, ContentTypeList, ContentTypeListView, Router, allthings, config, db, plugins, server, taskstates, tempViews,
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
@@ -149,6 +149,8 @@
   server = require('server');
 
   allthings = require('allthings');
+
+  taskstates = require('taskstates');
 
   require('plugins/File');
 
@@ -279,6 +281,7 @@
       window.router = router;
       Backbone.history.start();
       allthings.get();
+      taskstates.get();
       return server.success(null, null, {});
     }
   };
@@ -954,18 +957,18 @@
 
 }).call(this);
 }, "models/TaskStateList": function(exports, require, module) {(function() {
-  var TaskConfigList,
+  var TaskStaListet,
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
-  module.exports = TaskConfigList = (function(_super) {
-    __extends(TaskConfigList, _super);
+  module.exports = TaskStaListet = (function(_super) {
+    __extends(TaskStaListet, _super);
 
-    function TaskConfigList() {
-      return TaskConfigList.__super__.constructor.apply(this, arguments);
+    function TaskStaListet() {
+      return TaskStaListet.__super__.constructor.apply(this, arguments);
     }
 
-    TaskConfigList.prototype.pouch = {
+    TaskStaListet.prototype.pouch = {
       fetch: 'query',
       listen: true,
       options: {
@@ -983,12 +986,12 @@
       }
     };
 
-    TaskConfigList.prototype.parse = function(result) {
+    TaskStaListet.prototype.parse = function(result) {
       console.log("parse " + (JSON.stringify(result)));
       return _.pluck(result.rows, 'doc');
     };
 
-    return TaskConfigList;
+    return TaskStaListet;
 
   })(Backbone.Collection);
 
@@ -5631,6 +5634,8 @@
         this.stopListening(this.taskstates);
         this.listenTo(this.taskstate, 'change', this.renderState);
         return this.renderState();
+      } else {
+        return console.log("Igore new state " + state.id + " (@taskstatid=" + this.taskstateid + ", @taskstate=" + this.taskstate + ")");
       }
     };
 

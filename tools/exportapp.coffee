@@ -344,6 +344,8 @@ readTextFile = (surl,fn) ->
         fn err
  
 fix_relative_url = (url,path) ->
+  # HACK!
+  url = appurl
   if path.indexOf( 'http:' ) ==0 or path.indexOf( 'https:' ) == 0 
     return path
 
