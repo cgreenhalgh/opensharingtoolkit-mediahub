@@ -3,6 +3,7 @@
 ImageList = require 'models/ImageList'
 ImageSelectListView = require 'views/ImageSelectList'
 getParams = require 'getParams'
+server = require 'server'
 
 db = require 'mydb'
 
@@ -23,7 +24,10 @@ App =
 
     fileList = new ImageList()
     try 
-      fileList.fetch()
+      server.working 'fileList'
+      fileList.fetch
+        success: server.success
+        error: server.error
     catch err
       alert "Error getting files: #{err.message}"
 

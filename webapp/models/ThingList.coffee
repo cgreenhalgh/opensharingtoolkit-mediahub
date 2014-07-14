@@ -6,8 +6,9 @@ module.exports = class ThingList extends Backbone.Collection
   model: Thing
 
   pouch: 
-    fetch: 'query' 
-    listen: true
+    fetch: 'query'
+    # NB NOT live for now 
+    listen: false
     options:
       query:
         include_docs: true

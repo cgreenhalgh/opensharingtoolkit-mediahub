@@ -1,5 +1,7 @@
 # ThingEdit View
 templateThingEdit = require 'templates/ThingEdit'
+server = require 'server'
+allthings = require 'allthings'
 
 # ckeditor image select callback handling
 window.mediahubCallbacks = {}
@@ -53,8 +55,21 @@ module.exports = class ThingEditView extends Backbone.View
   submit: (ev)=>
     console.log "submit..."
     ev.preventDefault()
-    @formToModel()    
-    @model.save()
+    @formToModel()  
+    # debug failing saves...
+    if !@model.isValid()
+      console.log "submit not valid: #{@model.validationError}"
+
+    server.working 'save Thing'  
+    if false==@model.save null, {
+        success: server.success
+        error: server.error
+      }
+      server.error @model,'Save validation error (save Thing)'
+    if @add
+      if @things
+        @things.add @model
+      allthings.get().add @model
     @close()
 
   cancel: =>

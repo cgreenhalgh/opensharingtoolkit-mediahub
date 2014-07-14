@@ -1,6 +1,8 @@
 # Thing generic type stuff
 plugins = require 'plugins'
 ContentType = require 'models/ContentType'
+#server = require 'server'
+allthings = require 'allthings'
 
 module.exports.createThingType = (attributes, ThisThing, ThisThingList, ThisThingListView, ThisThingInListView, ThisThingView, ThisThingEditView) ->
   things = null
@@ -18,7 +20,23 @@ module.exports.createThingType = (attributes, ThisThing, ThisThingList, ThisThin
   things = new ThisThingList()
 
   contentType.init = () ->
-    things.fetch()
+    ats = allthings.get()
+    addThing = (thing,coll,options) ->
+      if thing.attributes.type!=contentType.id
+        return
+      if  not things.get thing.id
+        console.log "clone #{thing.id} from allthings to #{contentType.id} List"
+        tt = new ThisThing thing.attributes
+        things.add tt
+        setTimeout (()->coll.remove thing; coll.add tt), 0
+    ats.listenTo ats,'add', addThing
+    for thing in ats
+      addThing thing
+
+    #server.working "fetch #{contentType.id}"
+    #things.fetch
+    #  success: server.success
+    #  error: server.error
 
   #contentType.getThings = () -> things
 

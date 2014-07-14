@@ -4,6 +4,7 @@ module.exports = class TaskConfigList extends Backbone.Collection
 
   pouch: 
     fetch: 'query' 
+    # NB LIVE!
     listen: true
     options:
       query: 

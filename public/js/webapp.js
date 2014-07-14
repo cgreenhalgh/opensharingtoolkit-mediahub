@@ -111,9 +111,11 @@
 
 }).call(this);
 }, "allthings": function(exports, require, module) {(function() {
-  var ThingList, singleton;
+  var ThingList, server, singleton;
 
   ThingList = require('models/ThingList');
+
+  server = require('server');
 
   singleton = null;
 
@@ -121,14 +123,18 @@
     if (singleton == null) {
       console.log("initialising ThingList for allthings");
       singleton = new ThingList();
-      singleton.fetch();
+      server.working('allthings');
+      singleton.fetch({
+        success: server.success,
+        error: server.error
+      });
     }
     return singleton;
   };
 
 }).call(this);
 }, "app": function(exports, require, module) {(function() {
-  var App, ContentTypeList, ContentTypeListView, Router, config, db, plugins, tempViews,
+  var App, ContentTypeList, ContentTypeListView, Router, allthings, config, db, plugins, server, tempViews,
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
@@ -139,6 +145,10 @@
   db = require('mydb');
 
   plugins = require('plugins');
+
+  server = require('server');
+
+  allthings = require('allthings');
 
   require('plugins/File');
 
@@ -241,6 +251,7 @@
     init: function() {
       var contentTypes, contentTypesView, router;
       console.log("App starting...");
+      server.working('starting up');
       Backbone.sync = BackbonePouch.sync({
         db: db,
         error: function(err) {
@@ -266,7 +277,9 @@
       $('body').append(contentTypesView.el);
       router = new Router;
       window.router = router;
-      return Backbone.history.start();
+      Backbone.history.start();
+      allthings.get();
+      return server.success(null, null, {});
     }
   };
 
@@ -274,13 +287,15 @@
 
 }).call(this);
 }, "filebrowse": function(exports, require, module) {(function() {
-  var App, ImageList, ImageSelectListView, db, getParams;
+  var App, ImageList, ImageSelectListView, db, getParams, server;
 
   ImageList = require('models/ImageList');
 
   ImageSelectListView = require('views/ImageSelectList');
 
   getParams = require('getParams');
+
+  server = require('server');
 
   db = require('mydb');
 
@@ -299,7 +314,11 @@
       _.extend(Backbone.Model.prototype, BackbonePouch.attachments());
       fileList = new ImageList();
       try {
-        fileList.fetch();
+        server.working('fileList');
+        fileList.fetch({
+          success: server.success,
+          error: server.error
+        });
       } catch (_error) {
         err = _error;
         alert("Error getting files: " + err.message);
@@ -1028,7 +1047,7 @@
 
     ThingList.prototype.pouch = {
       fetch: 'query',
-      listen: true,
+      listen: false,
       options: {
         query: {
           include_docs: true,
@@ -1490,11 +1509,13 @@
 
 }).call(this);
 }, "plugins/ThingBuilder": function(exports, require, module) {(function() {
-  var ContentType, plugins;
+  var ContentType, allthings, plugins;
 
   plugins = require('plugins');
 
   ContentType = require('models/ContentType');
+
+  allthings = require('allthings');
 
   module.exports.createThingType = function(attributes, ThisThing, ThisThingList, ThisThingListView, ThisThingInListView, ThisThingView, ThisThingEditView) {
     var contentType, things;
@@ -1512,7 +1533,30 @@
     };
     things = new ThisThingList();
     contentType.init = function() {
-      return things.fetch();
+      var addThing, ats, thing, _i, _len, _results;
+      ats = allthings.get();
+      addThing = function(thing, coll, options) {
+        var tt;
+        if (thing.attributes.type !== contentType.id) {
+          return;
+        }
+        if (!things.get(thing.id)) {
+          console.log("clone " + thing.id + " from allthings to " + contentType.id + " List");
+          tt = new ThisThing(thing.attributes);
+          things.add(tt);
+          return setTimeout((function() {
+            coll.remove(thing);
+            return coll.add(tt);
+          }), 0);
+        }
+      };
+      ats.listenTo(ats, 'add', addThing);
+      _results = [];
+      for (_i = 0, _len = ats.length; _i < _len; _i++) {
+        thing = ats[_i];
+        _results.push(addThing(thing));
+      }
+      return _results;
     };
     contentType.createView = function() {
       var thingsView;
@@ -1585,10 +1629,54 @@
   };
 
 }).call(this);
+}, "server": function(exports, require, module) {(function() {
+  var templateErrorModal, workingCount;
+
+  templateErrorModal = require('templates/ErrorModal');
+
+  workingCount = 0;
+
+  module.exports.working = function(msg) {
+    workingCount++;
+    console.log("server working (" + workingCount + ") " + msg + "...");
+    return $('#workingModal').removeClass('hide');
+  };
+
+  module.exports.success = function() {
+    workingCount = Math.max(0, workingCount - 1);
+    console.log("server success (" + workingCount + ")");
+    if (workingCount <= 0) {
+      return $('#workingModal').addClass('hide');
+    }
+  };
+
+  module.exports.error = function(model, resp, options) {
+    var message;
+    workingCount = Math.max(0, workingCount - 1);
+    message = "" + resp;
+    if (options != null ? options.textStatus : void 0) {
+      message = "" + message + ", textState " + options.textStatus;
+    }
+    if (options != null ? options.errorThrown : void 0) {
+      message = "" + message + ", errorThrown " + options.errorThrown;
+    }
+    console.log("server error  (" + workingCount + ") " + message);
+    if (workingCount <= 0) {
+      $('#workingModal').addClass('hide');
+    }
+    $('#errorModalHolder').html(templateErrorModal({
+      message: message
+    }));
+    return $('#errorModalHolder').foundation('reveal', 'open');
+  };
+
+}).call(this);
 }, "taskstates": function(exports, require, module) {(function() {
-  var TaskStateList, singleton;
+  var TaskStateList, server, singleton;
 
   TaskStateList = require('models/TaskStateList');
+
+  server = require('server');
 
   singleton = null;
 
@@ -1596,7 +1684,11 @@
     if (singleton == null) {
       console.log("initialising TaskStateList for taskstates");
       singleton = new TaskStateList();
-      singleton.fetch();
+      server.working('taskstates');
+      singleton.fetch({
+        success: server.success,
+        error: server.error
+      });
     }
     return singleton;
   };
@@ -1940,6 +2032,64 @@
   (function() {
     (function() {
       __out.push('\n<div class="columns small-12 large-12">\n  <h2>Content Types</h2>\n</div>\n\n');
+    
+    }).call(this);
+    
+  }).call(__obj);
+  __obj.safe = __objSafe, __obj.escape = __escape;
+  return __out.join('');
+}}, "templates/ErrorModal": function(exports, require, module) {module.exports = function(__obj) {
+  if (!__obj) __obj = {};
+  var __out = [], __capture = function(callback) {
+    var out = __out, result;
+    __out = [];
+    callback.call(this);
+    result = __out.join('');
+    __out = out;
+    return __safe(result);
+  }, __sanitize = function(value) {
+    if (value && value.ecoSafe) {
+      return value;
+    } else if (typeof value !== 'undefined' && value != null) {
+      return __escape(value);
+    } else {
+      return '';
+    }
+  }, __safe, __objSafe = __obj.safe, __escape = __obj.escape;
+  __safe = __obj.safe = function(value) {
+    if (value && value.ecoSafe) {
+      return value;
+    } else {
+      if (!(typeof value !== 'undefined' && value != null)) value = '';
+      var result = new String(value);
+      result.ecoSafe = true;
+      return result;
+    }
+  };
+  if (!__escape) {
+    __escape = __obj.escape = function(value) {
+      return ('' + value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    };
+  }
+  (function() {
+    (function() {
+      __out.push('\n');
+    
+      __out.push('\n  <h2>Sorry, there was a problem contacting the server</h2>\n  <p>Consider reloading the page - the information you see may not be correct.</p>\n  ');
+    
+      if (this.message != null) {
+        __out.push('\n    <div class="alert-box warning">');
+        __out.push(__sanitize(this.message));
+        __out.push('</div>\n  ');
+      }
+    
+      __out.push('\n  <a class="close-reveal-modal">&#215;</a>\n');
+    
+      __out.push('\n\n');
     
     }).call(this);
     
@@ -3404,9 +3554,11 @@
   __obj.safe = __objSafe, __obj.escape = __escape;
   return __out.join('');
 }}, "thingDeleter": function(exports, require, module) {(function() {
-  var currentModel, templateFileDeleteModal;
+  var currentModel, server, templateFileDeleteModal;
 
   templateFileDeleteModal = require('templates/ThingDeleteModal');
+
+  server = require('server');
 
   currentModel = null;
 
@@ -3418,7 +3570,16 @@
   $('#deleteModalHolder').on('click', '.do-delete', function(ev) {
     console.log("do-delete " + currentModel.id);
     if (currentModel != null) {
-      currentModel.destroy();
+      server.working('destroy (delete)');
+      if (false === currentModel.destroy) {
+        ({
+          success: server.success,
+          error: server.error
+        });
+      }
+      console.log("destroy (delete) " + currentModel.id + " returned false");
+      server.success(currentModel, null, {});
+      currentModel = null;
     }
     return $('#deleteModalHolder').foundation('reveal', 'close');
   });
@@ -4012,7 +4173,7 @@
 
 }).call(this);
 }, "views/FileEdit": function(exports, require, module) {(function() {
-  var FileEditView, templateFileDetail, templateFileEdit,
+  var FileEditView, allthings, server, templateFileDetail, templateFileEdit,
     __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -4020,6 +4181,10 @@
   templateFileEdit = require('templates/FileEdit');
 
   templateFileDetail = require('templates/FileDetail');
+
+  server = require('server');
+
+  allthings = require('allthings');
 
   module.exports = FileEditView = (function(_super) {
     __extends(FileEditView, _super);
@@ -4052,7 +4217,7 @@
       this.render = __bind(this.render, this);
       this.template = __bind(this.template, this);
       this.add = options.add != null ? options.add : options.add = false;
-      this.files = options.files != null ? options.files : options.files = null;
+      this.things = options.things != null ? options.things : options.things = null;
       FileEditView.__super__.constructor.call(this, options);
     }
 
@@ -4122,7 +4287,25 @@
       this.model.set('description', description);
       atts = this.model.attachments();
       this.model.set('hasFile', atts.indexOf("bytes") >= 0);
-      this.model.save();
+      server.working('save File (submit)');
+      if (false === this.model.save(null, {
+        success: function(model, resp, options) {
+          console.log("save File (submit) ok: " + (JSON.stringify(resp)));
+          return server.success(model, resp, options);
+        },
+        error: server.error
+      })) {
+        server.error(this.model, 'Save validation error (save File, submit)', {});
+      }
+      if (this.add) {
+        if (this.things) {
+          console.log("adding File " + this.model.id + " to @things");
+          this.things.add(this.model);
+        } else {
+          console.log("cannot add File " + this.model.id + " to @things - @things not set");
+        }
+        allthings.get().add(this.model);
+      }
       return this.close();
     };
 
@@ -4131,11 +4314,15 @@
       this.cancelled = true;
       if (this.created && (this.model.id != null)) {
         console.log("try destroy on cancel for " + this.model.id);
-        this.model.destroy();
-      }
-      if ((this.model.id != null) && (this.files != null)) {
-        console.log("try remove on cancel for " + this.model.id);
-        this.files.remove(this.model);
+        server.working('destroy (cancel)');
+        if (false === this.model.destroy) {
+          ({
+            success: server.success,
+            error: server.error
+          });
+        }
+        console.log("destroy (cancel) " + this.model.id + " returned false");
+        server.success(this.model, null, {});
       }
       return this.close();
     };
@@ -4206,12 +4393,26 @@
         this.created = true;
       }
       $('input[type=submit]', this.$el).prop('disabled', true);
+      server.working('attach');
       this.model.attach(blob, "bytes", blob.type, (function(_this) {
         return function(err, result) {
+          if (err != null) {
+            server.error(_this.model, err, {});
+          } else {
+            server.success(_this.model, result, {});
+          }
           $('input[type=submit]', _this.$el).prop('disabled', false);
           if (_this.cancelled) {
             console.log("attach on cancelled " + _this.model.id);
-            _this.model.destroy();
+            server.working('destroy (loadBlob cancelled)');
+            if (false === _this.model.destroy) {
+              ({
+                success: server.success,
+                error: server.error
+              });
+            }
+            console.log("destroy (loadBlob cancelled) " + _this.model.id + " returned false");
+            server.success(_this.model, null, {});
             return;
           }
           if (err != null) {
@@ -4229,7 +4430,16 @@
             } else {
               _this.model.unset('fileLastModified');
             }
-            _this.model.save();
+            server.working('save File (loadBlob)');
+            if (false === _this.model.save(null, {
+              success: function(model, resp, options) {
+                console.log("save File (loadBlob) ok: " + (JSON.stringify(resp)));
+                return server.success(model, resp, options);
+              },
+              error: server.error
+            })) {
+              server.error(_this.model, 'Save validation error (File, loadBlob)');
+            }
             return _this.renderFileDetails();
           }
         };
@@ -5299,7 +5509,7 @@
 
 }).call(this);
 }, "views/TaskConfigEdit": function(exports, require, module) {(function() {
-  var TaskConfigEditView, allthings, taskstates, templateTaskConfigEdit, templateTaskConfigEditState, templateTaskConfigEditSubject,
+  var TaskConfigEditView, allthings, server, taskstates, templateTaskConfigEdit, templateTaskConfigEditState, templateTaskConfigEditSubject,
     __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -5313,6 +5523,8 @@
   allthings = require('allthings');
 
   taskstates = require('taskstates');
+
+  server = require('server');
 
   module.exports = TaskConfigEditView = (function(_super) {
     __extends(TaskConfigEditView, _super);
@@ -5479,11 +5691,18 @@
       }
       ev.preventDefault();
       this.formToModel();
-      this.model.save();
+      server.working('save TaskConfigEdit');
+      if (false === this.model.save(null, {
+        success: server.success,
+        error: server.error
+      })) {
+        server.error(this.model, 'Save validation error (TaskConfigEdit)', {});
+      }
       if (this.add) {
         if (this.things) {
           this.things.add(this.model);
         }
+        allthings.get().add(this.model);
         return setTimeout((function(_this) {
           return function() {
             return window.router.navigate("#ContentType/taskconfig/edit/" + (encodeURIComponent(_this.model.id)), {
@@ -5659,12 +5878,16 @@
 
 }).call(this);
 }, "views/ThingEdit": function(exports, require, module) {(function() {
-  var ThingEditView, templateThingEdit,
+  var ThingEditView, allthings, server, templateThingEdit,
     __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
   templateThingEdit = require('templates/ThingEdit');
+
+  server = require('server');
+
+  allthings = require('allthings');
 
   window.mediahubCallbacks = {};
 
@@ -5738,7 +5961,22 @@
       console.log("submit...");
       ev.preventDefault();
       this.formToModel();
-      this.model.save();
+      if (!this.model.isValid()) {
+        console.log("submit not valid: " + this.model.validationError);
+      }
+      server.working('save Thing');
+      if (false === this.model.save(null, {
+        success: server.success,
+        error: server.error
+      })) {
+        server.error(this.model, 'Save validation error (save Thing)');
+      }
+      if (this.add) {
+        if (this.things) {
+          this.things.add(this.model);
+        }
+        allthings.get().add(this.model);
+      }
       return this.close();
     };
 
@@ -6186,12 +6424,14 @@
 
 }).call(this);
 }, "views/ThingRefInList": function(exports, require, module) {(function() {
-  var ThingRefInListView, templateThingRefInList,
+  var ThingRefInListView, server, templateThingRefInList,
     __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
   templateThingRefInList = require('templates/ThingRefInList');
+
+  server = require('server');
 
   module.exports = ThingRefInListView = (function(_super) {
     __extends(ThingRefInListView, _super);
@@ -6242,7 +6482,15 @@
     ThingRefInListView.prototype.removeFromList = function(ev) {
       ev.preventDefault();
       console.log("remove " + this.model.attributes._id);
-      return this.model.destroy();
+      server.working('destroy (removeFromList)');
+      if (false === this.model.destroy) {
+        ({
+          success: server.success,
+          error: server.error
+        });
+      }
+      console.log("destroy (removeFromList) " + this.model.attributes._id + " returned false");
+      return server.success(this.model, null, {});
     };
 
     return ThingRefInListView;
@@ -6251,7 +6499,7 @@
 
 }).call(this);
 }, "views/ThingRefList": function(exports, require, module) {(function() {
-  var ThingMultiselectModalView, ThingRef, ThingRefInListView, ThingRefListView, allthings, templateThingRefList,
+  var ThingMultiselectModalView, ThingRef, ThingRefInListView, ThingRefListView, allthings, server, templateThingRefList,
     __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -6265,6 +6513,8 @@
   ThingRef = require('models/ThingRef');
 
   allthings = require('allthings');
+
+  server = require('server');
 
   module.exports = ThingRefListView = (function(_super) {
     __extends(ThingRefListView, _super);
@@ -6446,7 +6696,15 @@
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         tr = _ref[_i];
         console.log("remove selected ThingRef " + tr.id);
-        _results.push(tr.destroy());
+        server.working('destroy (removeSelected)');
+        if (false === tr.destroy) {
+          ({
+            success: server.success,
+            error: server.error
+          });
+        }
+        console.log("destroy (removeSelected) " + tr.id + " returned false");
+        _results.push(server.success(tr, null, {}));
       }
       return _results;
     };

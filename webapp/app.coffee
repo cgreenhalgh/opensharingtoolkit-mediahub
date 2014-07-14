@@ -4,6 +4,8 @@ ContentTypeList = require 'models/ContentTypeList'
 ContentTypeListView = require 'views/ContentTypeList'
 db = require 'mydb'
 plugins = require 'plugins'
+server = require 'server'
+allthings = require 'allthings'
 
 # for registration of plugins
 require 'plugins/File'
@@ -80,6 +82,7 @@ $( document ).ajaxError ( event, jqxhr, settings, exception ) ->
 App = 
   init: ->
     console.log "App starting..."
+    server.working 'starting up'
 
     # backbonetest - based on 
     # http://adamjspooner.github.io/coffeescript-meet-backbonejs/05/docs/script.html
@@ -117,5 +120,7 @@ App =
     window.router = router
     
     Backbone.history.start()
+    allthings.get()
+    server.success null,null,{}
 
 module.exports = App

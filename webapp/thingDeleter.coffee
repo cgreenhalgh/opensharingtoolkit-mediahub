@@ -1,5 +1,6 @@
 # delete handler
 templateFileDeleteModal = require 'templates/ThingDeleteModal'
+server = require 'server'
 
 currentModel = null
 
@@ -10,7 +11,13 @@ $('#deleteModalHolder').on 'closed', '[data-reveal]',  () ->
 $('#deleteModalHolder').on 'click', '.do-delete', (ev)->
   console.log "do-delete #{currentModel.id}"
   if currentModel?
-    currentModel.destroy()
+    server.working 'destroy (delete)'
+    if false==currentModel.destroy 
+        success: server.success
+        error: server.error
+      console.log "destroy (delete) #{currentModel.id} returned false"
+      server.success currentModel,null,{}
+    currentModel = null
   $('#deleteModalHolder').foundation 'reveal', 'close'
 
 $('#deleteModalHolder').on 'click', '.do-close', (ev)->

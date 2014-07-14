@@ -1,0 +1,10 @@
+<%# error %>
+<%# <div id="errorModal" class="reveal-modal" data-reveal> %>
+  <h2>Sorry, there was a problem contacting the server</h2>
+  <p>Consider reloading the page - the information you see may not be correct.</p>
+  <% if @message? : %>
+    <div class="alert-box warning"><%= @message %></div>
+  <% end %>
+  <a class="close-reveal-modal">&#215;</a>
+<%# </div> %>
+

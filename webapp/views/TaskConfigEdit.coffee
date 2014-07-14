@@ -4,6 +4,7 @@ templateTaskConfigEditSubject = require 'templates/TaskConfigEditSubject'
 templateTaskConfigEditState = require 'templates/TaskConfigEditState'
 allthings = require 'allthings'
 taskstates = require 'taskstates'
+server = require 'server'
 
 module.exports = class TaskConfigEditView extends Backbone.View
 
@@ -120,12 +121,17 @@ module.exports = class TaskConfigEditView extends Backbone.View
     if @things
       @stopListening @things
     ev.preventDefault()
-    @formToModel()    
-    @model.save()
+    @formToModel() 
+    server.working 'save TaskConfigEdit'
+    if false==@model.save null, {
+        success: server.success
+        error: server.error
+      }
+      server.error @model,'Save validation error (TaskConfigEdit)',{}
     if @add
-      # dangerous! shouldn't we wait for it to arrive?!
       if @things
         @things.add @model
+      allthings.get().add @model
       setTimeout ()=>
           window.router.navigate "#ContentType/taskconfig/edit/#{encodeURIComponent @model.id}",
             {trigger:true, replace: true}

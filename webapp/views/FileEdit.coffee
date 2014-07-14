@@ -1,12 +1,14 @@
 # FileEdit View
 templateFileEdit = require 'templates/FileEdit'
 templateFileDetail = require 'templates/FileDetail'
+server = require 'server'
+allthings = require 'allthings'
 
 module.exports = class FileEditView extends Backbone.View
 
   constructor:(options)->
     @add = options.add ?= false
-    @files = options.files ?= null
+    @things = options.things ?= null
     super(options)
 
   tagName: 'div'
@@ -72,7 +74,21 @@ module.exports = class FileEditView extends Backbone.View
     atts = @model.attachments()
     @model.set 'hasFile', atts.indexOf("bytes")>=0
     
-    @model.save()
+    server.working 'save File (submit)'
+    if false==@model.save null, {
+        success: (model,resp,options) ->
+          console.log "save File (submit) ok: #{JSON.stringify resp}"
+          server.success model, resp, options
+        error: server.error
+      }
+      server.error @model,'Save validation error (save File, submit)',{}
+    if @add
+      if @things
+        console.log "adding File #{@model.id} to @things"
+        @things.add @model
+      else
+        console.log "cannot add File #{@model.id} to @things - @things not set"
+      allthings.get().add @model
     @close()
 
   cancel: =>
@@ -80,10 +96,12 @@ module.exports = class FileEditView extends Backbone.View
     @cancelled = true
     if @created and @model.id?
       console.log "try destroy on cancel for #{@model.id}"
-      @model.destroy()
-    if @model.id? and @files?
-      console.log "try remove on cancel for #{@model.id}"
-      @files.remove @model
+      server.working 'destroy (cancel)'
+      if false==@model.destroy
+          success: server.success
+          error: server.error
+        console.log "destroy (cancel) #{@model.id} returned false"
+        server.success @model,null,{}
     @close()
 
   remove: =>
@@ -144,11 +162,22 @@ module.exports = class FileEditView extends Backbone.View
       if @add
         @created = true
       $('input[type=submit]',@$el).prop('disabled',true)
+      server.working 'attach'
       @model.attach blob,"bytes", blob.type, (err,result)=>
+        if err?
+          server.error @model,err,{}
+        else
+          server.success @model,result,{}
+
         $('input[type=submit]',@$el).prop('disabled',false)
         if @cancelled
           console.log "attach on cancelled #{@model.id}"
-          @model.destroy()
+          server.working 'destroy (loadBlob cancelled)'
+          if false==@model.destroy
+              success: server.success
+              error: server.error
+            console.log "destroy (loadBlob cancelled) #{@model.id} returned false"
+            server.success @model,null,{}
           return
         if err?
           console.log "Error attaching blob #{blob.name}: #{err}"
@@ -166,7 +195,14 @@ module.exports = class FileEditView extends Backbone.View
             @model.unset 'fileLastModified'
           # Fails with precondition failure - presumably _rev not updated yet?!
           #@model.attributes._rev = result.rev
-          @model.save()
+          server.working 'save File (loadBlob)'
+          if false==@model.save null, {
+              success: (model,resp,options) ->
+                console.log "save File (loadBlob) ok: #{JSON.stringify resp}"
+                server.success model, resp, options
+              error: server.error
+            }
+            server.error @model,'Save validation error (File, loadBlob)'
           @renderFileDetails()
 
       @renderFileDetails()
