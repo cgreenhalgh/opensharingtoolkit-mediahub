@@ -5596,7 +5596,8 @@
         console.log("Could not find taskstate " + this.taskstateid + " on start-up; listening...");
         return this.listenTo(this.taskstates, 'add', this.addState);
       } else {
-        return console.log("taskconfig state = " + this.taskstate);
+        console.log("taskconfig state = " + this.taskstate);
+        return this.listenTo(this.taskstate, 'change', this.renderState);
       }
     };
 

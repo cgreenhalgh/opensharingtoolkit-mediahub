@@ -53,6 +53,7 @@ module.exports = class TaskConfigEditView extends Backbone.View
       @listenTo @taskstates, 'add', @addState
     else
       console.log "taskconfig state = #{@taskstate}"
+      @listenTo @taskstate, 'change', @renderState
     #@listenTo @model, 'change', @render
     #@render()
 
