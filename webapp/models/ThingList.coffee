@@ -12,7 +12,7 @@ module.exports = class ThingList extends Backbone.Collection
     options:
       query:
         include_docs: true
-        fun: 'app/type'
+        fun: 'app/typeThing'
       changes: 
         include_docs: true
         continuous: true

@@ -9,8 +9,9 @@ module.exports.get = () ->
     console.log "initialising ThingList for allthings"
     singleton = new ThingList()
     server.working 'allthings'
-    singleton.fetch
+    singleton.fetch {
       success: server.success
       error: server.error
+    }
   singleton
 

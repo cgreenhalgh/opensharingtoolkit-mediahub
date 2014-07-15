@@ -122,6 +122,14 @@ ddoc.views.type = {
     }  
   }
 };
+// view of doc by type
+ddoc.views.typeThing = {
+  map: function(doc) {
+    if (doc._id && doc.type && doc.type !== 'taskstate') {
+      emit(doc.type, null);
+    }  
+  }
+};
 
 // filter type Html
 ddoc.filters.typeHtml = function(doc) {

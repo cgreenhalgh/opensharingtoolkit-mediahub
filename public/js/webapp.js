@@ -975,18 +975,21 @@
 
 }).call(this);
 }, "models/TaskStateList": function(exports, require, module) {(function() {
-  var TaskStaListet,
+  var TaskStateList,
+    __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
-  module.exports = TaskStaListet = (function(_super) {
-    __extends(TaskStaListet, _super);
+  module.exports = TaskStateList = (function(_super) {
+    __extends(TaskStateList, _super);
 
-    function TaskStaListet() {
-      return TaskStaListet.__super__.constructor.apply(this, arguments);
+    function TaskStateList() {
+      this.onChange = __bind(this.onChange, this);
+      this.fetch = __bind(this.fetch, this);
+      return TaskStateList.__super__.constructor.apply(this, arguments);
     }
 
-    TaskStaListet.prototype.pouch = {
+    TaskStateList.prototype.pouch = {
       fetch: 'query',
       listen: true,
       options: {
@@ -1004,12 +1007,106 @@
       }
     };
 
-    TaskStaListet.prototype.parse = function(result) {
+    TaskStateList.prototype.parse = function(result) {
       console.log("parse " + (JSON.stringify(result)));
       return _.pluck(result.rows, 'doc');
     };
 
-    return TaskStaListet;
+    TaskStateList.prototype.fetch = function(fetchOptions) {
+      var poll, pouchOptions, reset;
+      pouchOptions = this.sync();
+      if (!pouchOptions.db) {
+        throw new Error('A "db" property must be specified (TaskStateList.fetch)');
+      }
+      this.changeOptions = _.extend({}, pouchOptions.options.changes, this.pouch.options.changes, {
+        timeout: 0,
+        continuous: false
+      });
+      this.changeOptions.timeout;
+      reset = (function(_this) {
+        return function() {
+          if (_this.pollTimer) {
+            clearTimeout(_this.pollTimer);
+          }
+          return _this.pollTimer = setTimeout(poll, _this.changeOptions.timeout + 1000);
+        };
+      })(this);
+      poll = (function(_this) {
+        return function(first) {
+          var err;
+          if (!first) {
+            if (_this.pollTimer) {
+              clearTimeout(_this.pollTimer);
+            }
+            _this.pollTimer = setTimeout(poll, _this.changeOptions.timeout + 1000);
+          }
+          if (_this.changes) {
+            try {
+              console.log("Cancel old changes feed on timeout");
+              _this.changes.cancel();
+            } catch (_error) {
+              err = _error;
+              console.log("error cancelling changes feed: " + err.message);
+            }
+          }
+          console.log("fetch: changeOptions " + (JSON.stringify(_this.changeOptions)));
+          _this.changes = pouchOptions.db.changes(_this.changeOptions);
+          _this.changes.on('change', _this.onChange);
+          _this.changes.on('error', function(err) {
+            console.log("TaskStateList: error: " + err);
+            if (first && (fetchOptions.error != null)) {
+              fetchOptions.error(_this, err, fetchOptions);
+            }
+            return reset(true);
+          });
+          return _this.changes.on('complete', function(resp) {
+            console.log("TaskStateList: complete: " + resp + " last_seq " + resp.last_seq);
+            if (resp.last_seq == null) {
+              return;
+            }
+            try {
+              if (first && (fetchOptions.success != null)) {
+                fetchOptions.success(_this, resp, fetchOptions);
+              }
+              if (resp.last_seq != null) {
+                _this.changeOptions.since = resp.last_seq;
+              }
+              reset(true);
+              if (first) {
+                _this.changes = null;
+                console.log("start continuous fetch...");
+                _this.changeOptions.continuous = true;
+                _this.changeOptions.timeout = 20000;
+                return poll();
+              }
+            } catch (_error) {
+              err = _error;
+              return console.log("error handling complete: " + err.message + ", " + err.stack);
+            }
+          });
+        };
+      })(this);
+      return poll(true);
+    };
+
+    TaskStateList.prototype.onChange = function(change) {
+      var todo;
+      console.log("TaskStateList: change: " + change);
+      todo = this.get(change.id);
+      if (change.deleted) {
+        if (todo) {
+          return todo.destroy();
+        }
+      } else {
+        if (todo) {
+          return todo.set(change.doc);
+        } else {
+          return this.add(change.doc);
+        }
+      }
+    };
+
+    return TaskStateList;
 
   })(Backbone.Collection);
 
@@ -1074,7 +1171,7 @@
       options: {
         query: {
           include_docs: true,
-          fun: 'app/type'
+          fun: 'app/typeThing'
         },
         changes: {
           include_docs: true,

@@ -9,8 +9,9 @@ module.exports.get = () ->
     console.log "initialising TaskStateList for taskstates"
     singleton = new TaskStateList()
     server.working 'taskstates'
-    singleton.fetch
+    singleton.fetch {
       success: server.success
       error: server.error
+    }
   singleton
 
