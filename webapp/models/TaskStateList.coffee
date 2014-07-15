@@ -15,7 +15,7 @@ module.exports = class TaskStaListet extends Backbone.Collection
       changes: 
         include_docs: true
         continuous: true
-        filter: 'app/typeTaskstate'
+        filter: 'app/changesTaskstate'
 
   parse: (result) ->
     console.log "parse #{JSON.stringify result}"

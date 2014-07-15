@@ -92,7 +92,7 @@ module.exports = class TaskConfigEditView extends Backbone.View
       $('.state-holder', @$el).html @templateState @taskstate.attributes
 
   templateState: (d) =>
-    templateTaskConfigEditState _.extend { lastChanged: @model.attributes.lastChanged }, d
+    templateTaskConfigEditState _.extend { lastChanged: @model.attributes.lastChanged, created: @model.attributes.created }, d
 
   # syntax ok?? or (x...) -> 
   template: (d) =>
@@ -118,6 +118,8 @@ module.exports = class TaskConfigEditView extends Backbone.View
     @model.set 
       enabled: enabled
       lastChanged: time
+    if @add
+      @model.set created: time
 
   submit: (ev)=>
     console.log "submit..."

@@ -1,8 +1,10 @@
-<h4>Task status:</h4>
+<% if not @created? or @created!=@configCreated: %>
+  <!-- TaskState is for old config (<%= @configCreated %> vs <%= @created %>) --> 
+<% else: %><h4>Task status:</h4>
 <div data-alert class="alert-box <%= if @state=='done' then ( if @lastChanged? and @lastChanged > @lastConfigChanged then 'warning' else 'success' ) else if @state=='disabled' then 'secondary' else if @state=='starting' then 'info' else if @state=='error' then 'alert' else 'warning'  %>">
   <%= @message %><br/>
   (Last update: <%= if @lastUpdate? then new Date(@lastUpdate).toUTCString() %>)
 </div>
 <!-- <p>State: <%= @state %></p> -->
 <p><%= if not @lastConfigChanged? then 'Not yet done' else if @lastChanged? and @lastChanged > @lastConfigChanged then 'Out of date; last done for request ' else 'Up to date with ' %><%= if @lastConfigChanged? then new Date(@lastConfigChanged).toUTCString() %></p>
-
+<% end %>

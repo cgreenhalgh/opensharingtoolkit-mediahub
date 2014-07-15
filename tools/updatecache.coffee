@@ -7,12 +7,13 @@ fs = require 'fs'
 parse_url = (require 'url').parse
 uuid = require 'node-uuid'
 
-if process.argv.length!=3 and process.argv.length!=4
-  console.log 'usage: coffee updatecache.coffee <DIR> [<COUCHDB-URL>]'
+if process.argv.length<3 or process.argv.length>5
+  console.log 'usage: coffee updatecache.coffee <DIR> [<COUCHDB-URL> [FILTERNAME]]'
   process.exit -1
 
 outdir = process.argv[2]
 couchurl = if process.argv.length>3 then process.argv[3] else null
+filtername = if process.argv.length>4 then process.argv[4] else null
 
 if !fs.existsSync(outdir)
   console.log "Error: output directory does not exist: #{outdir}"
@@ -35,7 +36,7 @@ if !fs.existsSync configpath
     console.log 'usage: coffee exportapp.coffee <DIR> <COUCHDB-URL>'
     process.exit -1
   console.log "Note: creating config file #{configpath}"
-  config = { couchurl: couchurl, checkpoints: [] }
+  config = { couchurl: couchurl, checkpoints: [], filtername: filtername }
 else
   console.log "read config #{configpath}"
   try 
@@ -54,6 +55,12 @@ else
   else if not couchurl?
     couchurl = config.couchurl
     console.log "Note: using couchdb #{couchurl} from #{configpath}"
+  if filtername? and config.filtername!=filtername
+    console.log "Error: filtername in config file #{configpath} differs #{config.filtername} vs #{filtername}"
+    process.exit -1
+  else if not filtername? and config.filtername?
+    filtername = config.filtername
+    console.log "Note: using filtername #{filtername} from #{configpath}"
 
 if not config.uuid 
   config.uuid = uuid.v4()
@@ -157,6 +164,8 @@ for cp in config.checkpoints
 changespath = "/_changes?style=all_docs"
 if checkpoint?
   changespath = changespath+"&since="+encodeURIComponent(checkpoint)
+if filtername?
+  changespath = changespath+"&filter="+encodeURIComponent(filtername)
 console.log "Get changes: #{changespath}"
 
 downloadFile couchurl+changespath,"#{outdir}/_changes.json", (err,path) ->

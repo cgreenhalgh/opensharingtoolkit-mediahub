@@ -36,6 +36,15 @@
 <%   tarfile = "#{window.mediahubconfig.publicurl}/#{@path}.tgz" %>
     <p>Will update checkpoint in directory <a target="_blank" href="<%= file %>"><%= file %></a> (Tar file <a target="_blank" href="<%= tarfile %>"><%= tarfile %></a>)</a></p>
 
+<% else if @taskType=='import': %>
+    <h4>Import checkpoint of editable content</h4>
+<%# cf taskrunner.coffee %>
+<%   upload = "#{window.mediahubconfig.uploadurl}/#{encodeURIComponent @_id}" %>
+<%   file = "#{window.mediahubconfig.publicurl}/#{@path}/" %>
+<%   tarfile = "#{window.mediahubconfig.publicurl}/#{@path}.tgz" %>
+    <p>Will upload and import a checkpoint in directory <a target="_blank" href="<%= file %>"><%= file %></a> (Tar file <a target="_blank" href="<%= tarfile %>"><%= tarfile %></a>)</a></p>
+    <p>Use upload form <a target="_blank" href="<%= upload %>"><%= upload %></a></p>
+
 <% else : %>
      <h4><%= @taskType %></h4>
      <p>(Whatever that is)</p>

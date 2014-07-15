@@ -1,5 +1,7 @@
 # node task runner for mediahub
 fs = require('fs')
+multiparty = require('multiparty')
+http = require('http')
 spawn = require('child_process').spawn
    
 log = (msg) -> 
@@ -8,7 +10,9 @@ log = (msg) ->
 
 dburl = 'http://127.0.0.1:5984/mediahub'
 publicwebdir = '../docker/nginxdev/html/public'
+serverport = 8090
 MAX_PROCESS_TIME = 30000
+MAX_FILES_SIZE = 50000000
 
 started = false
 # couchdb config
@@ -23,6 +27,8 @@ stdin.on 'data', (d) ->
       publicwebdir = conf.publicwebdir
       if publicwebdir.length>0 and (publicwebdir.lastIndexOf '/')==publicwebdir.length-1
         publicwebdir = publicwebdir.substring 0, publicwebdir.length-1
+    if conf.serverport?
+      serverport = Number(conf.serverport)
     if !started
       started = true
       start()
@@ -30,7 +36,7 @@ stdin.on 'data', (d) ->
   catch err
     log "Error reading config #{d}: #{err.message}"
 
-log 'requesting config like { "dburl": "http://127.0.0.1:5984/mediahub", "publicwebdir": "/..." }'
+log "requesting config like #{JSON.stringify { dburl: dburl, publicwebdir: publicwebdir, serverport: serverport }}"
 console.log JSON.stringify ["get", "taskrunner"]
 
 tasks = {} 
@@ -70,6 +76,8 @@ start = () ->
     log "state complete - getting tasks..."
     startTasks()
 
+  startUploadServer()
+
 taskQueue = []
 activeTask = null
 
@@ -82,7 +90,7 @@ getChanges = () ->
   params = 
     include_docs: true
     #live: true
-    filter: 'app/typeTaskconfig'
+    filter: 'app/changesTaskconfig'
     feed: 'longpoll'
   if lastSequence?
     params.since = lastSequence
@@ -91,10 +99,22 @@ getChanges = () ->
       log "getChanges: error getting changes: #{err.message}"
       setTimeout getChanges,5000
       return
+    first = not lastSequence?
     lastSequence = changes.last_seq
     log "change config: #{changes.results.length} changes, last_seq #{changes.last_seq}"
     for change in changes.results
-      updateConfig change.doc
+      if not first or not change.doc._deleted
+        updateConfig change.doc
+    # GC
+    if first
+      ids = for id of tasks
+        id
+      for id in ids
+        task = tasks[id]
+        if not task.config? 
+          gcTask task
+          delete tasks[id]
+    schedule()
     setTimeout getChanges,100
 
 updateConfig = (config) ->
@@ -105,6 +125,11 @@ updateConfig = (config) ->
   if not task?
     tasks[id] = task = { id: id }
   log "#{if task.config? then 'update' else 'add'} task #{id} config #{JSON.stringify config}"
+  if config._deleted
+    log "deleted config #{config._id}"
+    delete task.config
+    gcTask task
+    return
   task.config = config
   # in queue?
   qix = -1
@@ -115,7 +140,9 @@ updateConfig = (config) ->
   else if qix>0
     # move to head of queue
     taskQueue.splice 0,0,((taskQueue.splice qix,1)[0])
-  schedule()
+  # re-created?
+  if task.targetState? and task.targetState.configCreated != config.created
+    gcTask task
 
 schedule = () ->
   if activeTask?
@@ -128,8 +155,14 @@ schedule = () ->
   next = (taskQueue.splice 0,1)[0]
   #log "schedule: next task #{JSON.stringify next}"
   log "schedule: next task #{next.id}"
-  if not next.targetState?
-    next.targetState = { _id: "taskstate:#{next.id}", type: 'taskstate' }
+  if not next.config?
+    log "ignore deleted task #{next.id}"
+    return schedule()
+  if not next.targetState? or next.targetState.configCreated != next.config.created
+    next.targetState = { _id: "taskstate:#{next.id}", type: 'taskstate', configCreated: next.config.created }
+  if not next.targetState.path?
+    next.targetState.path = next.config.path
+
   if next.config.enabled!=true
     log "schedule: task #{next.id} not enabled"
     next.targetState.lastUpdate = new Date().getTime()
@@ -149,6 +182,15 @@ schedule = () ->
     next.targetState.message = "Task already done since last request"
     sendState next
     return
+
+  if next.config.taskType=='import'
+    if not next.uploadFile? or next.uploadTime < next.config.lastChanged
+      setTimeout schedule, 0
+      next.targetState.lastUpdate = new Date().getTime()
+      next.targetState.state = "waiting"
+      next.targetState.message = "Waiting for upload"
+      sendState next
+      return
 
   log "schedule: start task #{next.id} #{next.config.taskType} #{next.config.subjectId}"
   next.targetState.lastUpdate = new Date().getTime()
@@ -170,6 +212,8 @@ schedule = () ->
     doBackup next
   else if next.config.taskType=='checkpoint'
     doCheckpoint next
+  else if next.config.taskType=='import'
+    doImport next
   else if next.config.taskType=='dummy'
     # TEST...  
     dummy = () ->
@@ -207,6 +251,8 @@ taskError = (next,err) ->
 
 
 sendState = (task) ->
+  if task.internal
+    return
   if task.sendingState?
     log "sendState: already active for #{task.id}"
     return
@@ -281,35 +327,29 @@ checkPath = (task,root,create) ->
     taskError task, "Cannot output into top-level directory (empty path)"
     return null
 
-addTarTask = (task) ->
-  config = 
-    taskType: 'tar'
-    path: task.config.path
-    _id: "#{task.config._id}:tar"
-    lastChanged: new Date().getTime()
-    enabled: true
-  log "addTarTask #{config._id}"
-  updateConfig config
-
 doExportapp = (task) ->
   appId = task.config.subjectId
   if not appId?
     return taskError task, "App to export was not specified ('subjectId')"
   appurl = "#{dburl}/_design/app/_show/app/#{appId}"
   if (path=(checkPath task, publicwebdir, true))?
-    doSpawn task, "/usr/local/bin/coffee", ["#{__dirname}/exportapp.coffee",appurl], path, true
-    addTarTask task
+    doSpawn task, "/usr/local/bin/coffee", ["#{__dirname}/exportapp.coffee",appurl], path, true,
+      (task) ->
+        doTar task
 
 doBackup = (task) ->
   dbfile = "/var/lib/couchdb/mediahub.couch"
   if (path=(checkPath task, publicwebdir, true))?
-    doSpawn task, "cp", [dbfile,path], path, true
-    addTarTask task
+    doSpawn task, "cp", [dbfile,path], path, true,
+      (task) ->
+        doTar task
 
 doCheckpoint = (task) ->
   if (path=(checkPath task, publicwebdir, true))?
-    doSpawn task, "/usr/local/bin/coffee", ["#{__dirname}/updatecache.coffee", ".", dburl], path, true
-    addTarTask task
+    # NB typeContent filter
+    doSpawn task, "/usr/local/bin/coffee", ["#{__dirname}/updatecache.coffee", ".", dburl, "app/changesContent"], path, true,
+      (task) ->
+        doTar task
 
 doTar = (task) ->
   path = task.config.path
@@ -334,7 +374,19 @@ doRm = (task) ->
     else
       return taskError task, "Could not split dir/path #{path}"
 
-doSpawn = (task, cmd, args, cwd, dolog) ->
+addRmTask = (path) ->
+  taskQueue.splice 0,0,
+    id: "rm"
+    internal: true
+    config:
+      taskType: 'rm'
+      path: path
+      _id: "taskcofig:#{encodeURIComponent path}:rm"
+      lastChanged: new Date().getTime()
+      enabled: true
+  log "addRmTask #{path}"
+
+doSpawn = (task, cmd, args, cwd, dolog, continuation) ->
   log "doSpawn: #{cmd} #{JSON.stringify args} in #{cwd}"
   if dolog
     try
@@ -384,7 +436,10 @@ doSpawn = (task, cmd, args, cwd, dolog) ->
     clearTimeout timeout
     if state[0]=='running'
       if code==0
-        taskDone task
+        if continuation?
+          continuation task
+        else
+          taskDone task
       else
         taskError task, "Script exiting reporting error #{code}"
     state[0] = 'closed'
@@ -418,4 +473,124 @@ killTask = (state,child,task) ->
       log "killTask: error doing disconnect: #{err.message}"
 
   setTimeout killTask2,5000
+
+startUploadServer = () ->
+  uploaddir = "#{publicwebdir}/upload"
+  if !fs.existsSync uploaddir
+    try
+      fs.mkdirSync uploaddir
+    catch err
+      log "Error creating upload dir #{uploaddir}: #{err.message}"
+      return
+
+  http.createServer (req, res) ->
+    name = req.url
+    if name.indexOf('/')==0
+      name = name.substring 1
+    name = decodeURIComponent name
+    ts = for id,t of tasks when t.config?._id==name
+      t
+    if ts.length==0
+      res.writeHead 404, {'content-type': 'text/plain'}
+      res.end "Upload task unknown (#{name})"
+      return
+    task = ts[0]
+    log "upload for task #{task.id}, #{req.method}"
+    if not task.targetState? or task.targetState.state!="waiting"
+      res.writeHead 404, {'content-type': 'text/plain'}
+      res.end "Task #{name} is not waiting for upload (#{task.targetState.state})"
+      return
+      
+    if req.method == 'POST' 
+      # parse a file upload
+      form = new multiparty.Form
+        uploadDir: uploaddir
+        maxFilesSize: MAX_FILES_SIZE
+        autoFiles: true
+  
+      form.parse req, (err, fields, files) ->
+        if err?
+          res.writeHead 400, {'content-type': 'text/plain'}
+          res.end "Form upload error - #{err}"
+          return        
+
+        log "uploaded #{JSON.stringify files}"
+        file = files['upload']
+        if file.length>0
+          file = file[0]
+        else
+          file = null
+        if not file?
+          res.writeHead 400, {'content-type': 'text/plain'}
+          res.end "Form upload file not found - did you use the right upload form?"
+          return
+
+        path = file.path
+        fn = file.originalFilename
+        length = file.size
+        log "uploaded #{fn} (#{length} bytes) to #{path}"
+
+        taskPath = checkPath task, publicwebdir, true
+        if not taskPath?
+          res.writeHead 500, {'content-type': 'text/plain'}
+          res.end "Could not create incoming directory #{task.config.path}"
+          return
+        taskFile = "#{taskPath}.tgz"
+        try
+          fs.renameSync path, taskFile
+        catch err
+          res.writeHead 500, {'content-type': 'text/plain'}
+          res.end "Could not move incoming file to target: #{err.message}"
+          return
+        task.uploadFile = taskFile
+        task.uploadTime = new Date().getTime()
+        log "done upload #{task.id} - schedule"
+        taskQueue.push task
+        setTimeout schedule,0
+
+        res.writeHead 200, {'content-type': 'text/plain'}
+        res.end 'received upload file ('+length+' bytes); scheduled for processing\n'
+      return
+
+    # show a file upload form
+    res.writeHead 200, 'content-type': 'text/html'
+    res.end(
+      '<form action="" enctype="multipart/form-data" method="post">'+
+      '<input type="file" name="upload" multiple="multiple"><br>'+
+      '<input type="submit" value="Upload">'+
+      '</form>'
+    )
+  .listen(serverport)
+  log "created upload server on port #{serverport}"
+
+doImport = (task) ->
+  # should have .uploadFile and dir, but could be old stuff in it
+  if not (path=(checkPath task, publicwebdir, true))?
+    return
+  if (path.indexOf publicwebdir)!=0
+    return taskError task, "Could not split dir/path #{path}"
+  dir = path.substring publicwebdir.length+1
+  cwd = path.substring 0, publicwebdir.length
+  doSpawn task, "rm", ["-r", dir], cwd, false, (task)->
+    checkPath task, publicwebdir, true
+    file = path
+    ix = file.lastIndexOf '/'
+    if ix>=0
+      file = file.substring ix+1
+    tar = "../#{file}.tgz"
+    doSpawn task, "tar", ["zxf", tar], path, false, (task)->
+      doSpawn task, "/usr/local/bin/coffee", ["#{__dirname}/cache2couch.coffee",".",dburl], path, true
+
+gcTask = (task) ->
+  if task.config?.path?
+    addRmTask task.config.path
+    addRmTask task.config.path+".tgz"
+  else if task.serverState?.path
+    addRmTask task.serverState.path
+    addRmTask task.serverState.path+".tgz"
+  else if task.targetState?.path
+    addRmTask task.targetState.path
+    addRmTask task.targetState.path+".tgz"
+  else
+    log "gcTask #{task.id} cannot find path"
 

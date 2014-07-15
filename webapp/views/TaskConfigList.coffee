@@ -13,6 +13,7 @@ module.exports = class TaskConfigList extends ThingListView
     "click .do-add-task-rm": "addTaskRm"
     "click .do-add-task-backup": "addTaskBackup"
     "click .do-add-task-checkpoint": "addTaskCheckpoint"
+    "click .do-add-task-import": "addTaskImport"
 
   addTask: (ev, taskType, _suffix) ->
     ev.preventDefault()
@@ -33,4 +34,8 @@ module.exports = class TaskConfigList extends ThingListView
 
   addTaskCheckpoint: (ev) =>
     @addTask ev, 'checkpoint'  
+
+  addTaskImport: (ev) =>
+    @addTask ev, 'import'  
+
 

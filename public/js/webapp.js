@@ -999,7 +999,7 @@
         changes: {
           include_docs: true,
           continuous: true,
-          filter: 'app/typeTaskstate'
+          filter: 'app/changesTaskstate'
         }
       }
     };
@@ -2758,7 +2758,7 @@
   }
   (function() {
     (function() {
-      var appurl, file, tarfile;
+      var appurl, file, tarfile, upload;
     
       __out.push('\n<div class="columns large-12">\n  <h2>');
     
@@ -2772,11 +2772,11 @@
         appurl = "" + window.mediahubconfig.publicurl + "/apps/" + this.path + "/_design/app/_show/app/" + this.subjectId + ".html";
         __out.push('\n');
         tarfile = "" + window.mediahubconfig.publicurl + "/" + this.path + ".tgz";
-        __out.push('\n    <p>Will export app to <a href="');
+        __out.push('\n    <p>Will export app to <a target="_blank" href="');
         __out.push(__sanitize(appurl));
         __out.push('">');
         __out.push(__sanitize(appurl));
-        __out.push('</a> (Tar file <a href="');
+        __out.push('</a> (Tar file <a target="_blank" href="');
         __out.push(__sanitize(tarfile));
         __out.push('">');
         __out.push(__sanitize(tarfile));
@@ -2785,7 +2785,7 @@
         __out.push('\n    <h4>Tar webserver directory</h4>\n');
         __out.push('\n');
         tarfile = "" + window.mediahubconfig.publicurl + "/" + this.path + ".tgz";
-        __out.push('\n    <p>Will create tarfile <a href="');
+        __out.push('\n    <p>Will create tarfile <a target="_blank" href="');
         __out.push(__sanitize(tarfile));
         __out.push('">');
         __out.push(__sanitize(tarfile));
@@ -2801,11 +2801,11 @@
         file = "" + window.mediahubconfig.publicurl + "/" + this.path + "/mediahub.couch";
         __out.push('\n');
         tarfile = "" + window.mediahubconfig.publicurl + "/" + this.path + ".tgz";
-        __out.push('\n    <p>Will create DB file <a href="');
+        __out.push('\n    <p>Will create DB file <a target="_blank" href="');
         __out.push(__sanitize(file));
         __out.push('">');
         __out.push(__sanitize(file));
-        __out.push('</a> (Tar file <a href="');
+        __out.push('</a> (Tar file <a target="_blank" href="');
         __out.push(__sanitize(tarfile));
         __out.push('">');
         __out.push(__sanitize(tarfile));
@@ -2816,15 +2816,36 @@
         file = "" + window.mediahubconfig.publicurl + "/" + this.path + "/";
         __out.push('\n');
         tarfile = "" + window.mediahubconfig.publicurl + "/" + this.path + ".tgz";
-        __out.push('\n    <p>Will update checkpoint in directory <a href="');
+        __out.push('\n    <p>Will update checkpoint in directory <a target="_blank" href="');
         __out.push(__sanitize(file));
         __out.push('">');
         __out.push(__sanitize(file));
-        __out.push('</a> (Tar file <a href="');
+        __out.push('</a> (Tar file <a target="_blank" href="');
         __out.push(__sanitize(tarfile));
         __out.push('">');
         __out.push(__sanitize(tarfile));
         __out.push('</a>)</a></p>\n\n');
+      } else if (this.taskType === 'import') {
+        __out.push('\n    <h4>Import checkpoint of editable content</h4>\n');
+        __out.push('\n');
+        upload = "" + window.mediahubconfig.uploadurl + "/" + (encodeURIComponent(this._id));
+        __out.push('\n');
+        file = "" + window.mediahubconfig.publicurl + "/" + this.path + "/";
+        __out.push('\n');
+        tarfile = "" + window.mediahubconfig.publicurl + "/" + this.path + ".tgz";
+        __out.push('\n    <p>Will upload and import a checkpoint in directory <a target="_blank" href="');
+        __out.push(__sanitize(file));
+        __out.push('">');
+        __out.push(__sanitize(file));
+        __out.push('</a> (Tar file <a target="_blank" href="');
+        __out.push(__sanitize(tarfile));
+        __out.push('">');
+        __out.push(__sanitize(tarfile));
+        __out.push('</a>)</a></p>\n    <p>Use upload form <a target="_blank" href="');
+        __out.push(__sanitize(upload));
+        __out.push('">');
+        __out.push(__sanitize(upload));
+        __out.push('</a></p>\n\n');
       } else {
         __out.push('\n     <h4>');
         __out.push(__sanitize(this.taskType));
@@ -2902,29 +2923,28 @@
   }
   (function() {
     (function() {
-      __out.push('<h4>Task status:</h4>\n<div data-alert class="alert-box ');
+      if ((this.created == null) || this.created !== this.configCreated) {
+        __out.push('\n  <!-- TaskState is for old config (');
+        __out.push(__sanitize(this.configCreated));
+        __out.push(' vs ');
+        __out.push(__sanitize(this.created));
+        __out.push(') --> \n');
+      } else {
+        __out.push('<h4>Task status:</h4>\n<div data-alert class="alert-box ');
+        __out.push(__sanitize(this.state === 'done' ? ((this.lastChanged != null) && this.lastChanged > this.lastConfigChanged ? 'warning' : 'success') : this.state === 'disabled' ? 'secondary' : this.state === 'starting' ? 'info' : this.state === 'error' ? 'alert' : 'warning'));
+        __out.push('">\n  ');
+        __out.push(__sanitize(this.message));
+        __out.push('<br/>\n  (Last update: ');
+        __out.push(__sanitize(this.lastUpdate != null ? new Date(this.lastUpdate).toUTCString() : void 0));
+        __out.push(')\n</div>\n<!-- <p>State: ');
+        __out.push(__sanitize(this.state));
+        __out.push('</p> -->\n<p>');
+        __out.push(__sanitize(this.lastConfigChanged == null ? 'Not yet done' : (this.lastChanged != null) && this.lastChanged > this.lastConfigChanged ? 'Out of date; last done for request ' : 'Up to date with '));
+        __out.push(__sanitize(this.lastConfigChanged != null ? new Date(this.lastConfigChanged).toUTCString() : void 0));
+        __out.push('</p>\n');
+      }
     
-      __out.push(__sanitize(this.state === 'done' ? ((this.lastChanged != null) && this.lastChanged > this.lastConfigChanged ? 'warning' : 'success') : this.state === 'disabled' ? 'secondary' : this.state === 'starting' ? 'info' : this.state === 'error' ? 'alert' : 'warning'));
-    
-      __out.push('">\n  ');
-    
-      __out.push(__sanitize(this.message));
-    
-      __out.push('<br/>\n  (Last update: ');
-    
-      __out.push(__sanitize(this.lastUpdate != null ? new Date(this.lastUpdate).toUTCString() : void 0));
-    
-      __out.push(')\n</div>\n<!-- <p>State: ');
-    
-      __out.push(__sanitize(this.state));
-    
-      __out.push('</p> -->\n<p>');
-    
-      __out.push(__sanitize(this.lastConfigChanged == null ? 'Not yet done' : (this.lastChanged != null) && this.lastChanged > this.lastConfigChanged ? 'Out of date; last done for request ' : 'Up to date with '));
-    
-      __out.push(__sanitize(this.lastConfigChanged != null ? new Date(this.lastConfigChanged).toUTCString() : void 0));
-    
-      __out.push('</p>\n\n');
+      __out.push('\n');
     
     }).call(this);
     
@@ -3078,7 +3098,7 @@
   }
   (function() {
     (function() {
-      __out.push('\n  <div class="columns large-12 small-12">\n    <h2>Background Task List</h2>\n    <a href="#" class="button do-add-task-tar">Tar...</a>\n    <a href="#" class="button do-add-task-rm">Rm -f...</a>\n    <a href="#" class="button do-add-task-backup">Backup...</a>\n    <a href="#" class="button do-add-task-checkpoint">Checkpoint...</a>\n  </div>\n\n');
+      __out.push('\n  <div class="columns large-12 small-12">\n    <h2>Background Task List</h2>\n    <!-- <a href="#" class="button do-add-task-tar">Tar...</a> -->\n    <a href="#" class="button do-add-task-backup">Backup...</a>\n    <a href="#" class="button do-add-task-checkpoint">Checkpoint...</a>\n    <a href="#" class="button do-add-task-import">Import...</a>\n  </div>\n\n');
     
     }).call(this);
     
@@ -5719,7 +5739,8 @@
 
     TaskConfigEditView.prototype.templateState = function(d) {
       return templateTaskConfigEditState(_.extend({
-        lastChanged: this.model.attributes.lastChanged
+        lastChanged: this.model.attributes.lastChanged,
+        created: this.model.attributes.created
       }, d));
     };
 
@@ -5754,10 +5775,15 @@
       var enabled, time;
       enabled = $('input[name=enabled]').prop('checked');
       time = new Date().getTime();
-      return this.model.set({
+      this.model.set({
         enabled: enabled,
         lastChanged: time
       });
+      if (this.add) {
+        return this.model.set({
+          created: time
+        });
+      }
     };
 
     TaskConfigEditView.prototype.submit = function(ev) {
@@ -5873,6 +5899,7 @@
     __extends(TaskConfigList, _super);
 
     function TaskConfigList() {
+      this.addTaskImport = __bind(this.addTaskImport, this);
       this.addTaskCheckpoint = __bind(this.addTaskCheckpoint, this);
       this.addTaskBackup = __bind(this.addTaskBackup, this);
       this.addTaskRm = __bind(this.addTaskRm, this);
@@ -5889,7 +5916,8 @@
       "click .do-add-task-tar": "addTaskTar",
       "click .do-add-task-rm": "addTaskRm",
       "click .do-add-task-backup": "addTaskBackup",
-      "click .do-add-task-checkpoint": "addTaskCheckpoint"
+      "click .do-add-task-checkpoint": "addTaskCheckpoint",
+      "click .do-add-task-import": "addTaskImport"
     };
 
     TaskConfigList.prototype.addTask = function(ev, taskType, _suffix) {
@@ -5917,6 +5945,10 @@
 
     TaskConfigList.prototype.addTaskCheckpoint = function(ev) {
       return this.addTask(ev, 'checkpoint');
+    };
+
+    TaskConfigList.prototype.addTaskImport = function(ev) {
+      return this.addTask(ev, 'import');
     };
 
     return TaskConfigList;

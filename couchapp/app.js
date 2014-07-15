@@ -179,6 +179,19 @@ ddoc.filters.typeTaskconfig = function(doc) {
   }
   return false;
 };
+// filter type Taskconfig
+ddoc.filters.changesTaskconfig = function(doc) {
+  // include deleted?! (in _changes)
+  var type = null;
+  var ix = doc._id.indexOf(':');
+  if (ix > 0) {
+    type = doc._id.substring(0,ix);
+  }
+  if (type && type === 'taskconfig') {
+    return true;
+  }
+  return false;
+};
 // filter type Taskstate
 ddoc.filters.typeTaskstate = function(doc) {
   if (doc.type && doc.type === 'taskstate') {
@@ -186,9 +199,35 @@ ddoc.filters.typeTaskstate = function(doc) {
   }
   return false;
 };
+// filter type Taskstate
+ddoc.filters.changesTaskstate = function(doc) {
+  // include deleted?! (in _changes)
+  var type = null;
+  var ix = doc._id.indexOf(':');
+  if (ix > 0) {
+    type = doc._id.substring(0,ix);
+  }
+  if (type && type === 'taskstate') {
+    return true;
+  }
+  return false;
+};
 // filter type Thing, i.e. anything for now!
 ddoc.filters.typeThing = function(doc) {
   if (doc.type && doc.type !== 'taskstate') {
+    return true;
+  }
+  return false;
+};
+// filter type Thing, i.e. anything for now!
+ddoc.filters.changesContent = function(doc) {
+  // include deleted?! (in _changes)
+  var type = null;
+  var ix = doc._id.indexOf(':');
+  if (ix > 0) {
+    type = doc._id.substring(0,ix);
+  }
+  if (type && type !== 'taskstate' && type!=='taskconfig') {
     return true;
   }
   return false;

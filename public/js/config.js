@@ -14,5 +14,7 @@ if (ix>=0) {
 window.mediahubconfig = {
   dburl: url,
   // default dev setting only!! e.g. docker nginxdev
-  publicurl: 'http://localhost:8080/public'
+  publicurl: 'http://localhost:8080/public',
+  // default dev setting only!! 
+  uploadurl: 'http://localhost:8090'
 };
