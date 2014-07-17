@@ -1,5 +1,7 @@
 # A Booklet
-module.exports = class Booklet extends Backbone.Model
+Thing = require 'models/Thing'
+
+module.exports = class Booklet extends Thing
   defaults:
     title: ''
     description: ''

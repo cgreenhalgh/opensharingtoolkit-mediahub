@@ -64,7 +64,12 @@ module.exports = class ThingMultiselectModalView extends Backbone.View
     console.log "ThingMultiselectModalView add #{thing.id}"
     view = new ThingInMultiselectView model: thing
     view.render()
-    sortValue = String(thing.getSortValue())
+    if thing.getSortValue?
+      sortValue = String(thing.getSortValue())
+    else
+      console.log "ThingMultiselectModalView no getSortValue: #{thing.constructor?.name} #{JSON.stringify thing.attributes}"
+      sortValue = thing.id
+      thing.getSortValue = () -> sortValue
     ix = @views.length
     for v,i in @views
       sv = v.model.getSortValue()

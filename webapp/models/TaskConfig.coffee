@@ -1,5 +1,7 @@
 # A Place
-module.exports = class TaskConfig extends Backbone.Model
+Thing = require 'models/Thing'
+
+module.exports = class TaskConfig extends Thing
   defaults:
     type: 'taskconfig'
     subjectId: ''

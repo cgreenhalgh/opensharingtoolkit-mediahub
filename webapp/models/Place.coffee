@@ -1,5 +1,7 @@
 # A Place
-module.exports = class Place extends Backbone.Model
+Thing = require 'models/Thing'
+
+module.exports = class Place extends Thing
   defaults:
     title: ''
     description: ''

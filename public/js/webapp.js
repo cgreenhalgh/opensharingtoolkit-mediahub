@@ -361,9 +361,11 @@
 
 }).call(this);
 }, "models/App": function(exports, require, module) {(function() {
-  var App,
+  var App, Thing,
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+  Thing = require('models/Thing');
 
   module.exports = App = (function(_super) {
     __extends(App, _super);
@@ -383,7 +385,7 @@
 
     return App;
 
-  })(Backbone.Model);
+  })(Thing);
 
 }).call(this);
 }, "models/AppList": function(exports, require, module) {(function() {
@@ -431,9 +433,11 @@
 
 }).call(this);
 }, "models/Booklet": function(exports, require, module) {(function() {
-  var Booklet,
+  var Booklet, Thing,
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+  Thing = require('models/Thing');
 
   module.exports = Booklet = (function(_super) {
     __extends(Booklet, _super);
@@ -454,7 +458,7 @@
 
     return Booklet;
 
-  })(Backbone.Model);
+  })(Thing);
 
 }).call(this);
 }, "models/BookletList": function(exports, require, module) {(function() {
@@ -547,10 +551,12 @@
 
 }).call(this);
 }, "models/File": function(exports, require, module) {(function() {
-  var File,
+  var File, Thing,
     __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+  Thing = require('models/Thing');
 
   module.exports = File = (function(_super) {
     __extends(File, _super);
@@ -589,7 +595,7 @@
 
     return File;
 
-  })(Backbone.Model);
+  })(Thing);
 
 }).call(this);
 }, "models/FileList": function(exports, require, module) {(function() {
@@ -643,9 +649,11 @@
 
 }).call(this);
 }, "models/Html": function(exports, require, module) {(function() {
-  var Html,
+  var Html, Thing,
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+  Thing = require('models/Thing');
 
   module.exports = Html = (function(_super) {
     __extends(Html, _super);
@@ -664,7 +672,7 @@
 
     return Html;
 
-  })(Backbone.Model);
+  })(Thing);
 
 }).call(this);
 }, "models/HtmlList": function(exports, require, module) {(function() {
@@ -757,9 +765,11 @@
 
 }).call(this);
 }, "models/List": function(exports, require, module) {(function() {
-  var Place,
+  var Place, Thing,
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+  Thing = require('models/Thing');
 
   module.exports = Place = (function(_super) {
     __extends(Place, _super);
@@ -779,7 +789,7 @@
 
     return Place;
 
-  })(Backbone.Model);
+  })(Thing);
 
 }).call(this);
 }, "models/ListList": function(exports, require, module) {(function() {
@@ -827,9 +837,11 @@
 
 }).call(this);
 }, "models/Place": function(exports, require, module) {(function() {
-  var Place,
+  var Place, Thing,
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+  Thing = require('models/Thing');
 
   module.exports = Place = (function(_super) {
     __extends(Place, _super);
@@ -854,7 +866,7 @@
 
     return Place;
 
-  })(Backbone.Model);
+  })(Thing);
 
 }).call(this);
 }, "models/PlaceList": function(exports, require, module) {(function() {
@@ -902,9 +914,11 @@
 
 }).call(this);
 }, "models/TaskConfig": function(exports, require, module) {(function() {
-  var TaskConfig,
+  var TaskConfig, Thing,
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+  Thing = require('models/Thing');
 
   module.exports = TaskConfig = (function(_super) {
     __extends(TaskConfig, _super);
@@ -927,7 +941,7 @@
 
     return TaskConfig;
 
-  })(Backbone.Model);
+  })(Thing);
 
 }).call(this);
 }, "models/TaskConfigList": function(exports, require, module) {(function() {
@@ -2866,7 +2880,7 @@
       if (this.taskType === 'exportapp') {
         __out.push('\n    <h4>Publish app to webserver</h4>\n');
         __out.push('\n');
-        appurl = "" + window.mediahubconfig.publicurl + "/apps/" + this.path + "/_design/app/_show/app/" + this.subjectId + ".html";
+        appurl = "" + window.mediahubconfig.publicurl + "/" + this.path + "/_design/app/_show/app/" + this.subjectId + ".html";
         __out.push('\n');
         tarfile = "" + window.mediahubconfig.publicurl + "/" + this.path + ".tgz";
         __out.push('\n    <p>Will export app to <a target="_blank" href="');
@@ -6594,17 +6608,25 @@
     };
 
     ThingMultiselectModalView.prototype.addItem = function(thing) {
-      var i, ix, sortValue, sv, v, view, _i, _len, _ref;
+      var i, ix, sortValue, sv, v, view, _i, _len, _ref, _ref1;
       console.log("ThingMultiselectModalView add " + thing.id);
       view = new ThingInMultiselectView({
         model: thing
       });
       view.render();
-      sortValue = String(thing.getSortValue());
+      if (thing.getSortValue != null) {
+        sortValue = String(thing.getSortValue());
+      } else {
+        console.log("ThingMultiselectModalView no getSortValue: " + ((_ref = thing.constructor) != null ? _ref.name : void 0) + " " + (JSON.stringify(thing.attributes)));
+        sortValue = thing.id;
+        thing.getSortValue = function() {
+          return sortValue;
+        };
+      }
       ix = this.views.length;
-      _ref = this.views;
-      for (i = _i = 0, _len = _ref.length; _i < _len; i = ++_i) {
-        v = _ref[i];
+      _ref1 = this.views;
+      for (i = _i = 0, _len = _ref1.length; _i < _len; i = ++_i) {
+        v = _ref1[i];
         sv = v.model.getSortValue();
         if ((sortValue.localeCompare(String(sv))) < 0) {
           ix = i;

@@ -1,5 +1,7 @@
 # A file/fragment
-module.exports = class File extends Backbone.Model
+Thing = require 'models/Thing'
+
+module.exports = class File extends Thing
   defaults:
     title: ''
     description: ''

@@ -7,7 +7,7 @@
 <% if @taskType=='exportapp': %>
     <h4>Publish app to webserver</h4>
 <%# cf taskrunner.coffee %>
-<%   appurl = "#{window.mediahubconfig.publicurl}/apps/#{@path}/_design/app/_show/app/#{@subjectId}.html" %>
+<%   appurl = "#{window.mediahubconfig.publicurl}/#{@path}/_design/app/_show/app/#{@subjectId}.html" %>
 <%   tarfile = "#{window.mediahubconfig.publicurl}/#{@path}.tgz" %>
     <p>Will export app to <a target="_blank" href="<%= appurl %>"><%= appurl %></a> (Tar file <a target="_blank" href="<%= tarfile %>"><%= tarfile %></a>)</p>
 

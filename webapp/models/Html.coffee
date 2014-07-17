@@ -1,5 +1,7 @@
 # A HTML Fragment
-module.exports = class Html extends Backbone.Model
+Thing = require 'models/Thing'
+
+module.exports = class Html extends Thing
   defaults:
     title: ''
     description: ''
