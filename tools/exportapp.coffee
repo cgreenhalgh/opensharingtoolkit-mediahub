@@ -56,7 +56,11 @@ get_cache_path = (url) ->
   hs = for h in hs
     String(h).toLowerCase()
   # ignore port for now!
-  ps = if url.path? then url.path.split '/' else []
+  ps = []
+  if url.path?
+    # encode #, ? and &
+    p = url.path.replace( /[#]/g, '%23' ).replace( /[\?]/g, '%3F' ).replace( /[&]/g, '%26' )
+    ps = p.split '/'  
   # leading /?
   if ps.length>1 and ps[0]==''
     ps.shift()
@@ -95,7 +99,7 @@ addSrcRefs = (file) ->
           type: 'html'
           from: from
           to: from+src.length
-          src: fix_relative_url file.url, src
+          src: fix_relative_url file.url, (src.replace /[&]amp[;]/g, '&')
       ix = srcs.lastIndex
 
 check_json = (surl) ->
@@ -140,7 +144,7 @@ check_json = (surl) ->
               file.refs.push
                 from: from
                 to: from+src.length
-                src: fix_relative_url file.url, src
+                src: fix_relative_url file.url, (src.replace /[&]amp[;]/g, '&')
                 ix: el.ix.join '.'
             ix = srcs.lastIndex
       else if (typeof val)=='object'

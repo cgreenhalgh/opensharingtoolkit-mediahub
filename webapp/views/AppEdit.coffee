@@ -60,6 +60,7 @@ module.exports = class AppEditView extends ListEditView
       while m = ( srcs.exec html ) 
         src = m[1]
         if src.length>0
+          src = src.replace /[&]amp[;]/g, '&'
           file = 
             url: src
             title: 'img'
