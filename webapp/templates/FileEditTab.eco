@@ -2,10 +2,14 @@
     <label>File (note: replacing a file is immediate - no undo!)
       <input type="file" name="file"/>
     </label>
-    <!-- often blocked by ajax! <label>URL (note: replacing a file is immediate - no undo!)
-      <input type="text" name="url" placeholder="URL" value=""/>
-      <input type="button" name="do-url" class="do-url" value="Load from URL"/> 
-    </label> -->
+    <label>External URL 
+      <input type="text" name="externalurl" placeholder="http://..." value="<%= @data.externalurl %>"/>
+    <label>Try to load external URL as image (Often fails if different origin)
+      <input type="button" name="do-url" class="do-url" value="Load image from URL"/> 
+    </label>
+    <label>Download external URL (so you can upload it!)
+      <input type="button" name="do-downloadurl" class="do-downloadurl" value="Download URL"/> 
+    </label>
     <div class="drop-zone">Drop file here</div>
     <div class="file-detail">No File<!-- TODO --></div>
     <label>Image
@@ -29,7 +33,6 @@
             </div>
           </div>
           <label>Aspect Ratio
-            <select name="image-aspect">
               <option value="" selected>Any</option>
               <option value="fixed" >Fixed</option>
               <option value="1" >1:1</option>

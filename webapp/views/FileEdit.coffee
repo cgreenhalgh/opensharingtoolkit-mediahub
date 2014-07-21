@@ -32,6 +32,7 @@ module.exports = class FileEditView extends ThingEditView
   events: ->
     _.extend {}, super(),
       "click .do-url": "doUrl"
+      "click .do-downloadurl": "doDownloadUrl"
       "click .do-save-image": "imageSave"
       "click .do-reset-image": "imageReset"
       "click .do-crop-image": "imageCrop"
@@ -55,7 +56,14 @@ module.exports = class FileEditView extends ThingEditView
     super()
     # check/fix hasFile
     atts = @model.attachments()
-    @model.set 'hasFile', atts.indexOf("bytes")>=0
+    externalurl = $('input[name="externalurl"]', @$el).val()
+    title = @model.get 'title'
+    if externalurl!='' and (not title? or title=='')
+      title = externalurl
+    @model.set
+      hasFile: atts.indexOf("bytes")>=0
+      externalurl: externalurl
+      title: title
 
   cancel: =>
     if @created and @model.id?
@@ -208,37 +216,67 @@ module.exports = class FileEditView extends ThingEditView
   save: (ev) =>
     @model.download ev
 
+  doDownloadUrl: (ev) =>
+    ev.preventDefault()
+    url = $('input[name="externalurl"]', @$el).val()
+    if url==''
+      return
+    console.log "doDownloadUrl #{url}"
+    window.open url, '_blank'
+
   doUrl: (ev) =>
     ev.preventDefault()
-    url = $('input[name="url"]', @$el).val()
+    url = $('input[name="externalurl"]', @$el).val()
+    if url==''
+      return
     console.log "doUrl #{url}"
-    @fileState = 'downloading'
-    @renderFileDetails()
-    $('input[type=submit]',@$el).prop('disabled',true)
-    $('input[name=do-url]',@$el).prop('disabled',true)
     
-    # TODO image? try as img element...
+    # image? try as img element...
     # Ajax requests often blocked by CORS :-(
-    $.ajax url, 
-      method: 'GET'
-      processData: false
-      crossDomain: true
-      error: (xhr, status, error) =>
-        # jqXHR, textStatus, errorThrown
-        console.log "Error getting #{url}: #{status} (#{error})"
-        @fileState = 'error'
-        alert "Error getting #{url}: #{status} (#{error})"
-        @renderFileDetails()
-        $('input[type=submit]',@$el).prop('disabled',false)
-        $('input[name=do-url]',@$el).prop('disabled', false)
+    img = new Image()
+    img.crossOrigin = 'Anonymous'
 
-      success: (data, status, xhr) =>
-        console.log "Got #{url} as #{typeof data} length #{data.length} (#{status})"
-        @fileState = 'loading'
-        @renderFileDetails()
-        # TODO
-        $('input[type=submit]',@$el).prop('disabled',false)
-        $('input[name=do-url]',@$el).prop('disabled',false)
+    self = @
+    type = 'image/png'
+    ix = url.lastIndexOf '.'
+    if ix>=0
+      ext = url.substring (ix+1)
+      if ext=='jpg' or ext=='jpeg' or ext=='jpe'
+        type = 'image/jpeg'
+
+    server.working 'load image'
+
+    img.onload = () =>
+      console.log "doUrl Image real size #{img.width}x#{img.height}"
+      try
+        canvas = document.createElement("canvas")
+        canvas.width = img.width
+        canvas.height = img.height
+        context = canvas.getContext("2d")
+        # translate w-1 or w?
+        context.transform 1,0,0,1,0,0
+        context.drawImage img, 0, 0
+        console.log "try to save as #{type}"
+        data = canvas.toDataURL type
+        if not data?
+          console.log "doUrl Could not get dataURL"
+          return
+        console.log "doUrl update image with dataurl"
+        @imageEdit null, data
+        server.success @model,null,{}
+      catch err
+        console.log "doUrl error doing #{name}: #{err.message} #{err.stack}"
+        server.error @model,err,{}
+
+    img.onerror = () =>
+      console.log "doUrl onerror"
+      server.error @model,"Error loading #{url} as an image",{}
+
+    try
+      img.src = url
+    catch err
+      console.log "doUrl error #{err.message}"
+      server.error @model,err,{}
 
   removeJcrop: =>
     console.log "remove jcrop #{@jcrop}"
