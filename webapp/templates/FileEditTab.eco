@@ -1,12 +1,4 @@
-<%# File add or edit, takes { data: File, add: true|false } as data (title, description, ...); parent is a row %>
-<div class="columns large-12">
-  <h2><%= if @add then 'Add' else 'Edit' %> File</h2>
-</div>
-<form  class="file-form" >
-  <div class="columns large-12">
-    <label>Title
-      <input type="text" name="title" placeholder="title" value="<%= @data.title %>"/>
-    </label>
+<%# File add or edit tab, takes { data: File, add: true|false } as data (title, description, ...); parent is a content %>
     <label>File (note: replacing a file is immediate - no undo!)
       <input type="file" name="file"/>
     </label>
@@ -59,12 +51,4 @@
         </div>
         <div class="columns large-3 medium-12 small-12"><!-- rest --></div>
       </div>
-    <label>Description
-      <textarea name="description" placeholder="description" ><%= @data.description %></textarea>
-    </label>
-    <input type="submit" value="<%= if @add then 'Add' else 'Save changes' %>"/>
-    <input type="reset" value="Clear"/>
-    <input type="button" value="Cancel" class="do-cancel"/>
-  </div>
-</form>
 

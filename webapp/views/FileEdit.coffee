@@ -1,99 +1,63 @@
 # FileEdit View
-templateFileEdit = require 'templates/FileEdit'
+templateFileEditTab = require 'templates/FileEditTab'
 templateFileDetail = require 'templates/FileDetail'
+ThingEditView = require 'views/ThingEdit'
 server = require 'server'
 allthings = require 'allthings'
 
-module.exports = class FileEditView extends Backbone.View
+module.exports = class FileEditView extends ThingEditView
 
-  constructor:(options)->
-    @add = options.add ?= false
-    @things = options.things ?= null
-    super(options)
-
-  tagName: 'div'
-  className: 'row file-edit'
+  #className: 'row file-edit'
   #fileState: 'unchanged'
   #cancelled: false
   #created: false
 
   initialize: ->
+    super()
     @fileState = 'unchanged'
     @cancelled = false
     @created = false
     #@listenTo @model, 'change', @render
     #@render()
 
-  # syntax ok?? or (x...) -> 
-  template: (d) =>
-    templateFileEdit d
+  tabs: ->
+    super().concat [ { title: 'File', template: templateFileEditTab } ]
 
   render: =>
     console.log "render FileEdit #{@model.attributes._id}: #{ @model.attributes.title }"
-    # TODO edit?
-    @$el.html @template { data: @model.attributes, add: @add }
-    # TODO file info
+    super()
     @renderFileDetails()
-    f = () -> $('input[name="title"]', @$el).focus()
-    setTimeout f, 0
     @
 
-  events:
-    "submit": "submit"
-    "click .do-cancel": "cancel"
-    "click .do-url": "doUrl"
-    "click .do-save-image": "imageSave"
-    "click .do-reset-image": "imageReset"
-    "click .do-crop-image": "imageCrop"
-    "click .do-scale-image": "imageScale"
-    "click .do-flip-image": "imageFlip"
-    "click .do-rotate-image": "imageRotate"
-    "dragover .drop-zone": "handleDragOver"
-    "drop .drop-zone": "handleDrop"
-    "dragenter .drop-zone": "handleDragEnter"
-    "dragleave .drop-zone": "handleDragLeave"
-    "dragend .drop-zone": "handleDragLeave"
-    'change input[name="file"]': "handleFileSelect"
-    "click .do-save": "save"
-    "click": "click"
-    "change select[name=image-aspect]": "imageAspect"
+  events: ->
+    _.extend {}, super(),
+      "click .do-url": "doUrl"
+      "click .do-save-image": "imageSave"
+      "click .do-reset-image": "imageReset"
+      "click .do-crop-image": "imageCrop"
+      "click .do-scale-image": "imageScale"
+      "click .do-flip-image": "imageFlip"
+      "click .do-rotate-image": "imageRotate"
+      "dragover .drop-zone": "handleDragOver"
+      "drop .drop-zone": "handleDrop"
+      "dragenter .drop-zone": "handleDragEnter"
+      "dragleave .drop-zone": "handleDragLeave"
+      "dragend .drop-zone": "handleDragLeave"
+      'change input[name="file"]': "handleFileSelect"
+      "click .do-save": "save"
+      "click": "click"
+      "change select[name=image-aspect]": "imageAspect"
   
   click: (ev) =>
     console.log "click #{ev.target} classes #{$(ev.target).attr('class')}"
 
-  submit: (ev)=>
-    console.log "submit..."
-    ev.preventDefault()
-    title = $('input[name="title"]', @$el).val()
-    file = $('input[name="file"]', @$el).val()
-    description = $(':input[name="description"]', @$el).val()
-    console.log "title=#{title}, file=#{file}, description=#{description}"
-    @model.set 'title', title
-    @model.set 'description', description
+  formToModel: () =>
+    super()
     # check/fix hasFile
     atts = @model.attachments()
     @model.set 'hasFile', atts.indexOf("bytes")>=0
-    
-    server.working 'save File (submit)'
-    if false==@model.save null, {
-        success: (model,resp,options) ->
-          console.log "save File (submit) ok: #{JSON.stringify resp}"
-          server.success model, resp, options
-        error: server.error
-      }
-      server.error @model,'Save validation error (save File, submit)',{}
-    if @add
-      if @things
-        console.log "adding File #{@model.id} to @things"
-        @things.add @model
-      else
-        console.log "cannot add File #{@model.id} to @things - @things not set"
-      allthings.get().add @model
-    @close()
 
   cancel: =>
-    console.log "cancel"
-    @cancelled = true
     if @created and @model.id?
       console.log "try destroy on cancel for #{@model.id}"
       server.working 'destroy (cancel)'
@@ -103,13 +67,14 @@ module.exports = class FileEditView extends Backbone.View
         }
         console.log "destroy (cancel) #{@model.id} returned false"
         server.success @model,null,{}
-    @close()
+    super()
 
   remove: =>
     @removeJcrop()
     super()
 
   close: =>
+    # super()? doesn't @remove() - not sure why
     @remove()
     window.history.back()
 

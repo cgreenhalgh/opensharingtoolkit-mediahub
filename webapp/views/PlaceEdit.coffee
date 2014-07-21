@@ -1,5 +1,5 @@
 # PlaceEdit View
-templatePlaceEdit = require 'templates/PlaceEdit'
+templatePlaceEditTab = require 'templates/PlaceEditTab'
 ThingEditView = require 'views/ThingEdit'
 
 # geocode 
@@ -21,9 +21,8 @@ maxZoom = 19
 
 module.exports = class PlaceEditView extends ThingEditView
 
-  # syntax ok?? or (x...) -> 
-  template: (d) =>
-    templatePlaceEdit d
+  tabs: ->
+    super().concat [ { title: 'Place', template: templatePlaceEditTab } ]
 
   render: =>
     super()
@@ -65,8 +64,7 @@ module.exports = class PlaceEditView extends ThingEditView
     setTimeout f,0
 
   formToModel: () =>
-    imageurl = $('.image-image', @$el).attr 'src'
-    iconurl = $('.image-icon', @$el).attr 'src'
+    mapiconurl = $('.image-mapicon', @$el).attr 'src'
     address = $('input[name=address]', @$el).val()
     lat = $('input[name=lat]', @$el).val()
     try 
@@ -78,10 +76,9 @@ module.exports = class PlaceEditView extends ThingEditView
       lon = Number(lon)
     catch err
       console.log "Error in lon as Number: #{lon} #{err.message}"
-    console.log "imageurl = #{imageurl}, iconurl = #{iconurl}, address=#{address}, lat=#{lat}, lon=#{lon}"
+    console.log "mapiconurl = #{mapiconurl}, address=#{address}, lat=#{lat}, lon=#{lon}"
     @model.set 
-      imageurl: imageurl
-      iconurl: iconurl
+      mapiconurl: mapiconurl
       address: address
       lat: lat
       lon: lon
@@ -92,23 +89,17 @@ module.exports = class PlaceEditView extends ThingEditView
         @model.set zoom: zoom
     super()
 
-  events:
-    "submit": "submit"
-    "click .do-cancel": "cancel"
-    "click .do-save": "save"
-    "click .do-select-image": "selectPlaceImage"
-    "click .do-select-icon": "selectIcon"
-    "click .do-lookup-address": "lookupAddress"
-    "click .do-clear-map": "clearMap"
-    "click .do-show-latlon": "showLatlon"
-    "click .do-use-address": "useAddress"
-    "click .do-use-latlon": "useLatlon"
+  events: ->
+    _.extend {}, super(),
+      "click .do-select-mapicon": "selectMapicon"
+      "click .do-lookup-address": "lookupAddress"
+      "click .do-clear-map": "clearMap"
+      "click .do-show-latlon": "showLatlon"
+      "click .do-use-address": "useAddress"
+      "click .do-use-latlon": "useLatlon"
 
-  selectPlaceImage: (ev) =>
-    @selectImage ev,'.image-image'
-
-  selectIcon: (ev) =>
-    @selectImage ev,'.image-icon'
+  selectMapicon: (ev) =>
+    @selectImage ev,'.image-mapicon'
 
   clearMap: (ev) =>
     console.log "clear map"
@@ -193,6 +184,14 @@ module.exports = class PlaceEditView extends ThingEditView
     $('input[name=lon]', @$el).val ll[1]
     $('input[name=zoom]', @$el).val String(@map.getZoom())
     
+  showTab: (ev) =>
+    # map is sulky if initially hidden
+    super(ev)
+    if @map
+      f = () =>
+        console.log "Map: invalidateSize"
+        @map.invalidateSize()
+      setTimeout f, 0
 
   showLatlon: (ev) =>
     ev.preventDefault()

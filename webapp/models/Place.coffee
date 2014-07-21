@@ -8,6 +8,7 @@ module.exports = class Place extends Thing
     type: 'place'
     imageurl: ''
     iconurl: ''
+    mapiconurl: ''
     lat: 0
     lon: 0
     address: ''

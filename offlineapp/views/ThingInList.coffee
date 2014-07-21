@@ -17,7 +17,7 @@ module.exports = class ThingInListView extends Backbone.View
     console.log "render ThingInList #{@model.attributes._id}: #{ @model.attributes.title }"
     iconurl = @model.attributes.iconurl
     if not iconurl? or iconurl==''
-      iconurl = @model.attributes.coverurl
+      iconurl = @model.attributes.imageurl
     if not iconurl? or iconurl==''
       if @model.attributes.type?
         iconurl = "../../icons/#{@model.attributes.type}.png"

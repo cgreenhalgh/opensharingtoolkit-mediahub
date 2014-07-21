@@ -1,8 +1,11 @@
 # BookletEdit View
-templateBookletEdit = require 'templates/BookletEdit'
+templateBookletEditTab = require 'templates/BookletEditTab'
 ThingEditView = require 'views/ThingEdit'
 
 module.exports = class BookletEditView extends ThingEditView
+
+  tabs: ->
+    super().concat [ { title: 'Booklet', template: templateBookletEditTab } ]
 
   contentToHtml: (content) ->
     if content?
@@ -15,7 +18,7 @@ module.exports = class BookletEditView extends ThingEditView
 
   # syntax ok?? or (x...) -> 
   template: (d) =>
-    templateBookletEdit _.extend { content: @contentToHtml @model.attributes.content }, d
+    super _.extend { content: @contentToHtml @model.attributes.content }, d
 
   render: =>
     super()
@@ -30,9 +33,6 @@ module.exports = class BookletEditView extends ThingEditView
     setTimeout replace,0
 
   formToModel: () =>
-    coverurl = $('.image-select-image', @$el).attr 'src'
-    console.log "coverurl = #{coverurl}"
-    @model.set coverurl: coverurl
     html = $(':input[name="htmlcontent"]', @$el).val()
     console.log "contenthtml = #{html}"
     @model.set 'content', @htmlToContent html
@@ -44,13 +44,4 @@ module.exports = class BookletEditView extends ThingEditView
       console.log "destroy ckeditor 'htmlcontent'"
       editor.destroy(true)
     super()
-
-  events:
-    "submit": "submit"
-    "click .do-cancel": "cancel"
-    "click .do-save": "save"
-    "click .do-select-cover": "selectCover"
-
-  selectCover: (ev) =>
-    @selectImage ev,'.image-select-image'
 

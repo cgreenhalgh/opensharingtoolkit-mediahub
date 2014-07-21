@@ -1,18 +1,24 @@
-<%# Thing add or edit, takes { data: Thing, add: true|false } as data (title, description, ...); parent is a row %>
+<%# Thing add or edit, takes { data: Thing, add: true|false, tabs: [{ title: ..., : template, ... }] as data (title, description, ...); parent is a row %>
 <div class="columns large-12">
   <h2><%= if @add then 'Add' else 'Edit' %> <%= @contentType.title %></h2>
 </div>
 <form>
   <div class="columns large-12">
-    <label>Title
-      <input type="text" name="title" placeholder="title" value="<%= @data.title %>"/>
-    </label>
-    <label>Description
-      <textarea name="description" placeholder="description" ><%= @data.description %></textarea>
-    </label>
     <input type="submit" value="<%= if @add then 'Add' else 'Save changes' %>"/>
     <input type="reset" value="Clear"/>
     <input type="button" value="Cancel" class="do-cancel"/>
+  </div>
+  <div class="columns large-12">
+    <ul class="tabs" data-tab>
+      <% for tab,i in @tabs: %>
+        <li class="tab-title <%= if i==0 then 'active' %>"><a href="#<%= i %>"><%= tab.title %></a></li>
+      <% end %>
+    </ul>
+    <div class="tabs-content">
+      <% for tab,i in @tabs: %>
+        <div class="content <%= if i==0 then 'active' %> thing-tab-<%= i %>"><%- tab.template @ %></div>
+      <% end %>      
+    </div>
   </div>
 </form>
 

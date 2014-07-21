@@ -1,5 +1,6 @@
 # ThingEdit View
 templateThingEdit = require 'templates/ThingEdit'
+templateThingEditTab = require 'templates/ThingEditTab'
 server = require 'server'
 allthings = require 'allthings'
 
@@ -27,10 +28,17 @@ module.exports = class ThingEditView extends Backbone.View
   template: (d) =>
     templateThingEdit d
 
+  tabs: ->
+    [ { title: 'Overview', template: templateThingEditTab } ]
+
   render: =>
     console.log "render ThingEdit #{@model.attributes._id}: #{ @model.attributes.title }"
     # TODO edit?
-    @$el.html @template { data: @model.attributes, add: @add, contentType: @model.getContentType().attributes }
+    @$el.html @template 
+      data: @model.attributes
+      add: @add
+      contentType: @model.getContentType().attributes
+      tabs: @tabs()
     f = () -> 
       $('input[name="title"]', @$el).focus()
       console.log "Set up CKEditor 'description'..."
@@ -40,17 +48,36 @@ module.exports = class ThingEditView extends Backbone.View
     setTimeout f, 0
     @
 
-  events:
+  events: ->
     "submit": "submit"
     "click .do-cancel": "cancel"
     "click .do-save": "save"
+    "click .do-select-image": "selectThingImage"
+    "click .do-select-icon": "selectIcon"
+    "click .tab-title > a": "showTab"
 
   formToModel: () =>
     title = $('input[name="title"]', @$el).val()
     description = $(':input[name="description"]', @$el).val()
-    console.log "title=#{title}, description=#{description}"
-    @model.set 'title', title
-    @model.set 'description', description
+    imageurl = $('.image-image', @$el).attr 'src'
+    iconurl = $('.image-icon', @$el).attr 'src'
+    console.log "title=#{title}, description=#{description}, imageurl=#{imageurl}, iconurl=#{iconurl}"
+    @model.set 
+      title: title
+      description: description
+      imageurl: imageurl
+      iconurl: iconurl
+
+  showTab: (ev) =>
+    console.log "show tab #{ev.target.href}"
+    ev.preventDefault()
+    tab = ev.target.href
+    if (ix = tab.indexOf('#')) >= 0
+      tab = tab.substring (ix+1)
+    $('.tab-title', @$el).removeClass 'active'
+    $(ev.target).parent().addClass 'active'
+    $('.tabs-content > .content', @$el).removeClass 'active'
+    $(".thing-tab-#{tab}", @$el).addClass 'active'
 
   submit: (ev)=>
     console.log "submit..."
@@ -71,6 +98,14 @@ module.exports = class ThingEditView extends Backbone.View
         @things.add @model
       allthings.get().add @model
     @close()
+
+
+  selectThingImage: (ev) =>
+    @selectImage ev,'.image-image'
+
+  selectIcon: (ev) =>
+    @selectImage ev,'.image-icon'
+
 
   cancel: =>
     console.log "cancel"

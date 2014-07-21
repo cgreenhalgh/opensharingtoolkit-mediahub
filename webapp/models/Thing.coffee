@@ -3,7 +3,8 @@ module.exports = class Thing extends Backbone.Model
   defaults:
     title: ''
     description: ''
-    #iconurl:
+    iconurl: ''
+    imageurl: ''
 
   idAttribute: '_id'
 

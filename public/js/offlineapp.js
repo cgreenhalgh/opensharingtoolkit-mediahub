@@ -2963,7 +2963,7 @@
       console.log("render ThingInList " + this.model.attributes._id + ": " + this.model.attributes.title);
       iconurl = this.model.attributes.iconurl;
       if ((iconurl == null) || iconurl === '') {
-        iconurl = this.model.attributes.coverurl;
+        iconurl = this.model.attributes.imageurl;
       }
       if ((iconurl == null) || iconurl === '') {
         if (this.model.attributes.type != null) {

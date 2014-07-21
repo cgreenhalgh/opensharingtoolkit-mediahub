@@ -1,0 +1,5 @@
+<%# Thing add or edit tab, takes { data: Thing, add: true|false } as data (title, description, ...); parent is a content %>
+    <label>Html
+      <textarea name="htmlfragment" ><%= @data.html %></textarea>
+    </label>
+

@@ -1,12 +1,11 @@
 # HtmlEdit View
-templateHtmlEdit = require 'templates/HtmlEdit'
+templateHtmlEditTab = require 'templates/HtmlEditTab'
 ThingEditView = require 'views/ThingEdit'
 
 module.exports = class HtmlEditView extends ThingEditView
 
-  # syntax ok?? or (x...) -> 
-  template: (d) =>
-    templateHtmlEdit d
+  tabs: ->
+    super().concat [ { title: 'HTML', template: templateHtmlEditTab } ]
 
   render: =>
     super()

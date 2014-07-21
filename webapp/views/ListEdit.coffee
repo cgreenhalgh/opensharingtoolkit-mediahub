@@ -1,5 +1,5 @@
 # List edit View
-templateListEdit = require 'templates/ListEdit'
+templateListEditTab = require 'templates/ListEditTab'
 ThingEditView = require 'views/ThingEdit'
 ThingRefList = require 'models/ThingRefList'
 ThingRef = require 'models/ThingRef'
@@ -7,9 +7,8 @@ ThingRefListView = require 'views/ThingRefList'
 
 module.exports = class ListEditView extends ThingEditView
 
-  # syntax ok?? or (x...) -> 
-  template: (d) =>
-    templateListEdit d
+  tabs: ->
+    super().concat [ { title: 'List', template: templateListEditTab } ]
 
   render: =>
     super()

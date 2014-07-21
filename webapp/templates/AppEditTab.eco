@@ -1,0 +1,3 @@
+<%# App add or edit tab, takes { data: Thing, add: true|false } as data (title, description, ...); parent is a content %>
+    <input type="button" value="Prepare for download" class="do-update"/>
+

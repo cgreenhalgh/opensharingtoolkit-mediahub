@@ -6,8 +6,8 @@ module.exports = class Booklet extends Thing
     title: ''
     description: ''
     type: 'booklet'
-    coverurl: ''
-    columns: []
+    content: ''
+    #coverurl: '' -> image?!
 
   idAttribute: '_id'
 

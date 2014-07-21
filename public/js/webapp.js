@@ -450,8 +450,7 @@
       title: '',
       description: '',
       type: 'booklet',
-      coverurl: '',
-      columns: []
+      content: ''
     };
 
     Booklet.prototype.idAttribute = '_id';
@@ -856,6 +855,7 @@
       type: 'place',
       imageurl: '',
       iconurl: '',
+      mapiconurl: '',
       lat: 0,
       lon: 0,
       address: '',
@@ -1141,7 +1141,9 @@
 
     Thing.prototype.defaults = {
       title: '',
-      description: ''
+      description: '',
+      iconurl: '',
+      imageurl: ''
     };
 
     Thing.prototype.idAttribute = '_id';
@@ -1828,7 +1830,7 @@
   };
 
 }).call(this);
-}, "templates/AppEdit": function(exports, require, module) {module.exports = function(__obj) {
+}, "templates/AppEditTab": function(exports, require, module) {module.exports = function(__obj) {
   if (!__obj) __obj = {};
   var __out = [], __capture = function(callback) {
     var out = __out, result;
@@ -1867,27 +1869,7 @@
   }
   (function() {
     (function() {
-      __out.push('\n<div class="columns large-12">\n  <h2>');
-    
-      __out.push(__sanitize(this.add ? 'Add' : 'Edit'));
-    
-      __out.push(' ');
-    
-      __out.push(__sanitize(this.contentType.title));
-    
-      __out.push('</h2>\n</div>\n<form>\n  <div class="columns large-12">\n    <input type="submit" value="');
-    
-      __out.push(__sanitize(this.add ? 'Add' : 'Save changes'));
-    
-      __out.push('"/>\n    <input type="reset" value="Clear"/>\n    <input type="button" value="Cancel" class="do-cancel"/>\n    <input type="button" value="Prepare for download" class="do-update"/>\n\n    <label>Title\n      <input type="text" name="title" placeholder="title" value="');
-    
-      __out.push(__sanitize(this.data.title));
-    
-      __out.push('"/>\n    </label>\n\n    <label>Top-level Items\n      <div class="thingref-list-holder"></div>\n    </label>\n\n    <label>Description\n      <textarea name="description" placeholder="description" >');
-    
-      __out.push(__sanitize(this.data.description));
-    
-      __out.push('</textarea>\n    </label>\n  </div>\n</form>\n\n');
+      __out.push('\n    <input type="button" value="Prepare for download" class="do-update"/>\n\n');
     
     }).call(this);
     
@@ -1944,7 +1926,7 @@
   }).call(__obj);
   __obj.safe = __objSafe, __obj.escape = __escape;
   return __out.join('');
-}}, "templates/BookletEdit": function(exports, require, module) {module.exports = function(__obj) {
+}}, "templates/BookletEditTab": function(exports, require, module) {module.exports = function(__obj) {
   if (!__obj) __obj = {};
   var __out = [], __capture = function(callback) {
     var out = __out, result;
@@ -1983,35 +1965,11 @@
   }
   (function() {
     (function() {
-      __out.push('\n<div class="columns large-12">\n  <h2>');
-    
-      __out.push(__sanitize(this.add ? 'Add' : 'Edit'));
-    
-      __out.push(' ');
-    
-      __out.push(__sanitize(this.contentType.title));
-    
-      __out.push('</h2>\n</div>\n\n<form>\n  <div class="columns large-12">\n\n    <input type="submit" value="');
-    
-      __out.push(__sanitize(this.add ? 'Add' : 'Save changes'));
-    
-      __out.push('"/>\n    <input type="reset" value="Clear"/>\n    <input type="button" value="Cancel" class="do-cancel"/>\n\n    <label>Title\n      <input type="text" name="title" placeholder="title" value="');
-    
-      __out.push(__sanitize(this.data.title));
-    
-      __out.push('"/>\n    </label>\n    <label>Description\n      <textarea name="description" placeholder="description" >');
-    
-      __out.push(__sanitize(this.data.description));
-    
-      __out.push('</textarea>\n    </label>\n    <label>Cover\n      <div class="row">\n        <div class="columns large-4 medium-6 small-12">\n          <div class="image-select-icon">\n            <div class="dummy"></div>\n            <img class="image-select-image" src="');
-    
-      __out.push(__sanitize(this.data.coverurl));
-    
-      __out.push('"/>\n          </div>\n        </div>\n        <div class="columns large-4 medium-6 small-12">\n          <a href="#" class="button do-select-cover">Browse server...</a> \n        </div>\n      </div>\n    </label>\n\n    <label>Content\n      <textarea name="htmlcontent">');
+      __out.push('\n    <label>Content\n      <textarea name="htmlcontent">');
     
       __out.push(__sanitize(this.content));
     
-      __out.push('</textarea>\n    </label>\n\n  </div>\n</form>\n\n');
+      __out.push('</textarea>\n    </label>\n\n');
     
     }).call(this);
     
@@ -2304,7 +2262,7 @@
   }).call(__obj);
   __obj.safe = __objSafe, __obj.escape = __escape;
   return __out.join('');
-}}, "templates/FileEdit": function(exports, require, module) {module.exports = function(__obj) {
+}}, "templates/FileEditTab": function(exports, require, module) {module.exports = function(__obj) {
   if (!__obj) __obj = {};
   var __out = [], __capture = function(callback) {
     var out = __out, result;
@@ -2343,23 +2301,7 @@
   }
   (function() {
     (function() {
-      __out.push('\n<div class="columns large-12">\n  <h2>');
-    
-      __out.push(__sanitize(this.add ? 'Add' : 'Edit'));
-    
-      __out.push(' File</h2>\n</div>\n<form  class="file-form" >\n  <div class="columns large-12">\n    <label>Title\n      <input type="text" name="title" placeholder="title" value="');
-    
-      __out.push(__sanitize(this.data.title));
-    
-      __out.push('"/>\n    </label>\n    <label>File (note: replacing a file is immediate - no undo!)\n      <input type="file" name="file"/>\n    </label>\n    <!-- often blocked by ajax! <label>URL (note: replacing a file is immediate - no undo!)\n      <input type="text" name="url" placeholder="URL" value=""/>\n      <input type="button" name="do-url" class="do-url" value="Load from URL"/> \n    </label> -->\n    <div class="drop-zone">Drop file here</div>\n    <div class="file-detail">No File<!-- TODO --></div>\n    <label>Image\n    </label>\n      <div class="image-editor hide row">\n        <div class="columns large-6 medium-8 small-12">\n          <img class="image-editor-image"/>\n        </div>\n        <div class="columns large-3 medium-4 small-12">\n          <input type="button" class="do-save-image" name="do-save-image" value="Save edited image"/><br/>\n          <input type="button" class="do-reset-image" name="do-reset-image" value="Reset image"/><br/>\n          <div class="row">\n            <div class="columns large-4 small-4"> \n              <label>Size:</label>\n            </div>\n            <div class="columns large-4 small-4"> \n              <input type="text" size=10 name="image-width" disabled value=""/>\n            </div>\n            <div class="columns large-4 small-4"> \n              <input type="text" size=10 name="image-height" disabled value=""/>          \n            </div>\n          </div>\n          <label>Aspect Ratio\n            <select name="image-aspect">\n              <option value="" selected>Any</option>\n              <option value="fixed" >Fixed</option>\n              <option value="1" >1:1</option>\n              <option value="1.333333" >4:3</option>\n              <option value="1.5" >3:2</option>\n              <option value="0.75" >3:4</option>\n              <option value="0.666666" >2:3</option>\n            </select>\n          <label>\n          <input type="button" class="do-crop-image" name="do-crop-image" value="Crop image"/><br/>\n          <input type="button" class="do-scale-image" name="do-scale-96" value="Scale to 96px"/>\n          <input type="button" class="do-scale-image" name="do-scale-240" value="Scale to 240px"/>\n          <input type="button" class="do-scale-image" name="do-scale-640" value="Scale to 640px"/>\n          <input type="button" class="do-scale-image" name="do-scale-1024" value="Scale to 1024px"/><br/>\n          <input type="button" class="do-rotate-image" name="do-rotate-left" value="Rotate left"/>\n          <input type="button" class="do-rotate-image" name="do-rotate-right" value="Rotate right"/><br/>\n          <input type="button" class="do-flip-image" name="do-flip-horizontal" value="Flip horizontal"/>\n          <input type="button" class="do-flip-image" name="do-flip-vertical" value="Flip vertical"/>\n        </div>\n        <div class="columns large-3 medium-12 small-12"><!-- rest --></div>\n      </div>\n    <label>Description\n      <textarea name="description" placeholder="description" >');
-    
-      __out.push(__sanitize(this.data.description));
-    
-      __out.push('</textarea>\n    </label>\n    <input type="submit" value="');
-    
-      __out.push(__sanitize(this.add ? 'Add' : 'Save changes'));
-    
-      __out.push('"/>\n    <input type="reset" value="Clear"/>\n    <input type="button" value="Cancel" class="do-cancel"/>\n  </div>\n</form>\n\n');
+      __out.push('\n    <label>File (note: replacing a file is immediate - no undo!)\n      <input type="file" name="file"/>\n    </label>\n    <!-- often blocked by ajax! <label>URL (note: replacing a file is immediate - no undo!)\n      <input type="text" name="url" placeholder="URL" value=""/>\n      <input type="button" name="do-url" class="do-url" value="Load from URL"/> \n    </label> -->\n    <div class="drop-zone">Drop file here</div>\n    <div class="file-detail">No File<!-- TODO --></div>\n    <label>Image\n    </label>\n      <div class="image-editor hide row">\n        <div class="columns large-6 medium-8 small-12">\n          <img class="image-editor-image"/>\n        </div>\n        <div class="columns large-3 medium-4 small-12">\n          <input type="button" class="do-save-image" name="do-save-image" value="Save edited image"/><br/>\n          <input type="button" class="do-reset-image" name="do-reset-image" value="Reset image"/><br/>\n          <div class="row">\n            <div class="columns large-4 small-4"> \n              <label>Size:</label>\n            </div>\n            <div class="columns large-4 small-4"> \n              <input type="text" size=10 name="image-width" disabled value=""/>\n            </div>\n            <div class="columns large-4 small-4"> \n              <input type="text" size=10 name="image-height" disabled value=""/>          \n            </div>\n          </div>\n          <label>Aspect Ratio\n            <select name="image-aspect">\n              <option value="" selected>Any</option>\n              <option value="fixed" >Fixed</option>\n              <option value="1" >1:1</option>\n              <option value="1.333333" >4:3</option>\n              <option value="1.5" >3:2</option>\n              <option value="0.75" >3:4</option>\n              <option value="0.666666" >2:3</option>\n            </select>\n          <label>\n          <input type="button" class="do-crop-image" name="do-crop-image" value="Crop image"/><br/>\n          <input type="button" class="do-scale-image" name="do-scale-96" value="Scale to 96px"/>\n          <input type="button" class="do-scale-image" name="do-scale-240" value="Scale to 240px"/>\n          <input type="button" class="do-scale-image" name="do-scale-640" value="Scale to 640px"/>\n          <input type="button" class="do-scale-image" name="do-scale-1024" value="Scale to 1024px"/><br/>\n          <input type="button" class="do-rotate-image" name="do-rotate-left" value="Rotate left"/>\n          <input type="button" class="do-rotate-image" name="do-rotate-right" value="Rotate right"/><br/>\n          <input type="button" class="do-flip-image" name="do-flip-horizontal" value="Flip horizontal"/>\n          <input type="button" class="do-flip-image" name="do-flip-vertical" value="Flip vertical"/>\n        </div>\n        <div class="columns large-3 medium-12 small-12"><!-- rest --></div>\n      </div>\n\n');
     
     }).call(this);
     
@@ -2502,7 +2444,7 @@
   }).call(__obj);
   __obj.safe = __objSafe, __obj.escape = __escape;
   return __out.join('');
-}}, "templates/HtmlEdit": function(exports, require, module) {module.exports = function(__obj) {
+}}, "templates/HtmlEditTab": function(exports, require, module) {module.exports = function(__obj) {
   if (!__obj) __obj = {};
   var __out = [], __capture = function(callback) {
     var out = __out, result;
@@ -2541,31 +2483,11 @@
   }
   (function() {
     (function() {
-      __out.push('\n<div class="columns large-12">\n  <h2>');
-    
-      __out.push(__sanitize(this.add ? 'Add' : 'Edit'));
-    
-      __out.push(' ');
-    
-      __out.push(__sanitize(this.contentType.title));
-    
-      __out.push('</h2>\n</div>\n<form>\n  <div class="columns large-12">\n    <label>Title\n      <input type="text" name="title" placeholder="title" value="');
-    
-      __out.push(__sanitize(this.data.title));
-    
-      __out.push('"/>\n    </label>\n    <label>Description\n      <textarea name="description" placeholder="description" >');
-    
-      __out.push(__sanitize(this.data.description));
-    
-      __out.push('</textarea>\n    </label>\n    <label>Html\n      <textarea name="htmlfragment" >');
+      __out.push('\n    <label>Html\n      <textarea name="htmlfragment" >');
     
       __out.push(__sanitize(this.data.html));
     
-      __out.push('</textarea>\n    </label>\n    <input type="submit" value="');
-    
-      __out.push(__sanitize(this.add ? 'Add' : 'Save changes'));
-    
-      __out.push('"/>\n    <input type="reset" value="Clear"/>\n    <input type="button" value="Cancel" class="do-cancel"/>\n  </div>\n</form>\n\n');
+      __out.push('</textarea>\n    </label>\n\n');
     
     }).call(this);
     
@@ -2674,7 +2596,7 @@
   }).call(__obj);
   __obj.safe = __objSafe, __obj.escape = __escape;
   return __out.join('');
-}}, "templates/ListEdit": function(exports, require, module) {module.exports = function(__obj) {
+}}, "templates/ListEditTab": function(exports, require, module) {module.exports = function(__obj) {
   if (!__obj) __obj = {};
   var __out = [], __capture = function(callback) {
     var out = __out, result;
@@ -2713,34 +2635,14 @@
   }
   (function() {
     (function() {
-      __out.push('\n<div class="columns large-12">\n  <h2>');
-    
-      __out.push(__sanitize(this.add ? 'Add' : 'Edit'));
-    
-      __out.push(' ');
-    
-      __out.push(__sanitize(this.contentType.title));
-    
-      __out.push('</h2>\n</div>\n<form>\n  <div class="columns large-12">\n    <input type="submit" value="');
-    
-      __out.push(__sanitize(this.add ? 'Add' : 'Save changes'));
-    
-      __out.push('"/>\n    <input type="reset" value="Clear"/>\n    <input type="button" value="Cancel" class="do-cancel"/>\n\n    <label>Title\n      <input type="text" name="title" placeholder="title" value="');
-    
-      __out.push(__sanitize(this.data.title));
-    
-      __out.push('"/>\n    </label>\n\n    <label>Specific Items\n      <div class="thingref-list-holder"></div>\n    </label>\n\n    <label>Description\n      <textarea name="description" placeholder="description" >');
-    
-      __out.push(__sanitize(this.data.description));
-    
-      __out.push('</textarea>\n    </label>\n  </div>\n</form>\n\n');
+      __out.push('\n    <label>Specific Items\n      <div class="thingref-list-holder"></div>\n    </label>\n\n');
     
     }).call(this);
     
   }).call(__obj);
   __obj.safe = __objSafe, __obj.escape = __escape;
   return __out.join('');
-}}, "templates/PlaceEdit": function(exports, require, module) {module.exports = function(__obj) {
+}}, "templates/PlaceEditTab": function(exports, require, module) {module.exports = function(__obj) {
   if (!__obj) __obj = {};
   var __out = [], __capture = function(callback) {
     var out = __out, result;
@@ -2779,23 +2681,7 @@
   }
   (function() {
     (function() {
-      __out.push('\n<div class="columns large-12">\n  <h2>');
-    
-      __out.push(__sanitize(this.add ? 'Add' : 'Edit'));
-    
-      __out.push(' ');
-    
-      __out.push(__sanitize(this.contentType.title));
-    
-      __out.push('</h2>\n</div>\n\n<form>\n  <div class="columns large-12">\n\n    <input type="submit" value="');
-    
-      __out.push(__sanitize(this.add ? 'Add' : 'Save changes'));
-    
-      __out.push('"/>\n    <input type="reset" value="Clear"/>\n    <input type="button" value="Cancel" class="do-cancel"/>\n\n    <label>Title\n      <input type="text" name="title" placeholder="title" value="');
-    
-      __out.push(__sanitize(this.data.title));
-    
-      __out.push('"/>\n    </label>\n  </div>\n  <div class="columns large-6 small-12">\n\n    <label>Address\n      <input type="text" name="address" placeholder="address" value="');
+      __out.push('\n<div class="row">\n\n  <div class="columns large-6 small-12">\n\n    <label>Address\n      <input type="text" name="address" placeholder="address" value="');
     
       __out.push(__sanitize(this.data.address));
     
@@ -2811,19 +2697,11 @@
     
       __out.push(__sanitize(this.data.zoom));
     
-      __out.push('" min="0" max="19" step="1" />\n      <a href="#" class="button small do-show-latlon">Show on map</a>\n    </label>\n\n  </div>\n  <div class="columns large-6 small-12">\n    <label>Map\n      <a id="map"><div class="map" tabindex="0"></div></a> \n    </label>\n\n  </div>\n  <div class="columns large-12">\n\n    <label>Description\n      <textarea name="description" placeholder="description" >');
+      __out.push('" min="0" max="19" step="1" />\n      <a href="#" class="button small do-show-latlon">Show on map</a>\n    </label>\n\n  </div>\n  <div class="columns large-6 small-12">\n    <label>Map\n      <a id="map"><div class="map" tabindex="0"></div></a> \n    </label>\n\n  </div>\n  <div class="columns large-4 medium-6 small-12">\n    <label>Map icon\n      <div>\n        <div class="image-select-icon">\n          <div class="dummy"></div>\n          <img class="image-select-image image-mapicon" src="');
     
-      __out.push(__sanitize(this.data.description));
+      __out.push(__sanitize(this.data.mapiconurl));
     
-      __out.push('</textarea>\n    </label>\n\n    <div class="row">\n      <div class="columns large-4 medium-6 small-12">\n        <label>Image\n          <div>\n            <div class="image-select-icon">\n              <div class="dummy"></div>\n              <img class="image-select-image image-image" src="');
-    
-      __out.push(__sanitize(this.data.imageurl));
-    
-      __out.push('"/>\n            </div>\n          </div>\n          <div>\n            <a href="#" class="button small do-select-image">Browse server...</a> \n          </div>\n        </label>\n      </div>\n      <div class="columns large-4 medium-6 small-12">    \n        <label>Icon\n          <div>\n            <div class="image-select-icon">\n              <div class="dummy"></div>\n              <img class="image-select-image image-icon" src="');
-    
-      __out.push(__sanitize(this.data.iconurl));
-    
-      __out.push('"/>\n            </div>\n          </div>\n          <div>\n            <a href="#" class="button do-select-icon">Browse server...</a> \n          </div>\n        </label>\n      </div>\n    </div>\n  </div>\n</form>\n\n');
+      __out.push('"/>\n        </div>\n      </div>\n      <div>\n        <a href="#" class="button small do-select-mapicon">Browse server...</a> \n      </div>\n    </label>\n  </div>\n</div>\n\n');
     
     }).call(this);
     
@@ -3417,6 +3295,8 @@
   }
   (function() {
     (function() {
+      var i, tab, _i, _j, _len, _len1, _ref, _ref1;
+    
       __out.push('\n<div class="columns large-12">\n  <h2>');
     
       __out.push(__sanitize(this.add ? 'Add' : 'Edit'));
@@ -3425,19 +3305,101 @@
     
       __out.push(__sanitize(this.contentType.title));
     
-      __out.push('</h2>\n</div>\n<form>\n  <div class="columns large-12">\n    <label>Title\n      <input type="text" name="title" placeholder="title" value="');
-    
-      __out.push(__sanitize(this.data.title));
-    
-      __out.push('"/>\n    </label>\n    <label>Description\n      <textarea name="description" placeholder="description" >');
-    
-      __out.push(__sanitize(this.data.description));
-    
-      __out.push('</textarea>\n    </label>\n    <input type="submit" value="');
+      __out.push('</h2>\n</div>\n<form>\n  <div class="columns large-12">\n    <input type="submit" value="');
     
       __out.push(__sanitize(this.add ? 'Add' : 'Save changes'));
     
-      __out.push('"/>\n    <input type="reset" value="Clear"/>\n    <input type="button" value="Cancel" class="do-cancel"/>\n  </div>\n</form>\n\n');
+      __out.push('"/>\n    <input type="reset" value="Clear"/>\n    <input type="button" value="Cancel" class="do-cancel"/>\n  </div>\n  <div class="columns large-12">\n    <ul class="tabs" data-tab>\n      ');
+    
+      _ref = this.tabs;
+      for (i = _i = 0, _len = _ref.length; _i < _len; i = ++_i) {
+        tab = _ref[i];
+        __out.push('\n        <li class="tab-title ');
+        __out.push(__sanitize(i === 0 ? 'active' : void 0));
+        __out.push('"><a href="#');
+        __out.push(__sanitize(i));
+        __out.push('">');
+        __out.push(__sanitize(tab.title));
+        __out.push('</a></li>\n      ');
+      }
+    
+      __out.push('\n    </ul>\n    <div class="tabs-content">\n      ');
+    
+      _ref1 = this.tabs;
+      for (i = _j = 0, _len1 = _ref1.length; _j < _len1; i = ++_j) {
+        tab = _ref1[i];
+        __out.push('\n        <div class="content ');
+        __out.push(__sanitize(i === 0 ? 'active' : void 0));
+        __out.push(' thing-tab-');
+        __out.push(__sanitize(i));
+        __out.push('">');
+        __out.push(tab.template(this));
+        __out.push('</div>\n      ');
+      }
+    
+      __out.push('      \n    </div>\n  </div>\n</form>\n\n');
+    
+    }).call(this);
+    
+  }).call(__obj);
+  __obj.safe = __objSafe, __obj.escape = __escape;
+  return __out.join('');
+}}, "templates/ThingEditTab": function(exports, require, module) {module.exports = function(__obj) {
+  if (!__obj) __obj = {};
+  var __out = [], __capture = function(callback) {
+    var out = __out, result;
+    __out = [];
+    callback.call(this);
+    result = __out.join('');
+    __out = out;
+    return __safe(result);
+  }, __sanitize = function(value) {
+    if (value && value.ecoSafe) {
+      return value;
+    } else if (typeof value !== 'undefined' && value != null) {
+      return __escape(value);
+    } else {
+      return '';
+    }
+  }, __safe, __objSafe = __obj.safe, __escape = __obj.escape;
+  __safe = __obj.safe = function(value) {
+    if (value && value.ecoSafe) {
+      return value;
+    } else {
+      if (!(typeof value !== 'undefined' && value != null)) value = '';
+      var result = new String(value);
+      result.ecoSafe = true;
+      return result;
+    }
+  };
+  if (!__escape) {
+    __escape = __obj.escape = function(value) {
+      return ('' + value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    };
+  }
+  (function() {
+    (function() {
+      __out.push('\n<label>Title\n  <input type="text" name="title" placeholder="title" value="');
+    
+      __out.push(__sanitize(this.data.title));
+    
+      __out.push('"/>\n</label>\n<label>Description\n  <textarea name="description" placeholder="description" >');
+    
+      __out.push(__sanitize(this.data.description));
+    
+      __out.push('</textarea>\n</label>\n<div class="row">\n  <div class="columns large-4 medium-6 small-12">\n    <label>Image\n      <div>\n        <div class="image-select-icon">\n          <div class="dummy"></div>\n          <img class="image-select-image image-image" src="');
+    
+      __out.push(__sanitize(this.data.imageurl));
+    
+      __out.push('"/>\n        </div>\n      </div>\n      <div>\n        <a href="#" class="button small do-select-image">Browse server...</a> \n      </div>\n    </label>\n  </div>\n  <div class="columns large-4 medium-6 small-12">    \n    <label>Icon\n      <div>\n        <div class="image-select-icon">\n          <div class="dummy"></div>\n          <img class="image-select-image image-icon" src="');
+    
+      __out.push(__sanitize(this.data.iconurl));
+    
+      __out.push('"/>\n        </div>\n      </div>\n      <div>\n        <a href="#" class="button do-select-icon">Browse server...</a> \n      </div>\n    </label>\n  </div>\n</div>\n\n');
     
     }).call(this);
     
@@ -3805,14 +3767,14 @@
 
 }).call(this);
 }, "views/AppEdit": function(exports, require, module) {(function() {
-  var AppEditView, ListEditView, allthings, config, defaultZoom, lat2tile, lon2tile, maxZoom, maxZoomIn, maxZoomOut, templateAppEdit,
+  var AppEditView, ListEditView, allthings, config, defaultZoom, lat2tile, lon2tile, maxZoom, maxZoomIn, maxZoomOut, templateAppEditTab,
     __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
   ListEditView = require('views/ListEdit');
 
-  templateAppEdit = require('templates/AppEdit');
+  templateAppEditTab = require('templates/AppEditTab');
 
   allthings = require('allthings');
 
@@ -3842,23 +3804,26 @@
       this.addFile = __bind(this.addFile, this);
       this.update = __bind(this.update, this);
       this.formToModel = __bind(this.formToModel, this);
-      this.template = __bind(this.template, this);
       return AppEditView.__super__.constructor.apply(this, arguments);
     }
 
-    AppEditView.prototype.template = function(d) {
-      return templateAppEdit(d);
+    AppEditView.prototype.tabs = function() {
+      return AppEditView.__super__.tabs.call(this).concat([
+        {
+          title: 'App',
+          template: templateAppEditTab
+        }
+      ]);
     };
 
     AppEditView.prototype.formToModel = function() {
       return AppEditView.__super__.formToModel.call(this);
     };
 
-    AppEditView.prototype.events = {
-      "submit": "submit",
-      "click .do-cancel": "cancel",
-      "click .do-save": "save",
-      "click .do-update": "update"
+    AppEditView.prototype.events = function() {
+      return _.extend({}, AppEditView.__super__.events.call(this), {
+        "click .do-update": "update"
+      });
     };
 
     AppEditView.prototype.update = function(ev) {
@@ -4115,12 +4080,12 @@
 
 }).call(this);
 }, "views/BookletEdit": function(exports, require, module) {(function() {
-  var BookletEditView, ThingEditView, templateBookletEdit,
+  var BookletEditView, ThingEditView, templateBookletEditTab,
     __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
-  templateBookletEdit = require('templates/BookletEdit');
+  templateBookletEditTab = require('templates/BookletEditTab');
 
   ThingEditView = require('views/ThingEdit');
 
@@ -4128,13 +4093,21 @@
     __extends(BookletEditView, _super);
 
     function BookletEditView() {
-      this.selectCover = __bind(this.selectCover, this);
       this.remove = __bind(this.remove, this);
       this.formToModel = __bind(this.formToModel, this);
       this.render = __bind(this.render, this);
       this.template = __bind(this.template, this);
       return BookletEditView.__super__.constructor.apply(this, arguments);
     }
+
+    BookletEditView.prototype.tabs = function() {
+      return BookletEditView.__super__.tabs.call(this).concat([
+        {
+          title: 'Booklet',
+          template: templateBookletEditTab
+        }
+      ]);
+    };
 
     BookletEditView.prototype.contentToHtml = function(content) {
       if (content != null) {
@@ -4149,7 +4122,7 @@
     };
 
     BookletEditView.prototype.template = function(d) {
-      return templateBookletEdit(_.extend({
+      return BookletEditView.__super__.template.call(this, _.extend({
         content: this.contentToHtml(this.model.attributes.content)
       }, d));
     };
@@ -4170,12 +4143,7 @@
     };
 
     BookletEditView.prototype.formToModel = function() {
-      var coverurl, html;
-      coverurl = $('.image-select-image', this.$el).attr('src');
-      console.log("coverurl = " + coverurl);
-      this.model.set({
-        coverurl: coverurl
-      });
+      var html;
       html = $(':input[name="htmlcontent"]', this.$el).val();
       console.log("contenthtml = " + html);
       this.model.set('content', this.htmlToContent(html));
@@ -4190,17 +4158,6 @@
         editor.destroy(true);
       }
       return BookletEditView.__super__.remove.call(this);
-    };
-
-    BookletEditView.prototype.events = {
-      "submit": "submit",
-      "click .do-cancel": "cancel",
-      "click .do-save": "save",
-      "click .do-select-cover": "selectCover"
-    };
-
-    BookletEditView.prototype.selectCover = function(ev) {
-      return this.selectImage(ev, '.image-select-image');
     };
 
     return BookletEditView;
@@ -4380,14 +4337,16 @@
 
 }).call(this);
 }, "views/FileEdit": function(exports, require, module) {(function() {
-  var FileEditView, allthings, server, templateFileDetail, templateFileEdit,
+  var FileEditView, ThingEditView, allthings, server, templateFileDetail, templateFileEditTab,
     __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
-  templateFileEdit = require('templates/FileEdit');
+  templateFileEditTab = require('templates/FileEditTab');
 
   templateFileDetail = require('templates/FileDetail');
+
+  ThingEditView = require('views/ThingEdit');
 
   server = require('server');
 
@@ -4396,7 +4355,7 @@
   module.exports = FileEditView = (function(_super) {
     __extends(FileEditView, _super);
 
-    function FileEditView(options) {
+    function FileEditView() {
       this.imageAspect = __bind(this.imageAspect, this);
       this.imageRotate = __bind(this.imageRotate, this);
       this.imageScale = __bind(this.imageScale, this);
@@ -4419,106 +4378,68 @@
       this.close = __bind(this.close, this);
       this.remove = __bind(this.remove, this);
       this.cancel = __bind(this.cancel, this);
-      this.submit = __bind(this.submit, this);
+      this.formToModel = __bind(this.formToModel, this);
       this.click = __bind(this.click, this);
       this.render = __bind(this.render, this);
-      this.template = __bind(this.template, this);
-      this.add = options.add != null ? options.add : options.add = false;
-      this.things = options.things != null ? options.things : options.things = null;
-      FileEditView.__super__.constructor.call(this, options);
+      return FileEditView.__super__.constructor.apply(this, arguments);
     }
 
-    FileEditView.prototype.tagName = 'div';
-
-    FileEditView.prototype.className = 'row file-edit';
-
     FileEditView.prototype.initialize = function() {
+      FileEditView.__super__.initialize.call(this);
       this.fileState = 'unchanged';
       this.cancelled = false;
       return this.created = false;
     };
 
-    FileEditView.prototype.template = function(d) {
-      return templateFileEdit(d);
+    FileEditView.prototype.tabs = function() {
+      return FileEditView.__super__.tabs.call(this).concat([
+        {
+          title: 'File',
+          template: templateFileEditTab
+        }
+      ]);
     };
 
     FileEditView.prototype.render = function() {
-      var f;
       console.log("render FileEdit " + this.model.attributes._id + ": " + this.model.attributes.title);
-      this.$el.html(this.template({
-        data: this.model.attributes,
-        add: this.add
-      }));
+      FileEditView.__super__.render.call(this);
       this.renderFileDetails();
-      f = function() {
-        return $('input[name="title"]', this.$el).focus();
-      };
-      setTimeout(f, 0);
       return this;
     };
 
-    FileEditView.prototype.events = {
-      "submit": "submit",
-      "click .do-cancel": "cancel",
-      "click .do-url": "doUrl",
-      "click .do-save-image": "imageSave",
-      "click .do-reset-image": "imageReset",
-      "click .do-crop-image": "imageCrop",
-      "click .do-scale-image": "imageScale",
-      "click .do-flip-image": "imageFlip",
-      "click .do-rotate-image": "imageRotate",
-      "dragover .drop-zone": "handleDragOver",
-      "drop .drop-zone": "handleDrop",
-      "dragenter .drop-zone": "handleDragEnter",
-      "dragleave .drop-zone": "handleDragLeave",
-      "dragend .drop-zone": "handleDragLeave",
-      'change input[name="file"]': "handleFileSelect",
-      "click .do-save": "save",
-      "click": "click",
-      "change select[name=image-aspect]": "imageAspect"
+    FileEditView.prototype.events = function() {
+      return _.extend({}, FileEditView.__super__.events.call(this), {
+        "click .do-url": "doUrl",
+        "click .do-save-image": "imageSave",
+        "click .do-reset-image": "imageReset",
+        "click .do-crop-image": "imageCrop",
+        "click .do-scale-image": "imageScale",
+        "click .do-flip-image": "imageFlip",
+        "click .do-rotate-image": "imageRotate",
+        "dragover .drop-zone": "handleDragOver",
+        "drop .drop-zone": "handleDrop",
+        "dragenter .drop-zone": "handleDragEnter",
+        "dragleave .drop-zone": "handleDragLeave",
+        "dragend .drop-zone": "handleDragLeave",
+        'change input[name="file"]': "handleFileSelect",
+        "click .do-save": "save",
+        "click": "click",
+        "change select[name=image-aspect]": "imageAspect"
+      });
     };
 
     FileEditView.prototype.click = function(ev) {
       return console.log("click " + ev.target + " classes " + ($(ev.target).attr('class')));
     };
 
-    FileEditView.prototype.submit = function(ev) {
-      var atts, description, file, title;
-      console.log("submit...");
-      ev.preventDefault();
-      title = $('input[name="title"]', this.$el).val();
-      file = $('input[name="file"]', this.$el).val();
-      description = $(':input[name="description"]', this.$el).val();
-      console.log("title=" + title + ", file=" + file + ", description=" + description);
-      this.model.set('title', title);
-      this.model.set('description', description);
+    FileEditView.prototype.formToModel = function() {
+      var atts;
+      FileEditView.__super__.formToModel.call(this);
       atts = this.model.attachments();
-      this.model.set('hasFile', atts.indexOf("bytes") >= 0);
-      server.working('save File (submit)');
-      if (false === this.model.save(null, {
-        success: function(model, resp, options) {
-          console.log("save File (submit) ok: " + (JSON.stringify(resp)));
-          return server.success(model, resp, options);
-        },
-        error: server.error
-      })) {
-        server.error(this.model, 'Save validation error (save File, submit)', {});
-      }
-      if (this.add) {
-        if (this.things) {
-          console.log("adding File " + this.model.id + " to @things");
-          this.things.add(this.model);
-        } else {
-          console.log("cannot add File " + this.model.id + " to @things - @things not set");
-        }
-        allthings.get().add(this.model);
-      }
-      return this.close();
+      return this.model.set('hasFile', atts.indexOf("bytes") >= 0);
     };
 
     FileEditView.prototype.cancel = function() {
-      console.log("cancel");
-      this.cancelled = true;
       if (this.created && (this.model.id != null)) {
         console.log("try destroy on cancel for " + this.model.id);
         server.working('destroy (cancel)');
@@ -4530,7 +4451,7 @@
           server.success(this.model, null, {});
         }
       }
-      return this.close();
+      return FileEditView.__super__.cancel.call(this);
     };
 
     FileEditView.prototype.remove = function() {
@@ -5016,7 +4937,7 @@
 
     return FileEditView;
 
-  })(Backbone.View);
+  })(ThingEditView);
 
 }).call(this);
 }, "views/FileInList": function(exports, require, module) {(function() {
@@ -5127,12 +5048,12 @@
 
 }).call(this);
 }, "views/HtmlEdit": function(exports, require, module) {(function() {
-  var HtmlEditView, ThingEditView, templateHtmlEdit,
+  var HtmlEditView, ThingEditView, templateHtmlEditTab,
     __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
-  templateHtmlEdit = require('templates/HtmlEdit');
+  templateHtmlEditTab = require('templates/HtmlEditTab');
 
   ThingEditView = require('views/ThingEdit');
 
@@ -5143,12 +5064,16 @@
       this.remove = __bind(this.remove, this);
       this.formToModel = __bind(this.formToModel, this);
       this.render = __bind(this.render, this);
-      this.template = __bind(this.template, this);
       return HtmlEditView.__super__.constructor.apply(this, arguments);
     }
 
-    HtmlEditView.prototype.template = function(d) {
-      return templateHtmlEdit(d);
+    HtmlEditView.prototype.tabs = function() {
+      return HtmlEditView.__super__.tabs.call(this).concat([
+        {
+          title: 'HTML',
+          template: templateHtmlEditTab
+        }
+      ]);
     };
 
     HtmlEditView.prototype.render = function() {
@@ -5323,12 +5248,12 @@
 
 }).call(this);
 }, "views/ListEdit": function(exports, require, module) {(function() {
-  var ListEditView, ThingEditView, ThingRef, ThingRefList, ThingRefListView, templateListEdit,
+  var ListEditView, ThingEditView, ThingRef, ThingRefList, ThingRefListView, templateListEditTab,
     __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
-  templateListEdit = require('templates/ListEdit');
+  templateListEditTab = require('templates/ListEditTab');
 
   ThingEditView = require('views/ThingEdit');
 
@@ -5345,12 +5270,16 @@
       this.remove = __bind(this.remove, this);
       this.formToModel = __bind(this.formToModel, this);
       this.render = __bind(this.render, this);
-      this.template = __bind(this.template, this);
       return ListEditView.__super__.constructor.apply(this, arguments);
     }
 
-    ListEditView.prototype.template = function(d) {
-      return templateListEdit(d);
+    ListEditView.prototype.tabs = function() {
+      return ListEditView.__super__.tabs.call(this).concat([
+        {
+          title: 'List',
+          template: templateListEditTab
+        }
+      ]);
     };
 
     ListEditView.prototype.render = function() {
@@ -5405,12 +5334,12 @@
 
 }).call(this);
 }, "views/PlaceEdit": function(exports, require, module) {(function() {
-  var PlaceEditView, ThingEditView, geocoder, maxZoom, myIcon, templatePlaceEdit,
+  var PlaceEditView, ThingEditView, geocoder, maxZoom, myIcon, templatePlaceEditTab,
     __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
-  templatePlaceEdit = require('templates/PlaceEdit');
+  templatePlaceEditTab = require('templates/PlaceEditTab');
 
   ThingEditView = require('views/ThingEdit');
 
@@ -5436,20 +5365,24 @@
     function PlaceEditView() {
       this.remove = __bind(this.remove, this);
       this.showLatlon = __bind(this.showLatlon, this);
+      this.showTab = __bind(this.showTab, this);
       this.useLatlon = __bind(this.useLatlon, this);
       this.useAddress = __bind(this.useAddress, this);
       this.lookupAddress = __bind(this.lookupAddress, this);
       this.clearMap = __bind(this.clearMap, this);
-      this.selectIcon = __bind(this.selectIcon, this);
-      this.selectPlaceImage = __bind(this.selectPlaceImage, this);
+      this.selectMapicon = __bind(this.selectMapicon, this);
       this.formToModel = __bind(this.formToModel, this);
       this.render = __bind(this.render, this);
-      this.template = __bind(this.template, this);
       return PlaceEditView.__super__.constructor.apply(this, arguments);
     }
 
-    PlaceEditView.prototype.template = function(d) {
-      return templatePlaceEdit(d);
+    PlaceEditView.prototype.tabs = function() {
+      return PlaceEditView.__super__.tabs.call(this).concat([
+        {
+          title: 'Place',
+          template: templatePlaceEditTab
+        }
+      ]);
     };
 
     PlaceEditView.prototype.render = function() {
@@ -5499,9 +5432,8 @@
     };
 
     PlaceEditView.prototype.formToModel = function() {
-      var address, err, iconurl, imageurl, lat, lon, zoom;
-      imageurl = $('.image-image', this.$el).attr('src');
-      iconurl = $('.image-icon', this.$el).attr('src');
+      var address, err, lat, lon, mapiconurl, zoom;
+      mapiconurl = $('.image-mapicon', this.$el).attr('src');
       address = $('input[name=address]', this.$el).val();
       lat = $('input[name=lat]', this.$el).val();
       try {
@@ -5517,10 +5449,9 @@
         err = _error;
         console.log("Error in lon as Number: " + lon + " " + err.message);
       }
-      console.log("imageurl = " + imageurl + ", iconurl = " + iconurl + ", address=" + address + ", lat=" + lat + ", lon=" + lon);
+      console.log("mapiconurl = " + mapiconurl + ", address=" + address + ", lat=" + lat + ", lon=" + lon);
       this.model.set({
-        imageurl: imageurl,
-        iconurl: iconurl,
+        mapiconurl: mapiconurl,
         address: address,
         lat: lat,
         lon: lon
@@ -5537,25 +5468,19 @@
       return PlaceEditView.__super__.formToModel.call(this);
     };
 
-    PlaceEditView.prototype.events = {
-      "submit": "submit",
-      "click .do-cancel": "cancel",
-      "click .do-save": "save",
-      "click .do-select-image": "selectPlaceImage",
-      "click .do-select-icon": "selectIcon",
-      "click .do-lookup-address": "lookupAddress",
-      "click .do-clear-map": "clearMap",
-      "click .do-show-latlon": "showLatlon",
-      "click .do-use-address": "useAddress",
-      "click .do-use-latlon": "useLatlon"
+    PlaceEditView.prototype.events = function() {
+      return _.extend({}, PlaceEditView.__super__.events.call(this), {
+        "click .do-select-mapicon": "selectMapicon",
+        "click .do-lookup-address": "lookupAddress",
+        "click .do-clear-map": "clearMap",
+        "click .do-show-latlon": "showLatlon",
+        "click .do-use-address": "useAddress",
+        "click .do-use-latlon": "useLatlon"
+      });
     };
 
-    PlaceEditView.prototype.selectPlaceImage = function(ev) {
-      return this.selectImage(ev, '.image-image');
-    };
-
-    PlaceEditView.prototype.selectIcon = function(ev) {
-      return this.selectImage(ev, '.image-icon');
+    PlaceEditView.prototype.selectMapicon = function(ev) {
+      return this.selectImage(ev, '.image-mapicon');
     };
 
     PlaceEditView.prototype.clearMap = function(ev) {
@@ -5662,6 +5587,20 @@
       $('input[name=lat]', this.$el).val(ll[0]);
       $('input[name=lon]', this.$el).val(ll[1]);
       return $('input[name=zoom]', this.$el).val(String(this.map.getZoom()));
+    };
+
+    PlaceEditView.prototype.showTab = function(ev) {
+      var f;
+      PlaceEditView.__super__.showTab.call(this, ev);
+      if (this.map) {
+        f = (function(_this) {
+          return function() {
+            console.log("Map: invalidateSize");
+            return _this.map.invalidateSize();
+          };
+        })(this);
+        return setTimeout(f, 0);
+      }
     };
 
     PlaceEditView.prototype.showLatlon = function(ev) {
@@ -6138,12 +6077,14 @@
 
 }).call(this);
 }, "views/ThingEdit": function(exports, require, module) {(function() {
-  var ThingEditView, allthings, server, templateThingEdit,
+  var ThingEditView, allthings, server, templateThingEdit, templateThingEditTab,
     __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
   templateThingEdit = require('templates/ThingEdit');
+
+  templateThingEditTab = require('templates/ThingEditTab');
 
   server = require('server');
 
@@ -6161,7 +6102,10 @@
       this.selectImage = __bind(this.selectImage, this);
       this.close = __bind(this.close, this);
       this.cancel = __bind(this.cancel, this);
+      this.selectIcon = __bind(this.selectIcon, this);
+      this.selectThingImage = __bind(this.selectThingImage, this);
       this.submit = __bind(this.submit, this);
+      this.showTab = __bind(this.showTab, this);
       this.formToModel = __bind(this.formToModel, this);
       this.render = __bind(this.render, this);
       this.template = __bind(this.template, this);
@@ -6182,13 +6126,23 @@
       return templateThingEdit(d);
     };
 
+    ThingEditView.prototype.tabs = function() {
+      return [
+        {
+          title: 'Overview',
+          template: templateThingEditTab
+        }
+      ];
+    };
+
     ThingEditView.prototype.render = function() {
       var f;
       console.log("render ThingEdit " + this.model.attributes._id + ": " + this.model.attributes.title);
       this.$el.html(this.template({
         data: this.model.attributes,
         add: this.add,
-        contentType: this.model.getContentType().attributes
+        contentType: this.model.getContentType().attributes,
+        tabs: this.tabs()
       }));
       f = function() {
         var ckconfig;
@@ -6202,19 +6156,44 @@
       return this;
     };
 
-    ThingEditView.prototype.events = {
-      "submit": "submit",
-      "click .do-cancel": "cancel",
-      "click .do-save": "save"
+    ThingEditView.prototype.events = function() {
+      return {
+        "submit": "submit",
+        "click .do-cancel": "cancel",
+        "click .do-save": "save",
+        "click .do-select-image": "selectThingImage",
+        "click .do-select-icon": "selectIcon",
+        "click .tab-title > a": "showTab"
+      };
     };
 
     ThingEditView.prototype.formToModel = function() {
-      var description, title;
+      var description, iconurl, imageurl, title;
       title = $('input[name="title"]', this.$el).val();
       description = $(':input[name="description"]', this.$el).val();
-      console.log("title=" + title + ", description=" + description);
-      this.model.set('title', title);
-      return this.model.set('description', description);
+      imageurl = $('.image-image', this.$el).attr('src');
+      iconurl = $('.image-icon', this.$el).attr('src');
+      console.log("title=" + title + ", description=" + description + ", imageurl=" + imageurl + ", iconurl=" + iconurl);
+      return this.model.set({
+        title: title,
+        description: description,
+        imageurl: imageurl,
+        iconurl: iconurl
+      });
+    };
+
+    ThingEditView.prototype.showTab = function(ev) {
+      var ix, tab;
+      console.log("show tab " + ev.target.href);
+      ev.preventDefault();
+      tab = ev.target.href;
+      if ((ix = tab.indexOf('#')) >= 0) {
+        tab = tab.substring(ix + 1);
+      }
+      $('.tab-title', this.$el).removeClass('active');
+      $(ev.target).parent().addClass('active');
+      $('.tabs-content > .content', this.$el).removeClass('active');
+      return $(".thing-tab-" + tab, this.$el).addClass('active');
     };
 
     ThingEditView.prototype.submit = function(ev) {
@@ -6238,6 +6217,14 @@
         allthings.get().add(this.model);
       }
       return this.close();
+    };
+
+    ThingEditView.prototype.selectThingImage = function(ev) {
+      return this.selectImage(ev, '.image-image');
+    };
+
+    ThingEditView.prototype.selectIcon = function(ev) {
+      return this.selectImage(ev, '.image-icon');
     };
 
     ThingEditView.prototype.cancel = function() {

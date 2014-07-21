@@ -1,6 +1,6 @@
 # App edit View
 ListEditView = require 'views/ListEdit'
-templateAppEdit = require 'templates/AppEdit'
+templateAppEditTab = require 'templates/AppEditTab'
 allthings = require 'allthings'
 
 config = window.mediahubconfig
@@ -21,17 +21,15 @@ lat2tile = (lat,zoom)  ->
 
 module.exports = class AppEditView extends ListEditView
 
-  template: (d) =>
-    templateAppEdit d
+  tabs: ->
+    super().concat [ { title: 'App', template: templateAppEditTab } ]
 
   formToModel: () =>
     super()
 
-  events:
-    "submit": "submit"
-    "click .do-cancel": "cancel"
-    "click .do-save": "save"
-    "click .do-update": "update"
+  events:->
+    _.extend {}, super(),
+      "click .do-update": "update"
 
   update: (ev) =>
     ev.preventDefault()

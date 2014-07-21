@@ -1,0 +1,36 @@
+<%# thing general tab content %>
+<label>Title
+  <input type="text" name="title" placeholder="title" value="<%= @data.title %>"/>
+</label>
+<label>Description
+  <textarea name="description" placeholder="description" ><%= @data.description %></textarea>
+</label>
+<div class="row">
+  <div class="columns large-4 medium-6 small-12">
+    <label>Image
+      <div>
+        <div class="image-select-icon">
+          <div class="dummy"></div>
+          <img class="image-select-image image-image" src="<%= @data.imageurl %>"/>
+        </div>
+      </div>
+      <div>
+        <a href="#" class="button small do-select-image">Browse server...</a> 
+      </div>
+    </label>
+  </div>
+  <div class="columns large-4 medium-6 small-12">    
+    <label>Icon
+      <div>
+        <div class="image-select-icon">
+          <div class="dummy"></div>
+          <img class="image-select-image image-icon" src="<%= @data.iconurl %>"/>
+        </div>
+      </div>
+      <div>
+        <a href="#" class="button do-select-icon">Browse server...</a> 
+      </div>
+    </label>
+  </div>
+</div>
+
