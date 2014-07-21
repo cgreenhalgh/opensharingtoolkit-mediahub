@@ -204,6 +204,8 @@ schedule = () ->
     return taskError next,"Public web directory not found (#{publicwebdir})"
   if next.config.taskType=='exportapp'
     doExportapp next
+  else if next.config.taskType=='exportkiosk'
+    doExportkiosk next
   else if next.config.taskType=='tar'
     doTar next
   else if next.config.taskType=='rm'
@@ -335,6 +337,17 @@ doExportapp = (task) ->
   if (path=(checkPath task, publicwebdir, true))?
     doSpawn task, "/usr/local/bin/coffee", ["#{__dirname}/exportapp.coffee",appurl], path, true,
       (task) ->
+        doTar task
+
+doExportkiosk = (task) ->
+  kioskId = task.config.subjectId
+  if not kioskId?
+    return taskError task, "Kiosk config to export was not specified ('subjectId')"
+  kioskurl = "#{dburl}/#{kioskId}"
+  if (path=(checkPath task, publicwebdir, true))?
+    doSpawn task, "/usr/local/bin/coffee", ["#{__dirname}/exportkiosk.coffee",kioskurl], path, true,
+      (task) ->
+        # TODO cache builder
         doTar task
 
 doBackup = (task) ->

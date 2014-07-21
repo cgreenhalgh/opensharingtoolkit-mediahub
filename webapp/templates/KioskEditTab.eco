@@ -1,0 +1,19 @@
+<%# Kiosk add or edit tab, takes { data: Thing, add: true|false } as data (title, description, ...); parent is a content %>
+<label>Configuration file name
+  <input type="text" name="atomfilename" value="<%= @data.atomfilename %>"  placeholder="default.xml"/>
+</label>
+<label>External hosting URL (optional)
+  <input type="text" name="externalurl" value="<%= @data.externalurl %>"  placeholder="http://..."/>
+</label>
+<label>Author name
+  <input type="text" name="authorname" value="<%= @data.authorname %>"  placeholder=""/>
+</label>
+<label>Campaigns
+  <input type="button" name="addcampaign" value="Add campaign"/>
+</label>
+<% templateKioskCampaign = require 'templates/KioskCampaign' %>
+<div class="kiosk-campaigns">
+  <% for campaign,i in (@data.campaigns ?= []): %>
+    <%- templateKioskCampaign _.extend { i: i }, campaign %>
+  <% end %>
+</div>

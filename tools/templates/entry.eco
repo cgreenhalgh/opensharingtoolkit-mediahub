@@ -1,0 +1,23 @@
+    <entry>
+      <id><%= @_id %></id>
+      <content><%= @description %></content>
+      <title><%= @title %></title>
+      <updated><%= if @lastModified? then new Date(@lastModified).toISOString() else new Date().toISOString() %></updated>
+<% if @imageurl? and @imageurl!='': %>
+      <link rel="alternate" type="<%= @guessMimetype @imageurl %>" href="<%= @imageurl %>"/>
+<% end %>
+<% if @type=='file': %>
+  <% if @hasFile: %>
+      <link rel="enclosure" type="<%= @fileType %>" href="<%= encodeURIComponent @_id %>/bytes"/>
+  <% else if @externalurl? and @externalurl!='': %>
+      <link rel="enclosure" type="<%= @guessMimetype @externalurl %>" href="<%= @externalurl %>"/>
+  <% else: %>
+      <!-- file without data or externalurl -->
+  <% end %>
+<% else if @type=='app': %>
+      <link rel="enclosure" type="text/html" href="<%= '_design/app/_view/app/'+(encodeURIComponent @_id)+'.html' %>"/>
+<% else: %>
+      <!-- unhandled type <%= @type %> -->
+<% end %>
+    </entry>
+

@@ -16,6 +16,7 @@ require 'plugins/Place'
 require 'plugins/List'
 require 'plugins/App'
 require 'plugins/TaskConfig'
+require 'plugins/Kiosk'
 
 config = window.mediahubconfig
 

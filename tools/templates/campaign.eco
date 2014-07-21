@@ -1,0 +1,2 @@
+    <category scheme="campaign" term="<%= @id %>" label="<%= @title %>"/>
+

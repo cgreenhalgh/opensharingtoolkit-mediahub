@@ -20,7 +20,7 @@ module.exports = class ThingInListView extends Backbone.View
     @$el.html @template @model.attributes
     @
 
-  events:
+  events: ->
     "click .do-view-file": "view"
     "click .do-edit-file": "edit"
     "click .do-delete-file": "delete"

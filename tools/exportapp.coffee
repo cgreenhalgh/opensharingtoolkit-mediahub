@@ -3,6 +3,7 @@ https = require 'https'
 http = require 'http'
 fs = require 'fs'
 parse_url = (require 'url').parse
+utils = require './utils'
 
 if process.argv.length!=3 
   console.log 'usage: coffee exportapp.coffee <APP-URL>'
@@ -22,15 +23,7 @@ for p,i in (appurl.substring ix+1).split '/' when i>0
 
 console.log 'exportapp '+appurl
 
-get_file_extension = (url) ->
-  ix = url.lastIndexOf '/'
-  if ix<0
-    ix = 0
-  ix2 = url.lastIndexOf '.'
-  if ix2<ix or ix2==url.length-1
-    null
-  else
-    url.substring (ix2+1)
+get_file_extension = utils.get_file_extension
 
 get_filename_for_component = (h) ->
   if h=='' 

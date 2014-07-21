@@ -1,0 +1,13 @@
+<%# campaign element within KioskEditTab %>
+<div class="row kiosk-campaign kiosk-campaign-<%= @i %>">
+  <div class="columns large-2 small-2">
+    <label>ID<input type="text" name="campaignid-<%= @i %>" class="kiosk-campaign-id" value="<%= @id %>"/></label>
+  </div>
+  <div class="columns large-9 small-9">
+    <label>Title<input type="text" name="campaigntitle-<%= @i %>" class="kiosk-campaign-title" value="<%= @title %>"/></label>
+  </div>
+  <div class="columns large-1 small-1">
+    <label>Delete<input type="button" name="delete-kiosk-campaign-<%= @i %>" class="delete-kiosk-campaign" value="Delete"/></label>
+  </div>
+</div>
+
