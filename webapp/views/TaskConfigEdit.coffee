@@ -118,6 +118,7 @@ module.exports = class TaskConfigEditView extends Backbone.View
     @model.set 
       enabled: enabled
       lastChanged: time
+      configpublicurl: window.mediahubconfig.publicurl
     if @add
       @model.set created: time
 

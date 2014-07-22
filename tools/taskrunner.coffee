@@ -341,11 +341,15 @@ doExportapp = (task) ->
 
 doExportkiosk = (task) ->
   kioskId = task.config.subjectId
-  if not kioskId?
+  if not kioskId
     return taskError task, "Kiosk config to export was not specified ('subjectId')"
+  publicurl = task.config.configpublicurl
+  if not publicurl
+    return taskError task, "Publicurl for export was not specified ('configpublicurl')"
+  publicurl = publicurl+task.config.path
   kioskurl = "#{dburl}/#{kioskId}"
   if (path=(checkPath task, publicwebdir, true))?
-    doSpawn task, "/usr/local/bin/coffee", ["#{__dirname}/exportkiosk.coffee",kioskurl], path, true,
+    doSpawn task, "/usr/local/bin/coffee", ["#{__dirname}/exportkiosk.coffee",kioskurl,publicurl], path, true,
       (task) ->
         # TODO cache builder
         doTar task

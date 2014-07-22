@@ -4,6 +4,12 @@ https = require 'https'
 http = require 'http'
 fs = require 'fs'
 parse_url = (require 'url').parse
+spawn = (require 'child_process').spawn
+
+couchurl = null
+
+module.exports.setCouchurl = (url) -> 
+  couchurl = url
 
 module.exports.get_file_extension = get_file_extension = (url) ->
   ix = url.lastIndexOf '/'
@@ -101,4 +107,223 @@ module.exports.guessMimetype = guessMimetype = (url, fn) ->
       return fn 'application/unknown'
     fn type
 
+module.exports.get_filename_for_component = get_filename_for_component = (h) ->
+  if h=='' 
+    return '_'
+  #h = encodeURIComponent h
+  return h.replace("~","_")
+  # is that enough??
+
+module.exports.get_safe_path = get_safe_path = (path) ->
+  ps = if path? then path.split '/' else []
+  # leading /?
+  if ps.length>1 and ps[0]==''
+    ps.shift()
+  # make safe filenames
+  ps = for p in ps
+    get_filename_for_component p
+  path = ps.join '/'
+  return path
+
+module.exports.cachePaths = cachePaths = {}
+module.exports.cacheUrls = cacheUrls = {}
+
+# get local cache path for an URL - like java cacheing,
+# maps domain name elements and path elements to folders
+module.exports.get_cache_path = get_cache_path = (url) ->
+  url = parse_url url
+  # host, port, path (includes query), hash
+  hs = if url.hostname? then url.hostname.split '.' else []
+  # reverse non-IP order
+  number = /^[0-9]+$/
+  ns = 0
+  for h in hs when number.test h
+    ns++
+  if ns != hs.length
+    hs.reverse
+  # normalise domain name to lower case
+  hs = for h in hs
+    String(h).toLowerCase()
+  # ignore port for now!
+  ps = []
+  if url.path?
+    # encode #, ? and &
+    p = url.path.replace( /[#]/g, '%23' ).replace( /[\?]/g, '%3F' ).replace( /[&]/g, '%26' )
+    ps = p.split '/'  
+  # leading /?
+  if ps.length>1 and ps[0]==''
+    ps.shift()
+  hs = ["cache"].concat hs,ps
+  # make safe filenames
+  hs = for h in hs
+    get_filename_for_component h
+  path = hs.join '/'
+  return path
+
+# undo URL encoding of path elements
+get_filesystem_path = (path) ->
+  ps = path.split '/'
+  ps = for p in ps
+    decodeURIComponent p
+  ps.join '/'
+
+module.exports.cacheFile = cacheFile = (surl,fn) ->
+  if cachePaths[surl]?
+    return fn null,cachePaths[surl]
+
+  path = surl
+  if (path.indexOf couchurl)==0
+    path = get_safe_path( path.substring couchurl.length )
+  else
+    path = get_cache_path surl
+
+  url = parse_url surl
+  protocol = url.protocol ? 'http'
+  options = 
+    hostname: url.hostname
+    port: url.port
+    path: url.path
+    auth: url.auth
+    method: 'GET'
+  dir = path
+  ix = dir.lastIndexOf '/'
+  if ix>=0
+    dir = dir.substring 0,ix
+  else
+    dir = ''
+  ps = dir.split '/'
+  d = ''
+  if ps.length>1 or ps[0].length>0
+    console.log "mkdirs #{dir}"
+    for i in [0..(ps.length-1)]
+      d = d + (if i>0 then '/' else '') + decodeURIComponent( ps[i] )
+      if !fs.existsSync(d)
+        console.log "mkdir #{d}" 
+        fs.mkdirSync d
+
+  console.log "get #{url.host} #{url.port} #{url.path} #{url.auth}"	
+  pmodule = if protocol=='https' then https else http   
+  req = pmodule.request options,(res) ->
+    if res.statusCode != 200
+      console.log "Error getting file #{surl}, response #{res.statusCode}"
+      return fn res.statusCode
+    # on success remove old file if present and link/rename new file
+    lastmod = res.headers['last-modified']
+    length = res.headers['content-length']
+    type = res.headers['content-type']
+    extension = get_file_extension path
+    if not extension?
+      console.log "no extension found on #{path}"
+      # TODO file extension
+      if (type.indexOf 'image/')==0
+        path = path+'.'+type.substring(6)
+      else if (type.indexOf 'audio/')==0
+        path = path+'.'+type.substring(6)
+      else if (type.indexOf 'text/html')==0
+        path = path+'.html'
+      else if (type.indexOf 'text/cache-manifest')==0
+        path = path+'.appcache'
+      else if (type.indexOf 'application/javascript')==0 
+        path = path+'.json'
+      else if (type.indexOf 'text/plain')==0 and dir=='' 
+        # top-level document
+        path = path+'.json'
+      else
+        console.log "Missing extension for #{path} type #{type}"
+    else
+      console.log "extension #{extension} found on #{path}"
+
+    tmppath = get_filesystem_path (dir + (if dir!='' then '/' else '') + '.cb_download')
+    try 
+      fd = fs.openSync(tmppath, 'w')
+    catch e
+      console.log "Could not create tmpfile #{tmppath}: #{e}"
+      return fn e      
+        
+    count = 0;
+
+    res.on 'data',(data) ->
+      if count < 0
+        return
+      #console.log "got #{data.length} bytes for #{file.url}"
+      try 
+        fs.writeSync(fd, data, 0, data.length)
+        count += data.length
+      catch e
+        console.log "Error writing data chunk to #{tmppath}: #{e}"
+        count = -1
+
+    res.on 'end',() ->
+      fs.closeSync(fd)
+      if count < 0
+        return fn 'error reading data'
+      if count < length 
+        console.log "Warning: read #{count}/#{length} bytes for #{surl} - discarding"
+        try
+          fs.unlinkSync tmppath
+        catch e
+          ; # ignore
+        return fn ("read #{count}/#{length}")
+
+      console.log "OK: read #{count} bytes"
+      filepath = get_filesystem_path path
+      try
+        # remove old old file if present
+        fs.unlinkSync filepath
+      catch e
+        ;# ignore
+      try
+        fs.renameSync tmppath,filepath
+        # done!
+      catch e
+        console.log "Error renaming new cache file #{tmppath} to #{filepath}: #{e}"
+        fn 'error renaming new cache file'
+      console.log "Downloaded #{surl} -> #{filepath} aka #{path} (#{length} bytes, #{type})"
+      cachePaths[surl] = filepath
+      cacheUrls[surl] = path
+      fn null, path
+  req.on 'error',(e) ->
+    console.log "Error getting file #{surl}: #{e}"
+    fn e
+  req.end()
+
+module.exports.readCacheTextFile = readCacheTextFile = (surl,fn) ->
+  path = cachePaths[surl]
+  if path?
+    try 
+      fn null, fs.readFileSync path,{encoding:'utf8'}
+    catch err
+      console.log "error reading #{path}: #{err}"
+      fn err
+  else 
+    cacheFile surl, (err,path) ->
+      if err?
+        fn err
+      try 
+        fn null, fs.readFileSync path,{encoding:'utf8'}
+      catch err
+        console.log "error reading #{path}: #{err}"
+        fn err
+ 
+module.exports.exec = (cmd, args, continuation) ->
+  console.log "exec: #{cmd} #{JSON.stringify args} in #{process.cwd()}"
+  try
+    child = spawn cmd, args, 
+      stdio: 'inherit'
+      env: process.env
+      cwd: process.cwd()
+  catch err
+    console.log "exec: error spawning #{cmd}: #{err.message}"
+    return continuation err
+
+  child.on 'error', (err) ->
+    console.log "child process reported error #{err}"
+    return continuation err
+
+  child.on 'close', (code) ->
+    console.log "child process exited with code #{code}"
+    if code==0
+      continuation null
+    else
+      continuation "Returned error code #{code}"
 
