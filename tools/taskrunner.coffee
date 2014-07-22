@@ -3,6 +3,7 @@ fs = require('fs')
 multiparty = require('multiparty')
 http = require('http')
 spawn = require('child_process').spawn
+parse_url = require('url').parse
    
 log = (msg) -> 
   # compatible with couchdb external processes
@@ -45,8 +46,15 @@ db = null
 publicwebdirerror = true
 
 start = () ->
-  log "connect to #{dburl}"
-  db = require('nano') dburl
+  url = parse_url dburl
+  log "connect to #{dburl} = #{JSON.stringify url}"
+  server = url.protocol+"//"+url.host
+  dbname = url.pathname.split('/')[1]
+  nano = require('nano') server
+  if url.auth
+    nano.config.default_headers = { 'Authorization' : 'Basic '+new Buffer(url.auth).toString('base64') }
+  log "nano config: #{JSON.stringify nano.config}"
+  db = nano.use dbname
   # errors?
 
   log "using publicwebdir #{publicwebdir}"

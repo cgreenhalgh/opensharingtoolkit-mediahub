@@ -6,10 +6,11 @@ cfengine/image.timestamp: cfengine/Dockerfile
 	sudo docker build -t cfengine cfengine
 	touch cfengine/image.timestamp
 
-mediahub/mediahub.couch:
-	$(error "You need to create/copy an initial mediahub database file to mediahub/mediahub.couch - see the deployment documentation")
+# mediahub/mediahub.couch:
+#	$(error "You need to create/copy an initial mediahub database file to mediahub/mediahub.couch - see the deployment documentation")
 
-mediahub/image.timestamp: cfengine/image.timestamp mediahub/Dockerfile mediahub/mediahub.couch
+# mediahub/mediahub.couch
+mediahub/image.timestamp: cfengine/image.timestamp mediahub/Dockerfile mediahub/local.ini
 	sudo docker build -t mediahub mediahub
 	touch mediahub/image.timestamp
 

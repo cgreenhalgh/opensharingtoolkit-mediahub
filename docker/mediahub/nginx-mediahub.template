@@ -6,17 +6,18 @@ server {
 
 	root /usr/share/nginx/html;
 
-	auth_basic "#{NAME}";
-	auth_basic_user_file conf/htpasswd;
-
 	# see http://wiki.apache.org/couchdb/Nginx_As_a_Reverse_Proxy
 	location /mediahub/ {
+		auth_basic "#{NAME}";
+		auth_basic_user_file conf/htpasswd;
+
 		proxy_pass http://127.0.0.1:5984/mediahub/;
-		proxy_redirect default;
+		#proxy_redirect default;
                 # admin:admin authorization on couchdb
 		proxy_set_header Authorization "Basic YWRtaW46YWRtaW4=";
 		#proxy_set_header Host $host;
 		#proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+		break;
 	}
 	# needed for auth?
 	#location = /mediahub/ {
@@ -25,14 +26,33 @@ server {
 	# futon uses /_session /_all_dbs probably others...
 	# dangerous? consider removing from general deployments!
 	location /couchdb/ {
+		auth_basic "#{NAME}";
+		auth_basic_user_file conf/htpasswd;
+	
 		proxy_pass http://127.0.0.1:5984/;
 		proxy_redirect default;
                 # admin:admin authorization on couchdb
 		proxy_set_header Authorization "Basic YWRtaW46YWRtaW4=";
 		#proxy_set_header Host $host;
 		#proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+		break;
+	}
+	location /upload/ {
+		auth_basic "#{NAME}";
+		auth_basic_user_file conf/htpasswd;
+
+		proxy_pass http://127.0.0.1:8090/;
+                # no authorization on couchdb
+		proxy_set_header Authorization "";
+		#proxy_set_header Host $host;
+		#proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+		break;
+	}
+	location /public/ {
+		break;
 	}
 	location / {
+		deny all;
 	}
 }
 
