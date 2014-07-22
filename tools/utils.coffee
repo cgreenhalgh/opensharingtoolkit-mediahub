@@ -85,21 +85,28 @@ module.exports.readJson = readJson = (surl,fn) ->
     fn e
   req.end()
 
-module.exports.guessMimetype = guessMimetype = (url, fn) ->
-  #console.log "guess mimetype of #{url}"
+module.exports.mimetypeFromExtension = mimetypeFromExtension = (url) ->
   ix = url.lastIndexOf '.'
   if ix>=0 and ix>(url.lastIndexOf '/')
     ext = url.substring (ix+1)
     if ext=='jpg' or ext=='jpeg' or ext=='jpe'
-      return fn 'image/jpeg'
+      return 'image/jpeg'
     if ext=='png'
-      return fn 'image/png'
+      return 'image/png'
     if ext=='html' or ext=='htm'
-      return fn 'text/html'
+      return 'text/html'
     if ext=='mp3'
-      return fn 'audio/mpeg'
+      return 'audio/mpeg'
     if ext=='ogg'
-      return fn 'audio/ogg'
+      return 'audio/ogg'
+    if ext=='pdf'
+      return 'application/pdf'
+  return null
+
+module.exports.guessMimetype = guessMimetype = (url, fn) ->
+  type =  mimetypeFromExtension url
+  if type
+    return fn type
   console.log "unknown mimetype for #{url} - try head"
   checkMimetype url, (err,type) ->
     if err?
@@ -153,7 +160,7 @@ module.exports.get_cache_path = get_cache_path = (url) ->
   # leading /?
   if ps.length>1 and ps[0]==''
     ps.shift()
-  hs = ["cache"].concat hs,ps
+  hs = ["appcache"].concat hs,ps
   # make safe filenames
   hs = for h in hs
     get_filename_for_component h

@@ -18,6 +18,7 @@ if ix<0
   process.exit -1
 couchurl = appurl.substring 0,(ix+1)
 console.log "couchdb = #{couchurl}"
+utils.setCouchurl couchurl
 pathprefix = ''
 for p,i in (appurl.substring ix+1).split '/' when i>0
   pathprefix = '../'+pathprefix

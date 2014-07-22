@@ -46,6 +46,7 @@ readJson kioskurl, (err,kiosk) ->
   thingIds = kiosk.thingIds.concat []
   urls = []
   exports = []
+  images = []
   getThings = (things,fn) ->
     if thingIds.length==0
       return fn null,things
@@ -57,12 +58,6 @@ readJson kioskurl, (err,kiosk) ->
         return fn err
       things[thingId] = data
       # URLs -> mimetypes?
-      if data.imageurl? and data.imageurl!=''
-        # fix relative?
-        if data.imageurl.indexOf('../../../../')==0
-          data.imageurl = data.imageurl.substring 12
-        if urls.indexOf(data.imageurl)<0
-          urls.push data.imageurl
       if data.externalurl? and data.externalurl!='' and !data.hasFile and urls.indexOf(data.externalurl)<0
         urls.push data.externalurl
       # local files
@@ -70,6 +65,8 @@ readJson kioskurl, (err,kiosk) ->
         exports.push data
       else if data.type=='app' and not data.externalurl
         exports.push data
+      if data.imageurl and data.imageurl.indexOf('../../../../')==0
+        images.push data
       return getThings things,fn
 
   guessMimetypes = (mimetypes,fn) ->
@@ -83,6 +80,26 @@ readJson kioskurl, (err,kiosk) ->
       mimetypes[url] = type
       guessMimetypes mimetypes,fn
 
+  fixImages = (mimetypes, fn) ->
+    if images.length==0
+      return fn mimetypes
+    thing = (images.splice 0,1)[0]
+    if thing.imageurl and thing.imageurl.indexOf('../../../../')==0
+      url = "#{couchurl}#{thing.imageurl.substring 12}"
+      utils.cacheFile url, (err,path) ->
+        if err
+          console.log "Error cacheing image #{url}: #{err}"
+          process.exit -1
+        console.log "Exported image #{url} as #{path}"
+        # NB relative to top-level 
+        thing.imageurl = path
+        type = utils.mimetypeFromExtension path
+        if type
+          mimetypes[thing.imageurl] = type
+        fixImages mimetypes,fn
+    else
+      fixImages mimetypes,fn
+
   exportThings = (fn) ->
     if exports.length==0
       return fn null
@@ -94,7 +111,7 @@ readJson kioskurl, (err,kiosk) ->
           console.log "Error exporting file #{url}: #{err}"
           process.exit -1
         console.log "Exported file #{url} as #{path}"
-        thing.externalurl = publicurl+"/"+path
+        thing.externalurl = path
         exportThings fn
     else if thing.type=='app'
       appurl = "#{couchurl}_design/app/_show/app/#{thing._id}"
@@ -103,12 +120,12 @@ readJson kioskurl, (err,kiosk) ->
         if err
           console.log "Error exporting app #{appurl}: #{err}"
           process.exit -1
-        thing.externalurl = "#{publicurl}/_design/app/_show/app/#{thing._id}.html"
+        thing.externalurl = "_design/app/_show/app/#{thing._id}.html"
         console.log "Exported app #{appurl} as #{thing.externalurl}"
         exportThings fn
     else
-      console.log "Warning: don't know how to export #{thing.type} #{thing._id}"
- 
+      exportThings fn
+
   writeAtomfile = (things, mimetypes) ->
     if not kiosk.externalurl
       kiosk.externalurl = publicurl
@@ -130,7 +147,8 @@ readJson kioskurl, (err,kiosk) ->
     if err?
       console.log "Error reading kiosk things: #{err}"
       process.exit -1
-    guessMimetypes {}, (err,mimetypes)->
-      exportThings () ->
-        writeAtomfile things, mimetypes
+    fixImages {}, (mimetypes) ->
+      guessMimetypes mimetypes, (err,mimetypes)->
+        exportThings () ->
+          writeAtomfile things, mimetypes
 

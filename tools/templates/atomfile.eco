@@ -6,15 +6,15 @@
     <title><%= @title %></title> 
     <updated><%= new Date().toISOString() %></updated> 
 <% for campaign in @campaigns ?= [] : %>
-<%- @templateCampaign campaign %>
+  <%- @templateCampaign campaign %>
 <% end %>
 <% for thingId in @thingIds ?= [] : %>
-<% thing = @things[thingId] %>
-<% if thing?: %>
-<%- @templateEntry thing %>
-<% else: %>
+  <% thing = @things[thingId] %>
+  <% if thing?: %>
+    <%- @templateEntry thing %>
+  <% else: %>
     <!-- Unknown thing <%= thingId %> -->
+  <% end %>
 <% end %>
-
 </feed>
 
