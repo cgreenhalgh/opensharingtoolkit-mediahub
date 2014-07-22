@@ -14,16 +14,16 @@ templateCampaign = fs.readFileSync __dirname+"/templates/campaign.eco", "utf-8"
 templateEntry = fs.readFileSync __dirname+"/templates/entry.eco", "utf-8"
 
 if process.argv.length!=4 
-  console.log 'usage: coffee exportkiosk.coffee <KIOSK-URL> <PUBLIC-DIR-URL>'
-  process.exit -1
+  utils.logError 'usage: coffee exportkiosk.coffee <KIOSK-URL> <PUBLIC-DIR-URL>', 2
+  utils.exit()
 
 kioskurl = process.argv[2]
 publicurl = process.argv[3]
 
 ix = kioskurl.lastIndexOf '/'
 if ix<0
-  console.log "Could not find / in kioskurl #{kioskurl}"
-  process.exit -1
+  utils.logError "Could not find / in kioskurl #{kioskurl}", 2
+  utils.exit()
 couchurl = kioskurl.substring 0,(ix+1)
 console.log "couchdb = #{couchurl}"
 utils.setCouchurl couchurl
@@ -37,8 +37,8 @@ guessMimetype = utils.guessMimetype
 
 readJson kioskurl, (err,kiosk) ->
   if err?
-    console.log "Error reading kiosk config #{err}"
-    process.exit -1
+    utils.logError "Error reading kiosk config #{kioskurl}: #{err}"
+    utils.exit()
   console.log "Read kiosk config #{JSON.stringify kiosk}"
   if not kiosk.atomfilename? or kiosk.atomfilename==''
     kiosk.atomfilename = "default.xml"
@@ -88,14 +88,14 @@ readJson kioskurl, (err,kiosk) ->
       url = "#{couchurl}#{thing.imageurl.substring 12}"
       utils.cacheFile url, (err,path) ->
         if err
-          console.log "Error cacheing image #{url}: #{err}"
-          process.exit -1
-        console.log "Exported image #{url} as #{path}"
-        # NB relative to top-level 
-        thing.imageurl = path
-        type = utils.mimetypeFromExtension path
-        if type
-          mimetypes[thing.imageurl] = type
+          utils.logError "Error cacheing image #{url}: #{err}"
+        else
+          console.log "Exported image #{url} as #{path}"
+          # NB relative to top-level 
+          thing.imageurl = path
+          type = utils.mimetypeFromExtension path
+          if type
+            mimetypes[thing.imageurl] = type
         fixImages mimetypes,fn
     else
       fixImages mimetypes,fn
@@ -108,20 +108,20 @@ readJson kioskurl, (err,kiosk) ->
       url = couchurl+encodeURIComponent( thing._id )+"/bytes"
       utils.cacheFile url, (err,path) ->
         if err
-          console.log "Error exporting file #{url}: #{err}"
-          process.exit -1
-        console.log "Exported file #{url} as #{path}"
-        thing.externalurl = path
+          utils.logError "Error exporting file #{url}: #{err}"
+        else
+          console.log "Exported file #{url} as #{path}"
+          thing.externalurl = path
         exportThings fn
     else if thing.type=='app'
       appurl = "#{couchurl}_design/app/_show/app/#{thing._id}"
       console.log "Export app #{appurl}..."
       utils.exec "/usr/local/bin/coffee", ["#{__dirname}/exportapp.coffee",appurl], (err,res) ->
         if err
-          console.log "Error exporting app #{appurl}: #{err}"
-          process.exit -1
-        thing.externalurl = "_design/app/_show/app/#{thing._id}.html"
-        console.log "Exported app #{appurl} as #{thing.externalurl}"
+          utils.logError "Error exporting app #{appurl}: #{err}"
+        else
+          thing.externalurl = "_design/app/_show/app/#{thing._id}.html"
+          console.log "Exported app #{appurl} as #{thing.externalurl}"
         exportThings fn
     else
       exportThings fn
@@ -140,15 +140,14 @@ readJson kioskurl, (err,kiosk) ->
       console.log "Write to #{kiosk.atomfilename}"
       fs.writeFileSync kiosk.atomfilename, out, encoding:'utf8'
     catch err
-      console.log "Error writing to #{kiosk.atomfilename}: #{err.message}"
-      process.exit -1
+      utils.logError "Error writing to #{kiosk.atomfilename}: #{err.message}"
 
   getThings {}, (err,things)->
     if err?
-      console.log "Error reading kiosk things: #{err}"
-      process.exit -1
+      utils.logError "Error reading kiosk things: #{err}"
     fixImages {}, (mimetypes) ->
       guessMimetypes mimetypes, (err,mimetypes)->
         exportThings () ->
           writeAtomfile things, mimetypes
+          utils.exit()
 

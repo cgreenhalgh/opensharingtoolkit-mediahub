@@ -7,15 +7,15 @@ resolve_url = (require 'url').resolve
 utils = require './utils'
 
 if process.argv.length!=3 
-  console.log 'usage: coffee exportapp.coffee <APP-URL>'
-  process.exit -1
+  utils.logError 'usage: coffee exportapp.coffee <APP-URL>', 2
+  utils.exit()
 
 appurl = process.argv[2]
 
 ix = appurl.indexOf '/_design/'
 if ix<0
-  console.log "Could not /_design/ in appurl #{appurl}"
-  process.exit -1
+  utils.logError "Could not find /_design/ in appurl #{appurl}", 2
+  utils.exit()
 couchurl = appurl.substring 0,(ix+1)
 console.log "couchdb = #{couchurl}"
 utils.setCouchurl couchurl
@@ -44,10 +44,10 @@ addSrcRefs = (file) ->
           type: 'html'
           from: from
           to: from+src.length
-          src: fix_relative_url file.url, (src.replace /[&]amp[;]/g, '&')
+          src: fix_relative_url file.baseurl, (src.replace /[&]amp[;]/g, '&')
       ix = srcs.lastIndex
 
-check_json = (surl) ->
+check_json = (surl, baseurl) ->
   if files[surl]?
     return
   #console.log "check json #{surl}"
@@ -61,6 +61,7 @@ check_json = (surl) ->
       url: surl
       done: false
       refs: []
+      baseurl: baseurl
     addSrcRefs file
     els = for name,val of json
       {obj:json,ix:[name]}
@@ -75,7 +76,7 @@ check_json = (surl) ->
           file.refs.push
             from: 0
             to: val.length
-            src: fix_relative_url file.url, val
+            src: fix_relative_url file.baseurl, val
             ix: el.ix.join '.'
         else # html?
           #console.log "check for src in #{val}"
@@ -89,7 +90,7 @@ check_json = (surl) ->
               file.refs.push
                 from: from
                 to: from+src.length
-                src: fix_relative_url file.url, (src.replace /[&]amp[;]/g, '&')
+                src: fix_relative_url file.baseurl, (src.replace /[&]amp[;]/g, '&')
                 ix: el.ix.join '.'
             ix = srcs.lastIndex
       else if (typeof val)=='object'
@@ -97,8 +98,7 @@ check_json = (surl) ->
           els.push {obj:val,ix:(el.ix.concat [name])}
     files[surl] = file
   catch err
-    console.log "error reading json #{path}: #{err.message}"
-    process.exit -1 
+    utils.logError "error reading json #{path}: #{err.message}"
 
 check_manifest = (surl) ->
   console.log "check manifest #{surl}"
@@ -106,13 +106,13 @@ check_manifest = (surl) ->
   try 
     data = fs.readFileSync path,{encoding:'utf8'}
   catch err
-    console.log "error reading manifest #{path}"
-    process.exit -1 
+    return utils.logError "error reading manifest #{path}"
   file = 
     text: ''
     url: surl
     done: false
     refs: []
+    baseurl: surl
   lines = data.split '\n'
   lines = for l in lines when l.trim().length>0
     l.trim()
@@ -127,7 +127,7 @@ check_manifest = (surl) ->
     if l=="CACHE:" or l=="SETTINGS:" or l=="NETWORK:"
       section = l
     else if section=="CACHE:" and (l.indexOf '#')!=0
-      url = fix_relative_url surl,l
+      url = fix_relative_url file.baseurl,l
       #console.log "Found manifest entry #{l} -> #{url}"
       file.refs.push 
         from: text.length
@@ -169,8 +169,7 @@ processFile = (file) ->
       console.log "re-writing #{path}..."
       fs.writeFileSync path, out
     catch err
-      console.log "error re-writing #{path}"
-      process.exit -1
+      return utils.logError "error re-writing #{path}"
   else if file.json
     sortJsonRefs file.refs
     # TODO 
@@ -194,10 +193,9 @@ processFile = (file) ->
       console.log "re-writing #{path}..."
       fs.writeFileSync path, text
     catch err
-      console.log "error re-writing #{path}"
-      process.exit -1
+      return utils.logError "error re-writing #{path}"
 
-checkFile = (surl, path) ->
+checkFile = (surl, path, baseurl) ->
   ix = path.lastIndexOf '.'
   if ix>=0
     ext = path.substring (ix+1)
@@ -206,7 +204,7 @@ checkFile = (surl, path) ->
         check_manifest surl
     else if ext=='json'
       # TODO do we still need a top-level check??
-      check_json surl
+      check_json surl, baseurl
 
 
 processFiles = () ->
@@ -218,13 +216,15 @@ processFiles = () ->
       ref.done = true
       return cacheFile ref.src, (err,path) ->
         if err?
-          process.exit -1
-        checkFile ref.src, path
-        ref.path = cacheUrls[ref.src]
+          utils.logError "cacheFile error on #{file.url} src #{ref.src}"
+        else
+          checkFile ref.src, path, file.baseurl
+          ref.path = cacheUrls[ref.src]
         processFiles()
     file.done = true
     processFile file
   console.log "Done!"
+  utils.exit()
     
 sortRefs = (refs) ->
   refs.sort (a,b)-> return b.from-a.from
@@ -240,45 +240,46 @@ sortJsonRefs = (refs) ->
 
 cacheFile appurl, (err,path) ->
   if err?
-    console.log "error cacheing #{appurl}: #{err}"
-    process.exit -1
+    utils.logError "error cacheing app #{appurl}: #{err}"
+    utils.exit()
   console.log "cached #{appurl} as #{path}"
-  checkFile appurl, path
 
-# html index
-readCacheTextFile appurl, (err,html) ->
-  if err?
-    process.exit -1
-  file = 
-    done: false
-    url: appurl
-    text: html
-    refs: []
-  # note: same logic as kiosk cache builder
-  hi = html.indexOf '<html '
-  hi2 = html.indexOf '>',hi
-  mi = html.indexOf ' manifest="', hi
-  mi2 = html.indexOf '"', mi+11
-  if mi>=0 and mi2>=mi and mi2<hi2
-    file.refs.push
-      type: 'html' 
-      from: mi+11
-      to: mi2
-      src: fix_relative_url file.url, decodeURI(html.substring mi+11,mi2)
-    #console.log "Found manifest #{manifesturl}"    
-  else
-    console.log "Could not find manifest reference"
-    process.exit -1
-  # mark as exported using meta
-  ix = html.indexOf '<head>'
-  if ix<0
-    console.log "error: cannot find <head> to mark as exported"
-    process.exit -1
-  file.text = html.substring( 0, ix+6 )+'<meta name="mediahub-exported" content="true"/>'+html.substring( ix+6 )
-  addSrcRefs file
-  if not (get_file_extension file.url)?
-    file.extension = '.html'
+  # html index
+  readCacheTextFile appurl, (err,html) ->
+    if err?
+      utils.logError "error reading app #{appurl} from cache: #{err}"
+      utils.exit()
+    file = 
+      done: false
+      url: appurl
+      text: html
+      refs: []
+      baseurl: appurl
+    # note: same logic as kiosk cache builder
+    hi = html.indexOf '<html '
+    hi2 = html.indexOf '>',hi
+    mi = html.indexOf ' manifest="', hi
+    mi2 = html.indexOf '"', mi+11
+    if mi>=0 and mi2>=mi and mi2<hi2
+      manifesturl = fix_relative_url file.baseurl, decodeURI(html.substring mi+11,mi2)
+      file.refs.push
+        type: 'html' 
+        from: mi+11
+        to: mi2
+        src: manifesturl
+      #console.log "Found manifest #{manifesturl}"    
+    else
+      utils.logError "Could not find manifest reference in #{appurl}"
+    # mark as exported using meta
+    ix = html.indexOf '<head>'
+    if ix<0
+      utils.logError "cannot find <head> to mark as exported in #{appurl}"
+    else
+      file.text = html.substring( 0, ix+6 )+'<meta name="mediahub-exported" content="true"/>'+html.substring( ix+6 )
+    addSrcRefs file
+    if not (get_file_extension file.url)?
+      file.extension = '.html'
 
-  files[file.url] = file
-  processFiles()
+    files[file.url] = file
+    processFiles()
 

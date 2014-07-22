@@ -334,3 +334,24 @@ module.exports.exec = (cmd, args, continuation) ->
     else
       continuation "Returned error code #{code}"
 
+errors = []
+exitCode = 1
+
+module.exports.logError = (msg, code) ->
+  console.log "ERROR: #{msg}"
+  errors.push msg
+  if code!=0
+    exitCode = code
+
+module.exports.exit = () ->
+  console.log "Exit after #{errors.length} errors"
+  for error in errors
+    console.log "- #{error}"
+  if errors.length==0
+    process.exit 0
+  if exitCode!=0
+    console.log "exit with code #{exitCode}"
+    process.exit exitCode
+  console.log "exit with default code 1"
+  process.exit 1
+
