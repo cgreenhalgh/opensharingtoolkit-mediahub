@@ -50,7 +50,7 @@ RUN apt-get -y install php5-cli php5-fpm && \
 EXPOSE 5984
 
 # See template for specific configuration...
-VOLUME ["/var/lib/couchdb","/var/log"]
+VOLUME ["/var/lib/couchdb","/var/log","/usr/share/nginx/html"]
 EXPOSE 80 443 22
 CMD ["/usr/sbin/sshd", "/usr/sbin/nginx", "/usr/sbin/php5-fpm"]
 
