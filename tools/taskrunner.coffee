@@ -4,10 +4,19 @@ multiparty = require('multiparty')
 http = require('http')
 spawn = require('child_process').spawn
 parse_url = require('url').parse
-   
+
 log = (msg) -> 
   # compatible with couchdb external processes
   console.log JSON.stringify ["log", msg]
+
+log "Node version #{JSON.stringify process.version}"
+#log "Environment #{JSON.stringify process.env}"
+newmask = 0o0022
+try
+  oldmask = process.umask newmask
+  log "Changed umask from #{oldmask.toString(8)} to #{newmask.toString(8)}"
+catch err
+  log "error changing umask: #{err.message}"
 
 dburl = 'http://127.0.0.1:5984/mediahub'
 publicwebdir = '../docker/nginxdev/html/public'
@@ -32,7 +41,7 @@ stdin.on 'data', (d) ->
       serverport = Number(conf.serverport)
     if !started
       started = true
-      start()
+      startAuth()
 
   catch err
     log "Error reading config #{d}: #{err.message}"
@@ -42,19 +51,56 @@ console.log JSON.stringify ["get", "taskrunner"]
 
 tasks = {} 
 
+nano = null
 db = null
 publicwebdirerror = true
+cookie = null
 
-start = () ->
+checkCookie = (headers) ->
+  if headers && headers['set-cookie']
+    cookie = headers['set-cookie'].toString()
+    log "set cookie authentication -> cookie #{cookie}"
+    nano.config.cookie = cookie.substring 0,(cookie.indexOf ';')
+
+startCookieAuth = () ->
+  # not using, at least for now - basic auth is fine
   url = parse_url dburl
-  log "connect to #{dburl} = #{JSON.stringify url}"
   server = url.protocol+"//"+url.host
   dbname = url.pathname.split('/')[1]
-  nano = require('nano') server
+  log "connect to #{dburl} = #{server} #{dbname} as #{url.auth}"
+  nano = require('nano') 
+    url: server
+    log: (id, args) ->
+      log "nano:#{id}: #{JSON.stringify args}"
   if url.auth
-    nano.config.default_headers = { 'Authorization' : 'Basic '+new Buffer(url.auth).toString('base64') }
-  log "nano config: #{JSON.stringify nano.config}"
-  db = nano.use dbname
+    ix = url.auth.indexOf ':'
+    username = url.auth.substring 0,ix
+    password = url.auth.substring ix+1
+    cred = username+':'+password
+    auth = 'Basic '+new Buffer(cred, 'utf8').toString('base64')
+    log "auth: #{cred} / #{new Buffer(cred, 'utf8').toString('hex')}"
+    nano.config.default_headers = { 'authorization' : auth }
+    nano.auth username, password, (err,body,headers) ->
+      checkCookie headers
+      nano.config.default_headers = {}
+      if err
+        log "authentication failed (#{username} : #{password}): #{err}; headers=#{JSON.stringify headers}, body=#{body}"
+        process.exit -1
+      db = nano.use dbname
+      log "nano config: #{JSON.stringify nano.config}"
+      start()
+  else
+    db = nano.use dbname
+    log "nano config: #{JSON.stringify nano.config}"
+    start()
+
+startAuth = () ->
+  log "connect to #{dburl}"
+  db = require('nano') dburl
+  start()
+
+start = () ->
+
   # errors?
 
   log "using publicwebdir #{publicwebdir}"
@@ -65,7 +111,8 @@ start = () ->
     include_docs: true
     startkey: 'taskstate:'
     endkey: 'taskstate;'
-   , (err, body) ->
+   , (err, body, headers) ->
+    checkCookie headers
     if err?
       log "state error #{err}"
     else
@@ -102,7 +149,8 @@ getChanges = () ->
     feed: 'longpoll'
   if lastSequence?
     params.since = lastSequence
-  feed = db.changes params, (err,changes)->
+  feed = db.changes params, (err,changes,headers)->
+    checkCookie headers
     if err?
       log "getChanges: error getting changes: #{err.message}"
       setTimeout getChanges,5000
@@ -269,7 +317,8 @@ sendState = (task) ->
   if not task.serverState?
     task.sendingState = JSON.parse (JSON.stringify task.targetState)
     log "sendState: create state #{task.targetState._id}"
-    db.insert task.sendingState, (err,response) ->
+    db.insert task.sendingState, (err,response,headers) ->
+      checkCookie headers
       if err?
         log "sendState: create error #{err}"
         task.sendingState = null
@@ -286,7 +335,8 @@ sendState = (task) ->
     task.sendingState = JSON.parse (JSON.stringify task.targetState)
     task.sendingState._rev = task.serverState._rev
     log "sendState: update state #{task.targetState._id} rev #{task.serverState._rev}"
-    db.insert task.sendingState, (err,response) ->
+    db.insert task.sendingState, (err,response,headers) ->
+      checkCookie headers
       if err?
         log "sendState: update error #{err}"
         task.sendingState = null
@@ -300,7 +350,8 @@ sendState = (task) ->
 
 checkServerState = (task) ->
   log "sendState: checkServerState #{task.targetState._id}"
-  db.get task.targetState._id, (err,doc) ->
+  db.get task.targetState._id, (err,doc,headers) ->
+    checkCookie headers
     if err?
       log "sendState: checkServerState #{task.targetState._id} error #{err}"
       return
@@ -327,7 +378,7 @@ checkPath = (task,root,create) ->
           return null
         log "create output dir #{root+path}"
         try
-          fs.mkdirSync root+path
+          fs.mkdirSync root+path,0o755
         catch err
           log "Could not create output dir #{root+path}: #{err.message}"
           taskError task, "Could not create output directory #{path}: #{err.message}"
@@ -503,7 +554,7 @@ startUploadServer = () ->
   uploaddir = "#{publicwebdir}/upload"
   if !fs.existsSync uploaddir
     try
-      fs.mkdirSync uploaddir
+      fs.mkdirSync uploaddir,0o755
     catch err
       log "Error creating upload dir #{uploaddir}: #{err.message}"
       return
