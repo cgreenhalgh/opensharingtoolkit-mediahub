@@ -355,3 +355,31 @@ module.exports.exit = () ->
   console.log "exit with default code 1"
   process.exit 1
 
+module.exports.copyDirSync = copyDirSync = (fromdir, todir) ->
+  console.log "copy dir #{fromdir} -> #{todir}"
+  fromdir = fs.realpathSync fromdir
+  todir = fs.realpathSync todir
+  if !(fs.existsSync fromdir)
+    throw "fromdir #{fromdir} does not exist"
+  if !(fs.existsSync todir)
+    throw "todir #{todir} does not exist"
+  files = fs.readdirSync fromdir
+  for file in files
+    fromfile = fromdir+"/"+file
+    tofile = todir+"/"+file
+    stats = fs.statSync fromfile
+    if stats.isDirectory()
+      if !(fs.existsSync tofile)
+        console.log "Create dir #{tofile}"
+        fs.mkdirSync tofile,0o755
+      copyDirSync fromfile,tofile
+    else if stats.isFile()
+      if !(fs.existsSync tofile)
+        console.log "Create file #{tofile}"
+        data = fs.readFileSync fromfile,{encoding:null}
+        fs.writeFileSync tofile,data,{encoding:null,mode:(stats.mode|0o444)}
+    else
+      if !(fs.existsSync tofile)
+        console.log "Ignore non-file/dir #{fromfile}"
+
+

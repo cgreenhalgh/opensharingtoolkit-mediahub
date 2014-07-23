@@ -14,9 +14,10 @@
 <% else if @taskType=='exportkiosk': %>
     <h4>Publish Kiosk config to webserver</h4>
 <%# cf taskrunner.coffee %>
-<%   atomurl = "#{window.mediahubconfig.publicurl}/#{@path}/#{ if @atomfilename? and @atomfilename!='' then @atomfilename else 'default.xml' }" %>
+<%   atomurl = "#{window.mediahubconfig.publicurl}/#{@path}/#{ if @subject?.atomfilename then @subject.atomfilename else 'default.xml' }" %>
+<%   kioskurl = "#{window.mediahubconfig.publicurl}/#{@path}/index.html?f=#{ encodeURIComponent( if @subject?.atomfilename then @subject.atomfilename else 'default.xml' ) }" %>
 <%   tarfile = "#{window.mediahubconfig.publicurl}/#{@path}.tgz" %>
-    <p>Will export kiosk configuration to <a target="_blank" href="<%= atomurl %>"><%= atomurl %></a> (Tar file <a target="_blank" href="<%= tarfile %>"><%= tarfile %></a>)</p>
+    <p>Will export kiosk configuration to <a target="_blank" href="<%= atomurl %>"><%= atomurl %></a>, web kiosk view <a target="_blank" href="<%= kioskurl %>"><%= kioskurl %></a> (Tar file <a target="_blank" href="<%= tarfile %>"><%= tarfile %></a>)</p>
 
 <% else if @taskType=='tar': %>
     <h4>Tar webserver directory</h4>

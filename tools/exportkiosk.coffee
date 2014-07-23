@@ -13,6 +13,13 @@ templateAtomfile = fs.readFileSync __dirname+"/templates/atomfile.eco", "utf-8"
 templateCampaign = fs.readFileSync __dirname+"/templates/campaign.eco", "utf-8"
 templateEntry = fs.readFileSync __dirname+"/templates/entry.eco", "utf-8"
 
+# assuming opensharingtoolkit-kiosk is next door...
+KIOSK_PATH = __dirname+"/../../opensharingtoolkit-kiosk"
+CACHEBUILDER_PATH = KIOSK_PATH+"/cache_builder/cb.coffee"
+ETC_PATH = KIOSK_PATH+"/etc"
+CHOOSERWWWPUBLIC_PATH = KIOSK_PATH+"/chooserwww/public"
+CHOOSERJSPUBLIC_PATH = KIOSK_PATH+"/chooserjs/public"
+
 if process.argv.length!=4 
   utils.logError 'usage: coffee exportkiosk.coffee <KIOSK-URL> <PUBLIC-DIR-URL>', 2
   utils.exit()
@@ -40,7 +47,7 @@ readJson kioskurl, (err,kiosk) ->
     utils.logError "Error reading kiosk config #{kioskurl}: #{err}"
     utils.exit()
   console.log "Read kiosk config #{JSON.stringify kiosk}"
-  if not kiosk.atomfilename? or kiosk.atomfilename==''
+  if not kiosk.atomfilename
     kiosk.atomfilename = "default.xml"
   # recursively fetch all things
   thingIds = kiosk.thingIds.concat []
@@ -149,5 +156,15 @@ readJson kioskurl, (err,kiosk) ->
       guessMimetypes mimetypes, (err,mimetypes)->
         exportThings () ->
           writeAtomfile things, mimetypes
-          utils.exit()
+          try
+            utils.copyDirSync ETC_PATH,process.cwd()          
+            utils.copyDirSync CHOOSERWWWPUBLIC_PATH,process.cwd()          
+            utils.copyDirSync CHOOSERJSPUBLIC_PATH,process.cwd()
+          catch err
+            utils.logError "error copying files: #{err.message}"
+          console.log "Build kiosk cache..."
+          utils.exec "/usr/local/bin/coffee", [CACHEBUILDER_PATH, kiosk.atomfilename], (err) ->
+            if err
+              utils.logError "error building kiosk cache: #{err}"
+            utils.exit()
 

@@ -73,7 +73,7 @@ module.exports = class TaskConfigEditView extends Backbone.View
     if not @subject? and thing.id==@model.attributes.subjectId
       console.log "Found subject #{thing.id}"
       @subject = thing
-      $('.subject-holder', @$el).html templateTaskConfigEditSubject @subject.attributes
+      @render()
       @stopListening @allthings
 
   addState: (state) =>
@@ -106,7 +106,7 @@ module.exports = class TaskConfigEditView extends Backbone.View
     stateHtml = null
     if @taskstate?
       stateHtml = @templateState @taskstate.attributes
-    @$el.html @template _.extend { add: @add, subjectHtml: subjectHtml, stateHtml: stateHtml }, @model.attributes
+    @$el.html @template _.extend { add: @add, subjectHtml: subjectHtml, stateHtml: stateHtml, subject: @subject?.attributes }, @model.attributes
 
   events:
     "submit": "submit"

@@ -42,11 +42,15 @@ RUN couchdb -b && \
 # couchdb access config and helper process
 COPY local.ini /etc/couchdb/
 
+# PHP for kiosk server-side
+RUN apt-get -y install php5-cli php5-fpm && \
+  ( echo "php-fpm, /usr/sbin/php5-fpm" >> /var/cfengine/inputs/processes_run.csv )
+
 # testing only...
 EXPOSE 5984
 
 # See template for specific configuration...
 VOLUME ["/var/lib/couchdb","/var/log"]
 EXPOSE 80 443 22
-CMD ["/usr/sbin/sshd", "/usr/sbin/nginx"]
+CMD ["/usr/sbin/sshd", "/usr/sbin/nginx", "/usr/sbin/php5-fpm"]
 

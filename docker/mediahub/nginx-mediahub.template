@@ -48,6 +48,15 @@ server {
 		#proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
 		break;
 	}
+	# just my send or get scripts!
+	location ~ /public/([^/]+/)*((send)|(get))\.php$ {
+		fastcgi_split_path_info ^(.+?\.php)(/.*)$;
+                if (!-f $document_root$fastcgi_script_name) {
+                        return 404;
+                }
+                fastcgi_pass unix:/var/run/php5-fpm.sock;
+                include fastcgi_params;
+        }
 	location /public/ {
 		break;
 	}
