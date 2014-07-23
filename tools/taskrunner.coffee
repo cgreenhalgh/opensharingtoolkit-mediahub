@@ -405,7 +405,7 @@ doExportkiosk = (task) ->
   publicurl = task.config.configpublicurl
   if not publicurl
     return taskError task, "Publicurl for export was not specified ('configpublicurl')"
-  publicurl = publicurl+task.config.path
+  publicurl = publicurl+"/"+task.config.path
   kioskurl = "#{dburl}/#{kioskId}"
   if (path=(checkPath task, publicwebdir, true))?
     doSpawn task, "/usr/local/bin/coffee", ["#{__dirname}/exportkiosk.coffee",kioskurl,publicurl], path, true,
