@@ -38,12 +38,6 @@ Install docker as per [docker ubuntu install guide](https://docs.docker.com/inst
 
 There is a docker image `nginxdev` and makefile target which is an nginx VM exposed on port `8080`, which serves content from `nginxdev/html`. This is intended for use in development, i.e. when running couchdb outside of the deployment framework of docker/nginx.
 
-## Initialising couchdb
-
-You will need an initial version of the couchapp in a couchdb file in order to create/deploy instances.
-
-Deploy the mediahub couchapp on a regular machine. Take a copy of the database file, `/var/lib/couchdb/mediahub.couch` to `mediahub/mediahub.couch`.
-
 ## Mediahub container
 
 Runs:
@@ -52,6 +46,7 @@ Runs:
 - nginx (1.4.6 from ubuntu `nginx`, or `stable` = 1.6.0 as of 2014-07-08 from  [nginx linux packages](http://nginx.org/en/linux_packages.html#stable))
 - couchdb (1.5.0, ubuntu `couchdb`)
 - node and npm (v0.10.25 and 1.3.10, respectively, ubuntu `npm`)
+- PHP (just enough to run a couple of kiosk scripts)
 - cfengine (3.6.0, [cfengine community distros](http://cfengine.com/cfengine-linux-distros/))
 - (optionally) openssh-server
 
@@ -62,7 +57,7 @@ Generic cfengine dockerfile is [`cfengine/Dockerfile`](cfengine/Dockerfile). Gen
 make NAME=example run
 ```
 
-Note that this will require an initial snapshot of the `mediahub.couch` database file in `mediahub\`. See above for instructions.
+This will download and build the mediahub source within the common `mediahub` image.
 
 Each `mediahub-NAME` subdirectory includes `password`, the auto-generated password required to access that instance (username is instance name).
 
