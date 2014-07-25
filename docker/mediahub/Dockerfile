@@ -6,7 +6,8 @@ RUN apt-get -y install openssh-server && \
   ( echo "root:password" | chpasswd )  # need a password for ssh
 
 RUN apt-get -y install nginx && \
-  mkdir -p /etc/nginx/conf/
+  mkdir -p /etc/nginx/conf/ && \
+  sed -i '/^types {/ a \ text/cache-manifest appcache;' /etc/nginx/mime.types
 
 # can't run couchdb using standard for with cfengine as executable name is different, i.e. 
 RUN apt-get -y install couchdb && \
