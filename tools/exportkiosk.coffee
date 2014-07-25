@@ -20,12 +20,12 @@ ETC_PATH = KIOSK_PATH+"/etc"
 CHOOSERWWWPUBLIC_PATH = KIOSK_PATH+"/chooserwww/public"
 CHOOSERJSPUBLIC_PATH = KIOSK_PATH+"/chooserjs/public"
 
-if process.argv.length!=4 
-  utils.logError 'usage: coffee exportkiosk.coffee <KIOSK-URL> <PUBLIC-DIR-URL>', 2
+if process.argv.length!=5 
+  utils.logError 'usage: coffee exportkiosk.coffee <KIOSK-URL> <PUBLIC-URL> <PUBLIC-PATH>', 2
   utils.exit()
 
 kioskurl = process.argv[2]
-publicurl = process.argv[3]
+publicurl = process.argv[3]+"/"+process.argv[4]
 
 ix = kioskurl.lastIndexOf '/'
 if ix<0
@@ -123,7 +123,7 @@ readJson kioskurl, (err,kiosk) ->
     else if thing.type=='app'
       appurl = "#{couchurl}_design/app/_show/app/#{thing._id}"
       console.log "Export app #{appurl}..."
-      utils.exec "/usr/local/bin/coffee", ["#{__dirname}/exportapp.coffee",appurl], (err,res) ->
+      utils.exec "/usr/local/bin/coffee", ["#{__dirname}/exportapp.coffee",appurl,process.argv[3],process.argv[4]], (err,res) ->
         if err
           utils.logError "Error exporting app #{appurl}: #{err}"
         else

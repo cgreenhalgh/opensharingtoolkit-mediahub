@@ -16,5 +16,5 @@ RUN cp /tmp/cfe-docker-master/cfengine/bin/* /var/cfengine/bin/
 RUN cp /tmp/cfe-docker-master/cfengine/inputs/* /var/cfengine/inputs/
 RUN rm -rf /tmp/cfe-docker-master /tmp/master.zip
 
-ENTRYPOINT ["/var/cfengine/bin/docker_processes_run.sh"]
+#ENTRYPOINT ["/var/cfengine/bin/docker_processes_run.sh"]
 

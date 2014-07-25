@@ -6,8 +6,8 @@ parse_url = (require 'url').parse
 resolve_url = (require 'url').resolve
 utils = require './utils'
 
-if process.argv.length!=3 
-  utils.logError 'usage: coffee exportapp.coffee <APP-URL>', 2
+if process.argv.length!=4 && process.argv.length!=5 
+  utils.logError 'usage: coffee exportapp.coffee <APP-URL> <PUBLIC-URL> [<PUBLIC-PATH>]', 2
   utils.exit()
 
 appurl = process.argv[2]
@@ -23,7 +23,12 @@ pathprefix = ''
 for p,i in (appurl.substring ix+1).split '/' when i>0
   pathprefix = '../'+pathprefix
 
-console.log 'exportapp '+appurl
+# dev and deploy should both end /public -> /mediahub
+publicdburl = process.argv[3]
+ix = publicdburl.lastIndexOf '/'
+publicdburl = publicdburl.substring(0,ix+1)+'mediahub/'
+
+console.log 'exportapp '+appurl+' with couchurl='+couchurl+' and publicdburl='+publicdburl
 
 get_file_extension = utils.get_file_extension
 
@@ -142,7 +147,11 @@ cacheFile = utils.cacheFile
 
 readCacheTextFile = utils.readCacheTextFile
  
-fix_relative_url = resolve_url
+fix_relative_url = (url,path)->
+  if url.indexOf(publicdburl)==0
+    console.log "Rewrite external URL #{url}"
+    url = couchdburl+url.substring(publicdburl.length)
+  resolve_url url,path
 
 files = {}
 

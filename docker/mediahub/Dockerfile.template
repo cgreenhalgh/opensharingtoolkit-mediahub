@@ -4,3 +4,5 @@ FROM mediahub
 ADD nginx-mediahub /etc/nginx/sites-available/default
 ADD htpasswd /etc/nginx/conf/
 
+#cfengine
+ENTRYPOINT ["/var/cfengine/bin/docker_processes_run.sh"]

@@ -46,11 +46,18 @@ COPY local.ini /etc/couchdb/
 RUN apt-get -y install php5-cli php5-fpm && \
   ( echo "php-fpm, /usr/sbin/php5-fpm" >> /var/cfengine/inputs/processes_run.csv )
 
+# Fix for sshd login (why?? maybe php pulled something in) 
+RUN if [ -f /etc/pam.d/sshd ]; then \
+    sed -i.orig 's|^session[ \t]*required[ \t]*pam_loginuid.so|#&|' /etc/pam.d/sshd; \
+  fi
+
 # testing only...
 EXPOSE 5984
 
 # See template for specific configuration...
 VOLUME ["/var/lib/couchdb","/var/log","/usr/share/nginx/html"]
 EXPOSE 80 443 22
-CMD ["/usr/sbin/sshd", "/usr/sbin/nginx", "/usr/sbin/php5-fpm"]
+#/usr/sbin/syslogd
+#ENTRYPOINT ["/var/cfengine/bin/docker_processes_run.sh"]
+CMD ["/usr/sbin/sshd", "/usr/sbin/nginx"]
 
