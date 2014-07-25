@@ -148,9 +148,9 @@ cacheFile = utils.cacheFile
 readCacheTextFile = utils.readCacheTextFile
  
 fix_relative_url = (url,path)->
-  if url.indexOf(publicdburl)==0
-    console.log "Rewrite external URL #{url}"
-    url = couchdburl+url.substring(publicdburl.length)
+  if path.indexOf(publicdburl)==0
+    console.log "Rewrite external URL #{path}"
+    path = couchurl+path.substring(publicdburl.length)
   resolve_url url,path
 
 files = {}
