@@ -1,0 +1,11 @@
+# local-server template container #{CONTAINER}
+location /#{NAME}/ {
+	# Need to use a 'real' (local or global) IP here...
+	proxy_pass http://#{HOST}/;
+	proxy_redirect http://#{HOST}/ https://$host/#{NAME}/;
+	# no authorization on couchdb
+	#proxy_set_header Authorization "";
+	#proxy_set_header Host $host;
+	#proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+}
+

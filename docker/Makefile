@@ -84,15 +84,22 @@ nginx/local-servers/old:
 .PHONY: nginx always nginx_clean_config 
 
 containers = $(shell sudo docker ps -q)
-containerconfs = $(addprefix nginx/local-servers/, $(addsuffix .conf, $(containers) ) )
+containerconfs = $(addprefix nginx/local-servers/, $(addsuffix -https.conf, $(containers) ) ) $(addprefix nginx/local-servers/, $(addsuffix -http.conf, $(containers) ) ) 
 
 nginx/local-servers/%.conf: IMAGE = $(shell sudo docker inspect --format '{{.Config.Image}}' $* )
 nginx/local-servers/%.conf: HOST = $(shell sudo docker inspect --format '{{.NetworkSettings.IPAddress}}' $* | sed -e 's/ //g')
 nginx/local-servers/%.conf: NAME = $(shell sudo docker inspect --format '{{.Name}}' $* | sed -e 's/\///g' | sed -e 's/ //g')
 
-nginx/local-servers/%.conf: nginx/local-servers nginx/local-server.conf.template
+nginx/local-servers/%-https.conf: nginx/local-servers nginx/local-server-https.conf.template
 ifeq ( $(IMAGE), $(addpredix mediahub-,$(NAME)) )
-	cat nginx/local-server.conf.template | sed -e "s/#{NAME}/$(NAME)/g" -e "s/#{HOST}/$(HOST)/g" -e "s/#{CONTAINER}/$*/g" > $@
+	cat nginx/local-server-https.conf.template | sed -e "s/#{NAME}/$(NAME)/g" -e "s/#{HOST}/$(HOST)/g" -e "s/#{CONTAINER}/$*/g" > $@
+else
+	echo "# Image $(IMAGE) - $(NAME) at $(HOST)" > $@
+endif
+
+nginx/local-servers/%-http.conf: nginx/local-servers nginx/local-server-http.conf.template
+ifeq ( $(IMAGE), $(addpredix mediahub-,$(NAME)) )
+	cat nginx/local-server-http.conf.template | sed -e "s/#{NAME}/$(NAME)/g" -e "s/#{HOST}/$(HOST)/g" -e "s/#{CONTAINER}/$*/g" > $@
 else
 	echo "# Image $(IMAGE) - $(NAME) at $(HOST)" > $@
 endif

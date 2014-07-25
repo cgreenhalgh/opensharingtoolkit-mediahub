@@ -1,0 +1,6 @@
+# local-server template http container #{CONTAINER}
+location /#{NAME}/public/ {
+	proxy_pass http://#{HOST}/public/;
+	#proxy_redirect http://#{HOST}/ https://$host/#{NAME}/;
+}
+

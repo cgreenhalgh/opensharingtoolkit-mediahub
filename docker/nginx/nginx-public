@@ -15,6 +15,9 @@ server {
 		# Uncomment to enable naxsi on this location
 		# include /etc/nginx/naxsi.rules
 	}
+
+        include /etc/nginx/local-servers/*-http.conf;
+
 }
 
 
@@ -42,7 +45,7 @@ server {
 		try_files $uri $uri/ =404;
 	}
 
-        include /etc/nginx/local-servers/*.conf;
+        include /etc/nginx/local-servers/*-https.conf;
 
 }
 
