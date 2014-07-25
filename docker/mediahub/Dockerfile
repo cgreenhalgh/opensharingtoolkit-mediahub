@@ -24,9 +24,9 @@ RUN apt-get -y install git && \
   mkdir -p /home/root && \
   cd /home/root && \
   git clone https://github.com/cgreenhalgh/opensharingtoolkit-kiosk && \
+  git clone https://github.com/cgreenhalgh/opensharingtoolkit-mediahub && \
   cd /home/root/opensharingtoolkit-kiosk/cache_builder && \
   npm install && \
-  git clone https://github.com/cgreenhalgh/opensharingtoolkit-mediahub && \
   cd /home/root/opensharingtoolkit-mediahub && \
   npm install && \
   make coffee && \
