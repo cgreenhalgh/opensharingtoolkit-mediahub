@@ -41,7 +41,7 @@ module.exports = class PlaceView extends Backbone.View
       mapUrl = 'http://{s}.tile.osm.org/{z}/{x}/{y}.png'
       exported = $('meta[name="mediahub-exported"]').attr('content')
       if exported=='true'
-        mapUrl = "../../../../cache/{s}/tile/osm/org/{z}/{x}/{y}.png"
+        mapUrl = "../../../../appcache/{s}/tile/osm/org/{z}/{x}/{y}.png"
         console.log "Using export map url #{mapUrl}"
       layer = L.tileLayer mapUrl,  
         attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>'
