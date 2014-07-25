@@ -21,7 +21,7 @@ catch err
 dburl = 'http://127.0.0.1:5984/mediahub'
 publicwebdir = '../docker/nginxdev/html/public'
 serverport = 8090
-MAX_PROCESS_TIME = 30000
+MAX_PROCESS_TIME = 300000
 MAX_FILES_SIZE = 50000000
 
 started = false

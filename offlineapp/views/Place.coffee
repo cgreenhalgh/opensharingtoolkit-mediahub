@@ -14,8 +14,8 @@ myIcon = L.icon
 
 # TODO align with webapp/models/AppEdit
 maxZoom = 19
-maxZoomIn = 2
-maxZoomOut = 5
+maxZoomIn = 1
+maxZoomOut = 1
 
 module.exports = class PlaceView extends Backbone.View
 
