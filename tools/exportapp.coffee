@@ -151,6 +151,9 @@ fix_relative_url = (url,path)->
   if path.indexOf(publicdburl)==0
     console.log "Rewrite external URL #{path}"
     path = couchurl+path.substring(publicdburl.length)
+  else if path.indexOf('https:')==0 and publicdburl.indexOf('http:')==0 and path.indexOf(publicdburl.substring 5)==6
+    console.log "Rewrite external URL #{path}"
+    path = couchurl+path.substring(publicdburl.length+1)
   resolve_url url,path
 
 files = {}

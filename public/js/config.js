@@ -25,7 +25,7 @@ if (hostname==='127.0.0.1' || hostname==='localhost') {
   ix = pathname.lastIndexOf('/');
   if (ix>=0)
     pathname = pathname.substring(0,ix);
-  publicurl = window.location.protocol+"//"+window.location.host+pathname+"/public"; 
+  publicurl = "http://"+window.location.host+pathname+"/public"; 
   uploadurl = window.location.protocol+"//"+window.location.host+pathname+"/upload"; 
   console.log("Using production config: dburl="+dburl+", publicurl="+publicurl+", uploadurl="+uploadurl);
 }
