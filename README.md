@@ -72,7 +72,7 @@ sudo service couchdb restart
 Now we'll two more generic users, a reader and a writer (although the difference in the latter two will have to be defined by us).
 ```
 curl -HContent-Type:application/json -X PUT http://admin:ADMINPASSWORD@127.0.0.1:5984/_users/org.couchdb.user:hubreader --data-binary '{"_id":"org.couchdb.user:hubreader","type":"user","name":"hubreader","password":"HUBREADERPASSWORD","roles":["hubreader"]}'
-curl -HContent-Type:application/json -X PUT http://admin:ADMINPASSWORD@127.0.0.1:5984/_users/org.couchdb.user:hubwriter --data-binary '{"_id":"org.couchdb.user:hubreader","type":"user","name":"hubwriter","password":"HUBWRITERPASSWORD","roles":["hubwriter"]}'
+curl -HContent-Type:application/json -X PUT http://admin:ADMINPASSWORD@127.0.0.1:5984/_users/org.couchdb.user:hubwriter --data-binary '{"_id":"org.couchdb.user:hubwriter","type":"user","name":"hubwriter","password":"HUBWRITERPASSWORD","roles":["hubwriter"]}'
 ```
 Create the database and add the `hubreader` and `hubwriter` as admins (!! doesn't work as members, failing with 401 on `_temp_view?include_docs=true`):
 ```
@@ -80,6 +80,12 @@ curl -X PUT http://admin:ADMINPASSWORD@127.0.0.1:5984/mediahub
 curl -X PUT http://admin:ADMINPASSWORD@127.0.0.1:5984/mediahub/_security --data-binary '{"admins":{"names":["admin"],"roles":["hubwriter"]},"members":{"names":[],"roles":["hubreader"]}}'
 ```
 You can check out how things are going with futon, [http://127.0.0.1:5984/_utils](http://127.0.0.1:5984/_utils)
+
+Also create some accounts for local database access - the static passwords are fine as front-end security will be done in nginx:
+```
+wget -O- --method=PUT --header=Accept:application/json --header=Content-Type:application/json '--body-data={"_id":"org.couchdb.user:serverreader","type":"user","name":"serverreader","password":"serverreader","roles":["serverreader"]}' http://admin:ADMINPASSWORD@127.0.0.1:5984/_users/org.couchdb.user:serverreader
+wget -O- --method=PUT --header=Accept:application/json --header=Content-Type:application/json '--body-data={"_id":"org.couchdb.user:serverwriter","type":"user","name":"serverwriter","password":"serverwriter","roles":["serverwriter"]}' http://admin:ADMINPASSWORD@127.0.0.1:5984/_users/org.couchdb.user:serverwriter
+```
 
 
 Some function presume a web server is also running, e.g. for development try `docker/nginxdev` (see [notes](docker/deployment.md)). 

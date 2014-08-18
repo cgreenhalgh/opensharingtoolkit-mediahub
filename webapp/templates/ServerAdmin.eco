@@ -1,0 +1,13 @@
+<%# admin element within ServerEditTab %>
+<div class="row server-admin server-admin-<%= @i %>">
+  <div class="columns large-2 small-2">
+    <label>Username<input type="text" name="adminusername-<%= @i %>" class="server-admin-username" value="<%= @username %>"/></label>
+  </div>
+  <div class="columns large-9 small-9">
+    <label>Password<input type="text" name="adminpassword-<%= @i %>" class="server-admin-password" value="<%= @password %>"/></label>
+  </div>
+  <div class="columns large-1 small-1">
+    <label>Delete<input type="button" name="delete-server-admin-<%= @i %>" class="delete-server-admin" value="Delete"/></label>
+  </div>
+</div>
+

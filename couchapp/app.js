@@ -180,6 +180,13 @@ ddoc.filters.typeApp = function(doc) {
   }
   return false;
 };
+// filter type Server
+ddoc.filters.typeServer = function(doc) {
+  if (doc.type && doc.type === 'server') {
+    return true;
+  }
+  return false;
+};
 // filter type Taskconfig
 ddoc.filters.typeTaskconfig = function(doc) {
   if (doc.type && doc.type === 'taskconfig') {

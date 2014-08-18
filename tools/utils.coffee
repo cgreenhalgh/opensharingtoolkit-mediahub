@@ -85,6 +85,44 @@ module.exports.readJson = readJson = (surl,fn) ->
     fn e
   req.end()
 
+module.exports.doHttp = doHttp = (surl,method,body,fn) ->
+  url = parse_url surl
+  protocol = url.protocol ? 'http'
+  options = 
+    hostname: url.hostname
+    port: url.port
+    path: url.path
+    auth: url.auth
+    method: method
+    headers: 
+      'content-type': 'application/json'
+
+  console.log "#{method} #{url.host} #{url.port} #{url.path} #{url.auth}"	
+  pmodule = if protocol=='https' then https else http   
+  req = pmodule.request options,(res) ->
+    if res.statusCode != 200 && res.statusCode != 201
+      console.log "Error on #{method} #{surl}, response #{res.statusCode}"
+      return fn res.statusCode
+    type = res.headers['content-type']
+    body = []
+    res.on 'data',(data) ->
+      body.push data
+
+    res.on 'end',() ->
+      try
+        body = body.concat()
+        json = JSON.parse body
+      catch err
+        console.log "Error parsing #{method} #{surl}: #{err.message}: #{body}"
+        fn err
+      fn null, json 
+
+  req.on 'error',(e) ->
+    console.log "Error on #{method} #{surl}: #{e}"
+    fn e
+  req.end(body, 'utf8')
+
+
 module.exports.mimetypeFromExtension = mimetypeFromExtension = (url) ->
   ix = url.lastIndexOf '.'
   if ix>=0 and ix>(url.lastIndexOf '/')

@@ -1,0 +1,10 @@
+<%# Server add or edit tab, takes { data: Thing, add: true|false } as data (title, description, ...); parent is a content %>
+<label>Administrator Accounts
+  <input type="button" name="addadmin" value="Add account"/>
+</label>
+<% templateServerAdmin = require 'templates/ServerAdmin' %>
+<div class="server-admins">
+  <% for admin,i in (@data.admins ?= []): %>
+    <%- templateServerAdmin _.extend { i: i }, admin %>
+  <% end %>
+</div>

@@ -38,7 +38,7 @@ module.exports.createThingType = (attributes, ThisThing, ThisThingList, ThisThin
     #  success: server.success
     #  error: server.error
 
-  #contentType.getThings = () -> things
+  contentType.getThings = () -> things
 
   # Router entry point
   contentType.createView = () ->

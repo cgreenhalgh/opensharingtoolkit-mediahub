@@ -1,3 +1,11 @@
 <%# App add or edit tab, takes { data: Thing, add: true|false } as data (title, description, ...); parent is a content %>
     <input type="button" value="Prepare for download" class="do-update"/>
+    <label>Server
+      <select name="server">
+        <option value="" <%= if not @data.serverId then 'selected' %> >No server</option>
+<% for server in @servers: %>
+        <option value="<%= server.id %>" <%= if @data.serverId==server.id then 'selected' %> ><%= server.attributes.title %> (<%= server.id %>)</option>
+<% end %>
+      </select>
+    </label>
 

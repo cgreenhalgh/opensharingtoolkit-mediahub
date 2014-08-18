@@ -1,13 +1,11 @@
-# A Place
+# A Server (definition)
 Thing = require 'models/Thing'
 
-module.exports = class App extends Thing
+module.exports = class Server extends Thing
   defaults:
     title: ''
     description: ''
-    type: 'app'
-    thingIds: []
-    serverId: ''
+    type: 'server'
 
   idAttribute: '_id'
 

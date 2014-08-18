@@ -4,6 +4,7 @@ multiparty = require('multiparty')
 http = require('http')
 spawn = require('child_process').spawn
 parse_url = require('url').parse
+utils = require('./utils')
 
 log = (msg) -> 
   # compatible with couchdb external processes
@@ -272,6 +273,8 @@ schedule = () ->
     doCheckpoint next
   else if next.config.taskType=='import'
     doImport next
+  else if next.config.taskType=='buildserver'
+    doBuildserver next
   else if next.config.taskType=='dummy'
     # TEST...  
     dummy = () ->
@@ -672,4 +675,38 @@ gcTask = (task) ->
     addRmTask task.targetState.path+".tgz"
   else
     log "gcTask #{task.id} cannot find path"
+
+doBuildserver = (task) ->
+  if not task.config.subjectId
+    return taskError task, "Buildserver did not specify subjectId"
+  ix = task.config.subjectId.lastIndexOf ':'
+  dbname = task.config.subjectId.substring (ix+1)
+  if not dbname
+    return taskError task, "Buildserver did not specify valid subjectId: #{task.config.subjectId}"
+  # DB exists? if not expect 404
+  ix = dburl.lastIndexOf '/'
+  couchurl = dburl.substring 0, ix
+  serverurl = couchurl+'/'+dbname
+
+  utils.readJson serverurl, (err,res) ->
+    if err==404
+      log "Create non-existent db #{serverurl}"
+      return utils.doHttp serverurl,'PUT','', (err,res) ->
+        if err
+          return taskError task, "Could not create database #{serverurl}: #{err}"
+        return updateServer task, serverurl
+    else if err
+      return taskError task, "Error checking database #{serverurl}: #{err}"
+    log "Database #{serverurl} already exists: #{res}"
+    return updateServer task, serverurl
+
+updateServer = (task, serverurl) ->
+  nano = require('nano') serverurl
+  # (re)initialise security
+  utils.doHttp "#{serverurl}/_security",'PUT','{"admins":{"names":["admin"],"roles":[]},"members":{"names":[],"roles":["serverreader","serverwriter"]}}', (err,res) ->
+    if err
+      return taskError task,"Error updating security on #{serverurl}: #{err}"
+    log "Updated security on #{serverurl}"    
+    # TODO - install/update couchapp ?!
+    taskDone task
 

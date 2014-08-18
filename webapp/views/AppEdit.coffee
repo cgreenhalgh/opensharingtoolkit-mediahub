@@ -2,6 +2,7 @@
 ListEditView = require 'views/ListEdit'
 templateAppEditTab = require 'templates/AppEditTab'
 allthings = require 'allthings'
+plugins = require 'plugins'
 
 config = window.mediahubconfig
 
@@ -26,6 +27,14 @@ module.exports = class AppEditView extends ListEditView
 
   formToModel: () =>
     super()
+    serverId = $('select[name=server]').val()
+    console.log "Selected server #{serverId}"
+    @model.set serverId: serverId
+
+  template: (d) =>
+    servers = (plugins.getContentType 'server')?.getThings()?.models
+    console.log "Found #{servers?.length} servers (in AppEditView)"
+    super _.extend { servers: servers }, d
 
   events:->
     _.extend {}, super(),
