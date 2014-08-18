@@ -9,6 +9,7 @@ ThingView = require 'views/Thing'
 PlaceView = require 'views/Place'
 HtmlView = require 'views/Html'
 ListView = require 'views/List'
+FormView = require 'views/Form'
 
 ThingListView = require 'views/ThingList'
 
@@ -63,6 +64,8 @@ class Router extends Backbone.Router
       currentView = new PlaceView model: thing
     else if thing.attributes.type=='html'
       currentView = new HtmlView model: thing
+    else if thing.attributes.type=='form'
+      currentView = new FormView model: thing
     else if thing.attributes.type=='list'
       currentView = new ListView model: thing
     else if thing.attributes.type?

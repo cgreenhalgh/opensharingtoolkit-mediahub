@@ -1,0 +1,33 @@
+<nav class="top-bar" data-topbar>
+  <ul class="title-area">
+    <li class="name">
+      <h1><a href="#"><%= @formdef.title %></a></h1>
+    </li>
+  </ul>
+</nav>
+<div class="row">
+<% for input,i in @formdef.inputs: %>
+  <div class="columns large-12 small-12">
+<% if input.type=='label': %>
+    <p><%= input.title %></p>
+<% else: %>
+    <label><%= input.title %>
+<% if input.type=='text': %>
+      <input type="text" name="input-<% i %>"/>
+<% else if input.type=='textarea': %>
+      <textarea name="input-<% i %>"></textarea>
+<% else if input.type=='checkbox': %>
+      <input type="checkbox" name="input-<% i %>"/>
+<% else if input.type=='rating': %>
+      <input type="radio" name="input-<% i %>" value="1">*</input>
+      <input type="radio" name="input-<% i %>" value="2">*</input>
+      <input type="radio" name="input-<% i %>" value="3">*</input>
+      <input type="radio" name="input-<% i %>" value="4">*</input>
+<% else: %>
+      <p>Sorry, I'm not sure what to do with a '<%= input.type %>'</p>
+<% end %>
+    </label>
+<% end %>
+  </div>
+<% end %>
+</div>

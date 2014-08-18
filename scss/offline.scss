@@ -239,3 +239,20 @@ $outline-color: #000;
   border: 1px solid $outline-color;
 }
 
+.working-modal {
+  z-index: 200;
+  background-color: rgba(255,255,255,0.8);
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  > img {
+    position: absolute;
+    left: 48%;
+    top: 48%;
+    width: 4%;
+    height: auto;
+  };
+};
+

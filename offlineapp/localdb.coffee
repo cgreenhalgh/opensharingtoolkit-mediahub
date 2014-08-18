@@ -1,4 +1,4 @@
-# local db
+# local db, i.e. local PouchDB instances, intended for replication/sync against CouchDB instances
 appcache = require 'appcache'
 LocaldbState = require 'models/LocaldbState'
 LocaldbStateList = require 'models/LocaldbStateList'

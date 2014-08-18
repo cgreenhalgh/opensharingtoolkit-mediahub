@@ -1,0 +1,16 @@
+<%# Form add or edit tab, takes { data: Thing, add: true|false } as data (title, description, ...); parent is a content %>
+<label>Cardinality of Form, i.e. how many times can one person fill it in
+  <select name="cardinality">
+    <option value="1" <%= if @data.cardinality=='1' then 'selected' %> >Once</option>
+    <option value="*" <%= if @data.cardinality=='*' then 'selected' %> >Any number of times</option>
+  </select>
+</label>
+<label>Inputs
+  <input type="button" name="addinput" value="Add Form Element"/>
+</label>
+<% templateFormInput = require 'templates/FormInput' %>
+<div class="form-inputs">
+  <% for input,i in (@data.inputs ?= []): %>
+    <%- templateFormInput _.extend { i: i }, input %>
+  <% end %>
+</div>

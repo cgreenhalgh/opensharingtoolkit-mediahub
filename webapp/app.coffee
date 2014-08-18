@@ -14,10 +14,11 @@ require 'plugins/Html'
 require 'plugins/Booklet'
 require 'plugins/Place'
 require 'plugins/List'
+require 'plugins/Form'
 require 'plugins/App'
-require 'plugins/TaskConfig'
 require 'plugins/Kiosk'
 require 'plugins/Server'
+require 'plugins/TaskConfig'
 
 config = window.mediahubconfig
 
