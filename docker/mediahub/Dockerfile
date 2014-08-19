@@ -20,7 +20,7 @@ RUN apt-get -y install npm nodejs-legacy
 # build...
 RUN apt-get -y install git && \
   npm install -g coffee-script && \
-  apt-get -y install ruby1.9.1 && \
+  apt-get -y install ruby1.9.1 ruby1.9.1-dev && \
   gem install compass && \
   mkdir -p /home/root && \
   cd /home/root && \
