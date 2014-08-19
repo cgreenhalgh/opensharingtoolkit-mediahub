@@ -16,11 +16,11 @@ dbname = 'formdata'
 
 if window.openDatabase? 
   console.log "WARNING: forcing websql for formdb"  
-  db = new PouchDB formdbname, 
+  db = new PouchDB dbname, 
     adapter: 'websql'
 else
   console.log "NOTE: using default pouchdb persistence for formdb"  
-  db = new PouchDB formdbname
+  db = new PouchDB dbname
 
 module.exports.db = db
 

@@ -4,7 +4,6 @@ ThingRefInListView = require 'views/ThingRefInList'
 ThingMultiselectModalView = require 'views/ThingMultiselectModal'
 ThingRef = require 'models/ThingRef'
 allthings = require 'allthings'
-server = require 'server'
 
 module.exports = class ThingRefListView extends Backbone.View
 
@@ -111,13 +110,8 @@ module.exports = class ThingRefListView extends Backbone.View
     ev.preventDefault()
     for tr in @getSelectedModels()
       console.log "remove selected ThingRef #{tr.id}"
-      server.working 'destroy (removeSelected)'
-      if false==tr.destroy {
-          success: server.success
-          error: server.error
-        }
-        console.log "destroy (removeSelected) #{tr.id} returned false"
-        server.success tr,null,{}
+      # ThingRefs are not server-backed
+      tr.destroy()
 
   getIndex: (ev) =>
     ix = 0

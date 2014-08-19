@@ -1,6 +1,5 @@
 # ThingRefInList View
 templateThingRefInList = require 'templates/ThingRefInList'
-server = require 'server'
 
 module.exports = class ThingRefInListView extends Backbone.View
 
@@ -36,11 +35,6 @@ module.exports = class ThingRefInListView extends Backbone.View
     ev.preventDefault()
     # TODO
     console.log "remove #{@model.attributes._id}"
-    server.working 'destroy (removeFromList)'
-    if false==@model.destroy {
-        success: server.success
-        error: server.error
-      }
-      console.log "destroy (removeFromList) #{@model.attributes._id} returned false"
-      server.success @model,null,{}
+    # thingrefs are not server-backed
+    @model.destroy()
 
