@@ -1,5 +1,7 @@
 # offline
 db = require 'mydb'
+updateapp = require 'updateapp'
+server = require 'server'
 
 config = window.mediahubconfig
 
@@ -84,5 +86,11 @@ module.exports.testBooklet = (booklet) ->
 
 module.exports.testApp = (app) ->
   console.log "Offline test with app #{app.id}"
-  window.open config.dburl+"/_design/app/_show/app/"+app.id, '_self'
+  show = () -> 
+    server.success()
+    window.open config.dburl+"/_design/app/_show/app/"+app.id, '_self'
+
+  updateapp.updateApp app.id, () ->
+    server.working "Wait for couchdb update"
+    setTimeout show, 3000
 

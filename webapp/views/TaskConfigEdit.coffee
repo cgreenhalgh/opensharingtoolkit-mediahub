@@ -5,6 +5,7 @@ templateTaskConfigEditState = require 'templates/TaskConfigEditState'
 allthings = require 'allthings'
 taskstates = require 'taskstates'
 server = require 'server'
+updateapp = require 'updateapp'
 
 module.exports = class TaskConfigEditView extends Backbone.View
 
@@ -35,6 +36,12 @@ module.exports = class TaskConfigEditView extends Backbone.View
       @listenTo @things,'add', @addThis
     else
       console.log "TaskConfigEdit - Edit or real add? add=#{@add}, things=#{@things}"
+
+    # hack special case update pre-export
+    if @model.attributes.taskType=='exportapp' and @model.attributes.subjectId
+      updateapp.updateApp @model.attributes.subjectId
+    else if @model.attributes.taskType=='exportkiosk' and @model.attributes.subjectId
+      updateapp.updateKiosk @model.attributes.subjectId
 
     @allthings = allthings.get()
     if @model.attributes.subjectId
