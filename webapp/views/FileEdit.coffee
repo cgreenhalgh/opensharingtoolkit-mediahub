@@ -315,8 +315,10 @@ module.exports = class FileEditView extends ThingEditView
 
     oldImage = if @img? then @img else $('.image-editor-image', @$el).get(0)
 
-    fileurl = "../../../../#{encodeURIComponent @model.id}/bytes"
+    # include timestamp to force reload
+    fileurl = "../../../../#{encodeURIComponent @model.id}/bytes?ts=#{(new Date()).getTime()}"
     @img = new Image()
+    $(@img).addClass 'image-editor-image'
 
     self = @
 
@@ -329,8 +331,8 @@ module.exports = class FileEditView extends ThingEditView
       init = () =>
         console.log "init jcrop"
         $(@img).Jcrop {
-            boxWidth: 600
-            boxHeight: 600
+            #boxWidth: 600
+            #boxHeight: 600
             trueSize: @trueSize
             onSelect: (c) -> self.crop(c)
             onRelease: () -> self.nocrop()
@@ -508,4 +510,14 @@ module.exports = class FileEditView extends ThingEditView
         aspectRatio: aspect
     catch err
       console.log "error setting aspect ratio to #{aspect}: #{err.message} #{err.stack}"
+
+  showTab: (ev) =>
+    # jcrop is sulky if initially hidden
+    super(ev)
+    if @img
+      f = () =>
+        console.log "showTab (file/image)"
+        @imageEdit()
+      setTimeout f, 0
+
 

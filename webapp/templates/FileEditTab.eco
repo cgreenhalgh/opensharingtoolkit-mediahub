@@ -33,6 +33,7 @@
             </div>
           </div>
           <label>Aspect Ratio
+            <select name="image-aspect">
               <option value="" selected>Any</option>
               <option value="fixed" >Fixed</option>
               <option value="1" >1:1</option>
@@ -41,7 +42,7 @@
               <option value="0.75" >3:4</option>
               <option value="0.666666" >2:3</option>
             </select>
-          <label>
+          </label>
           <input type="button" class="do-crop-image" name="do-crop-image" value="Crop image"/><br/>
           <input type="button" class="do-scale-image" name="do-scale-96" value="Scale to 96px"/>
           <input type="button" class="do-scale-image" name="do-scale-240" value="Scale to 240px"/>
