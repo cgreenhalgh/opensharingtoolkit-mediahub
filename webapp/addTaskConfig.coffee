@@ -1,6 +1,7 @@
 # add TaskConfig (specify path) handler
 templateTaskConfigPathModal = require 'templates/TaskConfigPathModal'
 TaskConfig = require 'models/TaskConfig'
+plugins = require 'plugins'
 
 currentModel = null
 
@@ -53,6 +54,15 @@ $('#taskConfigPathModalHolder').on 'click', '.do-close', (ev)->
 module.exports.add = (attributes) ->
     console.log "addTaskConfig #{attributes._id}"
     currentModel = attributes
+    # existing path(s)?
+    if not attributes.path
+      paths = []
+      for tc in (plugins.getContentType('taskconfig')?.getThings()?.models ? []) when tc.attributes.path
+        if attributes.subjectId==tc.attributes.subjectId and attributes.taskType==tc.attributes.taskType
+          console.log "- found existing task #{attributes.taskType} for #{attributes.subjectId} on path #{tc.attributes.path}"
+          paths.push tc.attributes.path
+      if paths.length>0
+        attributes.path = paths[0]
     $('#taskConfigPathModalHolder').html templateTaskConfigPathModal attributes
     $('#taskConfigPathModalHolder').foundation 'reveal', 'open'
 

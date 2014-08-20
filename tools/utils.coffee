@@ -213,8 +213,8 @@ get_filesystem_path = (path) ->
   ps.join '/'
 
 module.exports.cacheFile = cacheFile = (surl,fn) ->
-  if cachePaths[surl]?
-    return fn null,cachePaths[surl]
+  if cacheUrls[surl]?
+    return fn null,cacheUrls[surl]
 
   path = surl
   if (path.indexOf couchurl)==0
@@ -416,6 +416,16 @@ module.exports.copyDirSync = copyDirSync = (fromdir, todir) ->
         console.log "Create file #{tofile}"
         data = fs.readFileSync fromfile,{encoding:null}
         fs.writeFileSync tofile,data,{encoding:null,mode:(stats.mode|0o444)}
+      else 
+        # compare modified
+        try
+          tostats = fs.statSync tofile
+          if stats.mtime.getTime() > tostats.mtime.getTime()
+            console.log "Update changed file #{tofile}"
+            data = fs.readFileSync fromfile,{encoding:null}
+            fs.writeFileSync tofile,data,{encoding:null,mode:(stats.mode|0o444)}
+        catch err
+          console.log "Error doing stat on #{tofile}: #{err.message}"
     else
       if !(fs.existsSync tofile)
         console.log "Ignore non-file/dir #{fromfile}"
