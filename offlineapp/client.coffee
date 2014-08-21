@@ -1,4 +1,5 @@
 # offline app - configured by "Client" object/document
+# currently for historical / code interest - not working/up-to-date
 
 appcache = require 'appcache'
 HomeView = require 'views/Home'

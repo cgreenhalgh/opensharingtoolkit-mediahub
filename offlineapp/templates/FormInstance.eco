@@ -1,0 +1,26 @@
+<div class="row">
+
+<% for surveyitem,i in @formdef.survey: %>
+  <div class="columns large-12 small-12">
+<% if surveyitem.type=='note': %>
+    <p><%= surveyitem.display?.text %></p>
+<% else: %>
+    <label><%= surveyitem.display?.text %>
+<% if surveyitem.type=='text': %>
+      <textarea type="text" name="<%= surveyitem.name %>"><%= (@draftdata ? {})[surveyitem.name] ? @formdata[surveyitem.name] ? '' %></textarea>
+<% else: %>
+      <p>Sorry, I'm not sure what to do with a '<%= surveyitem.type %>'</p>
+<% end %>
+    </label>
+<% end %>
+  </div>
+<% end %>
+
+  <div class="columns large-12 small-12">
+    <label>Ready for upload?<input type="checkbox" name="_finalized" <%= if (if @draftdata?._finalized? then @draftdata._finalized else @metadata.finalized) then 'checked' %>/></label>
+    <input type="button" name="_save" value="Save"/>
+    <input type="button" name="_reset" value="Discard unsaved changes"/>
+    <input type="button" name="_delete" value="Delete"/>
+  </div>
+</div>
+

@@ -1,24 +1,14 @@
 <nav class="top-bar" data-topbar>
   <ul class="title-area">
     <li class="name">
-      <h1><a href="#"><%= @formdef.title %></a></h1>
+      <h1><a href="#"><%= @title %></a></h1>
     </li>
   </ul>
 </nav>
 <div class="row">
-<% for surveyitem,i in @formdef.survey: %>
-  <div class="columns large-12 small-12">
-<% if surveyitem.type=='note': %>
-    <p><%= surveyitem.display?.text %></p>
-<% else: %>
-    <label><%= surveyitem.display?.text %>
-<% if surveyitem.type=='text': %>
-      <textarea type="text" name="<%= surveyitem.name %>"></textarea>
-<% else: %>
-      <p>Sorry, I'm not sure what to do with a '<%= surveyitem.type %>'</p>
-<% end %>
-    </label>
-<% end %>
-  </div>
+<% if @cardinality=='*': %>
+  <input type="button" name="form-newinstance" class="form-newinstance" value="Start new form instance"/>
 <% end %>
 </div>
+<div class="form-instance-holder"></div>
+
