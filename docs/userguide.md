@@ -2,7 +2,7 @@
 
 ## General Overview
 
-The OpenSharingToolkit Mediahub is a Content Management System (CMS) for making web apps for use on smart phones and tablets. 
+The OpenSharingToolkit Mediahub, a.k.a. `Wototo`, is a Content Management System (CMS) for making web apps for use on smart phones and tablets. 
 
 A web app is an app that is downloaded and runs within a standard web browser rather than being installed from an app store. In general a web app is a little less responsive and "slick" than a normal (or "native") app and may have slightly more limited functionality, but is much easier to make, can be distributed from any web site and will run on most popular smart phones and tablets, including iPhone, iPad, Android phones and tablets, and Windows Phone. 
 
@@ -49,6 +49,8 @@ The content types that can be included in an app are currently:
 - `Place` - a point on a map; and
 - `List` - a list of other content items.
 
+Support for users to provide information back to app authors is work in progress, and uses the `Form` and `Server` content types. 
+
 The list also includes `Background Task`: these are the mediahub admin tasks such as pubishing apps or kiosks and importing/exporting content checkpoints.
 
 ### 1. Upload an image
@@ -84,8 +86,6 @@ Click `App` to see a list of current web apps (`App List`). Click `Add...` and t
 In the `Overview` tab give the app a title, e.g. "tutorial app".
 
 Switch to the `List` tab; this shows the content items that will be combined to make the app. Under the `Specific Items` label click `Add below...`; a list of all of the available content items will appear, which is currently just the `File` and `HTML Fragment` that we added above. Select the `HTML Fragment` and click `OK`; that item will be added to the list fo content for the app.
-
-Switch to the `App` tab. Click the button `Prepare for download` - this will build information in the database about the app and its content, and currently has to be done every time before testing or publishing the app.
 
 Click `Add` to create the definition for the `App` and return to the `App List` view.
 
@@ -153,7 +153,7 @@ Note that the editor currently restricts what HTML can be used to relatively sim
 
 A `Booklet` is a simple e-book that is created as HTML. The `Booklet` tab has a single `content` HTML editor, which allows a range of paragraph and text styling plus images. It also has a special button `Insert a column` (the icon is a narrow page); this inserts a page break into the booklet.
 
-Note: there is a bug as of 2014-07-24 that the page break is invisible in the editor view when first used; in this case try reloading the authoring view in the web browser.
+Note: there is a bug as of 2014-07-24 that the page break is sometimes invisible in the editor view when first used; in this case try reloading the authoring view in the web browser.
 
 When published as part of a web app the Booklet appears as a set of pages (according to the inserted breaks) and has a table of contents generated from the level 1 and 2 headings in the booklet text.
 
@@ -179,8 +179,6 @@ The intention is to add a range of more specialised list views in the future, e.
 ### App
 
 An `App` is basically a list of content items - like a `List` - but packaged up as an HTML5 web app, and set up to use the app cache so that it can be downloaded. Set an item's `title` and `icon` to specialise it appearance in the app.
-
-Remember that you will need to edit the `App` and in the `App` tab do `Prepare for export` before testing or publishing it if you change any of its content (e.g. if you change a `List` that it includes, or add an image to a `Booklet` or `HTML Fragment` that it includes).
 
 ### Kiosk
 
