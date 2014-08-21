@@ -8,7 +8,7 @@ Thing = require 'models/Thing'
 # survey: [{ type:TYPE, values_list:LISTNAME?, name, display: { text, hint? }, 
 #            required:BOOL? }, ...]
 #   (see also condition, constraint, default, ...)
-#   TYPE: text, integer, decimal, select_one [options], select_multiple [options], note (no input),
+#   TYPE: *text*, integer, decimal, select_one [options], select_multiple [options], *note* (no input),
 #        geopoint, image, barcode, date, datetime, audio, video, calculate
 # (auto) start (datetime), end, today (day of survey), deviceid, subscriberid, sim_serial, phone_number
 # choices: { LISTNAME: [{ choice_list_name?, data_value, display: { text?, image? }, ...], ...}

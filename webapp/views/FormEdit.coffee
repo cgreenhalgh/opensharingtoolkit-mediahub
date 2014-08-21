@@ -1,7 +1,7 @@
 # Form edit View
 ThingEditView = require 'views/ThingEdit'
 templateFormEditTab = require 'templates/FormEditTab'
-templateFormInput = require 'templates/FormInput'
+templateFormSurveyItem = require 'templates/FormSurveyItem'
 
 module.exports = class FormEditView extends ThingEditView
 
@@ -10,38 +10,38 @@ module.exports = class FormEditView extends ThingEditView
 
   formToModel: () =>
     super()
-    cs = $('.form-input', @$el)
-    inputs = []
+    cs = $('.form-surveyitem', @$el)
+    survey = []
     for c in cs
-      title = $('.form-input-title', c).val()
-      description = $('.form-input-description', c).val()
-      type = $('.form-input-type', c).val()
-      if title or description or type
-        inputs.push { title:title, description:description, type:type }
-    console.log "found inputs #{JSON.stringify inputs}"
+      displaytext = $('.form-surveyitem-displaytext', c).val()
+      name = $('.form-surveyitem-name', c).val()
+      type = $('.form-surveyitem-type', c).val()
+      if displaytext or name or type
+        survey.push { type:type, name:name, display: { text: displaytext }, }
+    console.log "found survey items #{JSON.stringify survey}"
     cardinality = $('select[name="cardinality"]', @$el).val()
     @model.set 
-      inputs: inputs
+      survey: survey
       cardinality: cardinality
 
   render: () =>
     super()
-    @nexti = @model.attributes.inputs?.length
+    @nextsurveyitem = @model.attributes.survey?.length
 
   events:->
     _.extend {}, super(),
-      "click .delete-form-input": "deleteInput"
-      "click input[name=addinput]": "addInput"
+      "click .delete-form-surveyitem": "deleteItem"
+      "click input[name=addsurveyitem]": "addSurveyItem"
 
-  deleteInput: (ev) =>
+  deleteItem: (ev) =>
     ev.preventDefault()
     name = $(ev.target).attr 'name'
-    console.log "deleteInput #{name}"
+    console.log "deleteItem #{name}"
     if (name.indexOf 'delete-')==0
       $(".#{name.substring ('delete-'.length)}", @$el).remove()
 
-  addInput: (ev) =>
+  addSurveyItem: (ev) =>
     ev.preventDefault()
-    console.log "addInput #{@nexti}"
-    $(".form-inputs", @$el).append templateFormInput { i: (@nexti++), title:'', description:'', type:'text' }
+    console.log "addSurveyItem #{@nexti}"
+    $(".form-survey", @$el).append templateFormSurveyItem { i: (@nextsurveyitem++), name:'', display: { text:'' }, type:'text' }
 

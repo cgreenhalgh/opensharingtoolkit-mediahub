@@ -6,11 +6,11 @@
   </select>
 </label>
 <label>Inputs
-  <input type="button" name="addinput" value="Add Form Element"/>
+  <input type="button" name="addsurveyitem" value="Add Form Element"/>
 </label>
-<% templateFormInput = require 'templates/FormInput' %>
-<div class="form-inputs">
-  <% for input,i in (@data.inputs ?= []): %>
-    <%- templateFormInput _.extend { i: i }, input %>
+<% templateFormSurveyItem = require 'templates/FormSurveyItem' %>
+<div class="form-survey">
+  <% for surveyitem,i in (@data.survey ?= []): %>
+    <%- templateFormSurveyItem _.extend { i: i }, surveyitem %>
   <% end %>
 </div>

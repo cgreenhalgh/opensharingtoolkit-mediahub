@@ -72,9 +72,12 @@ checkThings = (model, thingIds, items, files) ->
         addHtml files, thing.attributes.description
         if thing.attributes.type=='place' and thing.attributes.lat? and thing.attributes.lon?
           addPlace files, thing.attributes.lat, thing.attributes.lon, thing.attributes.zoom
-        if thing.attributes.thingIds?
-          # e.g. list
-          checkThings model, thing.attributes.thingIds, items, files
+        if thing.attributes.thingIds
+          for t in thing.attributes.thingIds
+            thingIds.push t
+        if thing.attributes.serverId
+          console.log "Found serverId #{thing.attributes.serverId}"
+          thingIds.push thing.attributes.serverId
         if thing.attributes.type == 'file'
           addFile files, thing
 
@@ -127,12 +130,9 @@ checkThings = (model, thingIds, items, files) ->
 update = (model) ->
     console.log "Update app #{model.id} for download..."
     items = {}
-    # add itself?!
-    item = { type: model.attributes.type, id: model.id, url: config.dburl+"/"+encodeURIComponent(model.id) }
-    items[item.url] = item
     files = {}
     # clone!
-    thingIds = [].concat model.attributes.thingIds
+    thingIds = [model.id]
     checkThings model, thingIds, items, files    
 
 module.exports.updateApp = updateApp = (id, cb) ->

@@ -1,0 +1,22 @@
+<%# input element within FormEditTab %>
+<div class="row form-surveyitem form-surveyitem-<%= @i %>">
+  <div class="columns large-2 small-2">
+    <label>Name<input type="text" name="surveyitemname-<%= @i %>" class="form-surveyitem-name" value="<%= @name %>"/></label>
+  </div>
+  <div class="columns large-7 small-7">
+    <label>Prompt<input type="text" name="surveyitemdisplaytext-<%= @i %>" class="form-surveyitem-displaytext" value="<%= @display?.text %>"/></label>
+  </div>
+  <div class="columns large-2 small-2">
+    <label>Type
+      <select name="surveyitemtype-<%= @i %>" class="form-surveyitem-type">
+        <option value="note" <%= if @type=="note" then 'selected' %> >Note (no input)</option>
+        <option value="text" <%= if @type=="text" then 'selected' %> >Text</option>
+        <!-- TODO more survey item types -->
+      </select>
+    </label>
+  </div>
+  <div class="columns large-1 small-1">
+    <label>Delete<input type="button" name="delete-form-surveyitem-<%= @i %>" class="delete-form-surveyitem" value="Delete"/></label>
+  </div>
+</div>
+
