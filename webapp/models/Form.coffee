@@ -2,6 +2,7 @@
 Thing = require 'models/Thing'
 # loose compatibility with OpenDataKit xlsform, http://opendatakit.org/help/form-design/xlsform
 # http://opendatakit.org/use/2_0_tools/older-versions/xlsxconverter-beta-2-0-v2/
+# https://bitbucket.org/javarosa/javarosa/wiki/OpenRosaMetaDataSchema - submission metadata
 # with a dash of compatibility with formDef.json, https://code.google.com/p/opendatakit/wiki/SurveyJSON
 
 # model: <OMITTED FOR NOW>

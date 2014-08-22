@@ -56,8 +56,10 @@
 <% else if @taskType=='buildserver': %>
     <h4>(Re)Build App-specific Server</h4>
 
-    <p>Server <%= @_id %></p>
-    <!-- TODO -->
+<% submission = "#{window.mediahubconfig.submissionurl}/#{encodeURIComponent @subjectId}" %>
+    <p>Will create/maintain a database and upload server for form submission and other user uploads from associated apps.</p>
+    <p>Server <%= @subjectId %></p>
+    <p>Form submission <a target="_blank" href="<%= submission %>"><%= submission %></a></p> 
 
 <% else if @taskType=='exportserver': %>
     <h4>Export (Dump) Data from App-specific Server</h4>

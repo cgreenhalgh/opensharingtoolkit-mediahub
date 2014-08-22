@@ -5,6 +5,7 @@ http = require('http')
 spawn = require('child_process').spawn
 parse_url = require('url').parse
 utils = require('./utils')
+uuid = require 'node-uuid'
 
 log = (msg) -> 
   # compatible with couchdb external processes
@@ -556,19 +557,13 @@ killTask = (state,child,task) ->
 
   setTimeout killTask2,5000
 
-startUploadServer = () ->
-  uploaddir = "#{publicwebdir}/upload"
-  if !fs.existsSync uploaddir
-    try
-      fs.mkdirSync uploaddir,0o755
-    catch err
-      log "Error creating upload dir #{uploaddir}: #{err.message}"
+handleUpload = (req, res, pathels, uploaddir) ->
+    if pathels.length!=1
+      res.writeHead 404, {'content-type': 'text/plain'}
+      res.end "Not found (upload #{req.url})"
       return
 
-  http.createServer (req, res) ->
-    name = req.url
-    if name.indexOf('/')==0
-      name = name.substring 1
+    name = pathels[0]
     name = decodeURIComponent name
     ts = for id,t of tasks when t.config?._id==name
       t
@@ -634,14 +629,185 @@ startUploadServer = () ->
         res.end 'received upload file ('+length+' bytes); scheduled for processing\n'
       return
 
-    # show a file upload form
-    res.writeHead 200, 'content-type': 'text/html'
-    res.end(
-      '<form action="" enctype="multipart/form-data" method="post">'+
-      '<input type="file" name="upload" multiple="multiple"><br>'+
-      '<input type="submit" value="Upload">'+
-      '</form>'
-    )
+    else if req.method == 'HEAD' 
+      res.writeHead 200, 'content-type': 'text/html'
+      res.end()
+
+    else if req.method == 'GET' 
+      # show a file upload form
+      res.writeHead 200, 'content-type': 'text/html'
+      res.end(
+        '<form action="" enctype="multipart/form-data" method="post">'+
+        '<input type="file" name="upload" multiple="multiple"><br>'+
+        '<input type="submit" value="Upload">'+
+        '</form>'
+      )
+    else
+      res.writeHead 405, {'content-type': 'text/plain', 'allow': 'GET, HEAD, POST'}
+      res.end "Not allowed: #{req.method}"
+
+getServerUrl = (task) ->
+  # buildserver task only! 
+  if not task.config.subjectId
+    return null
+  ix = task.config.subjectId.lastIndexOf ':'
+  dbname = task.config.subjectId.substring (ix+1)
+  if not dbname
+    return null
+  ix = dburl.lastIndexOf '/'
+  couchurl = dburl.substring 0, ix
+  serverurl = couchurl+'/'+dbname
+  serverurl
+
+servers = {}
+
+handleSubmission = (req, res, pathels, uploaddir) ->
+    if pathels.length!=1
+      res.writeHead 404, {'content-type': 'text/plain'}
+      res.end "Not found (submission #{req.url})"
+      return
+
+    name = pathels[0]
+    name = decodeURIComponent name
+    ts = for id,t of tasks when t.config?.taskType=='buildserver' and t.config?.subjectId==name
+      t
+    if ts.length==0
+      res.writeHead 404, {'content-type': 'text/plain'}
+      res.end "Submission server unknown (#{name})"
+      return
+    task = ts[0]
+    log "submission for server #{task.config.subjectId}, task #{task.id}, #{req.method}"
+
+    serverurl = getServerUrl task
+    nano = servers[serverurl]
+    if not nano
+      console.log "Initialise nano for submission server #{serverurl}"
+      servers[serverurl] = nano = require('nano') serverurl
+
+    if req.method == 'POST' 
+      # parse a file upload
+      form = new multiparty.Form
+        uploadDir: uploaddir
+        maxFilesSize: MAX_FILES_SIZE
+        autoFiles: true
+  
+      form.parse req, (err, fields, files) ->
+        if err?
+          res.writeHead 400, {'content-type': 'text/plain'}
+          res.end "Form submission error - #{err}"
+          return        
+
+        log "uploaded submission #{JSON.stringify fields} with #{JSON.stringify files}"
+        formdatasub = fields['json_submission_file']
+        if not formdatasub
+          res.writeHead 400, {'content-type': 'text/plain'}
+          res.end "Form field 'json_submission_file' not found"
+          return        
+        try
+          formdata = JSON.parse formdatasub
+        catch err
+          res.writeHead 400, {'content-type': 'text/plain'}
+          res.end "Form data parse error: #{err.message}"
+          return        
+
+        # submission metadata cf https://bitbucket.org/javarosa/javarosa/wiki/OpenRosaMetaDataSchema
+        # JSON has no attributes per se (for required form id & optional version) so we will
+        # pass in meta section as id & version
+        # In meta, instanceID as required to uniquely identify form instance (version), as 'uuid:...'
+        # e.g. {"meta":{"id":"123","instanceID":"uuid:234"}}
+        # Other defined instance metadata: timeStart, timeEnd, userID (mailto: openid:), 
+        #   deviceID (imei: mac: uuid:), 
+        #   deprecatedID (superceded instance/version) 
+        meta = formdata.meta
+        if not meta or not meta.id or not meta.instanceID
+          res.writeHead 400, {'content-type': 'text/plain'}
+          res.end "Form data missing required metadata: #{JSON.stringify meta}"
+          return
+
+        # TODO check valid form ID, etc.?
+        # TODO check valid data?
+        now = new Date().getTime()
+        submission = 
+          _id: uuid()
+          type: 'submission'
+          data: formdata
+          submissiontime: now
+          request:
+            httpVersion: req.httpVersion
+            url: req.url
+            headers: 
+              host: req.headers['host']
+              origin: req.headers['origin']
+              via: req.headers['via']
+              useragent: req.headers['user-agent']
+              referer: req.headers['referer']
+              date: req.headers['date']
+            clientAddress: req.socket?.remoteAddress
+
+        nano.insert submission, (err, body) ->
+          if err
+            log "Error adding form submission to db #{serverurl}: #{err}"
+            res.writeHead 500, {'content-type': 'text/plain'}
+            res.end 'Error adding form submission to db'
+            return
+          log "Added form submission to db #{serverurl} as #{submission._id}"
+          # OpenRosa created, not 200
+          res.writeHead 201, {'content-type': 'text/plain'}
+          # Warning: non-standard response
+          res.end "Added form submission to db #{serverurl} as #{submission._id}"
+          return
+
+    else if req.method == 'HEAD' 
+      res.writeHead 200, 'content-type': 'text/html'
+      res.end()
+
+    else if req.method == 'GET' 
+      # show a form upload form
+      res.writeHead 200, 'content-type': 'text/html;charset=utf-8'
+      # cf OpenDataKit / OpenRosa / JavaRosa
+      # https://bitbucket.org/javarosa/javarosa/wiki/FormSubmissionAPI
+      # i.e. multipart/form-data, one (first) part 
+      # Content Type: application/json (NOT text/xml), Name: json_submission_file (NOT xml_submission_file)
+      # TODO: file attachments?
+      res.end(
+        '<form action="" enctype="multipart/form-data" method="post">'+
+        '<label>JSON submission data<br/><textarea name="json_submission_file" style="width:90%;"></textarea></label><br/>'+
+        '<input type="submit" value="Upload">'+
+        '</form>'
+      )
+
+    else
+      res.writeHead 405, {'content-type': 'text/plain', 'allow': 'GET, HEAD, POST'}
+      res.end "Not allowed: #{req.method}"
+
+startUploadServer = () ->
+  uploaddir = "#{publicwebdir}/upload"
+  if !fs.existsSync uploaddir
+    try
+      fs.mkdirSync uploaddir,0o755
+    catch err
+      log "Error creating upload dir #{uploaddir}: #{err.message}"
+      return
+
+  http.createServer (req, res) ->
+    url = parse_url req.url
+    pathels = url.pathname.split '/'
+    if pathels.length>0 && pathels[0]==''
+      pathels.splice 0,1
+    if pathels.length==0
+      res.writeHead 403, {'content-type': 'text/plain'}
+      return res.end "Access denied (/)"
+    switch pathels[0]
+      when 'upload'  
+        pathels.splice 0,1
+        handleUpload req,res,pathels,uploaddir
+      when 'submission' 
+        pathels.splice 0,1
+        handleSubmission req,res,pathels,uploaddir
+      else
+        res.writeHead 404, {'content-type': 'text/plain'}
+        res.end "Not found (#{req.url})"
+
   .listen(serverport)
   log "created upload server on port #{serverport}"
 
@@ -677,16 +843,10 @@ gcTask = (task) ->
     log "gcTask #{task.id} cannot find path"
 
 doBuildserver = (task) ->
-  if not task.config.subjectId
-    return taskError task, "Buildserver did not specify subjectId"
-  ix = task.config.subjectId.lastIndexOf ':'
-  dbname = task.config.subjectId.substring (ix+1)
-  if not dbname
+  serverurl = getServerUlr task
+  if not server
     return taskError task, "Buildserver did not specify valid subjectId: #{task.config.subjectId}"
   # DB exists? if not expect 404
-  ix = dburl.lastIndexOf '/'
-  couchurl = dburl.substring 0, ix
-  serverurl = couchurl+'/'+dbname
 
   utils.readJson serverurl, (err,res) ->
     if err==404
