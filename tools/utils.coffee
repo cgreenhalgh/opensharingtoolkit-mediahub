@@ -273,6 +273,8 @@ module.exports.cacheFile = cacheFile = (surl,fn) ->
       else if (type.indexOf 'text/plain')==0 and dir=='' 
         # top-level document
         path = path+'.json'
+      else if (type.indexOf 'application/pdf')==0 
+        path = path+'.pdf'
       else
         console.log "Missing extension for #{path} type #{type}"
     else
