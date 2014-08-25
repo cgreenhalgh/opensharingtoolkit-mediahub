@@ -50,7 +50,19 @@ addFile = (files, thing) ->
          title: thing.get 'title'
        files[file.url] = file
 
-checkThings = (model, thingIds, items, files) ->
+addServer = (servers, appserver) ->
+  if not servers[appserver.id]
+    submissionurl = appserver.attributes.submissionurl
+    if not submissionurl
+      submissionurl = "#{config.submissionurl}/#{encodeURIComponent appserver.id}"
+      console.log "using default submissionurl #{submissionurl} for server #{appserver.id}"
+    else
+      console.log "using explicit submissionurl #{submissionurl} for server #{appserver.id}"
+    servers[appserver.id] = 
+      id: appserver.id
+      submissionurl: submissionurl
+
+checkThings = (model, thingIds, items, files, servers) ->
     while thingIds.length > 0
       thingId = (thingIds.splice 0,1)[0]
       console.log "update for thing #{thingId}..."
@@ -78,6 +90,11 @@ checkThings = (model, thingIds, items, files) ->
         if thing.attributes.serverId
           console.log "Found serverId #{thing.attributes.serverId}"
           thingIds.push thing.attributes.serverId
+          appserver = allthings.get().get thing.attributes.serverId
+          if appserver
+            addServer servers, appserver
+          else
+            console.log "Error: could not find server #{thing.attributes.serverId}"
         if thing.attributes.type == 'file'
           addFile files, thing
 
@@ -85,8 +102,10 @@ checkThings = (model, thingIds, items, files) ->
       item
     files = for url,file of files
       file
-    console.log "Checked all things, found #{items.length} items and #{files.length} files"
-    model.set { items: items, files: files }
+    servers = for id,appserver of servers
+      appserver
+    console.log "Checked all things, found #{items.length} items, #{files.length} files and #{servers.length} servers"
+    model.set { items: items, files: files, servers: servers }
     
   addPlace: (files, lat, lon, zoom) ->
     console.log "add place #{lat},#{lon},#{zoom}"
@@ -122,7 +141,6 @@ checkThings = (model, thingIds, items, files) ->
       if z>=minZoom
         for x in [x1..x2]
           for y in [y1..y2]
-            s = subdomains[Math.abs(x + y) % subdomains.length]
             url = mapUrl.replace( '{s}', s ).replace( '{z}', z ).replace( '{x}',x ).replace( '{y}', y )    
             file = { url: url, title: 'map tile' } 
             files[file.url] = file
@@ -131,9 +149,10 @@ update = (model) ->
     console.log "Update app #{model.id} for download..."
     items = {}
     files = {}
+    servers = {}
     # clone!
     thingIds = [model.id]
-    checkThings model, thingIds, items, files    
+    checkThings model, thingIds, items, files, servers    
 
 module.exports.updateApp = updateApp = (id, cb) ->
   model = plugins.getContentType('app')?.getThings()?.get id

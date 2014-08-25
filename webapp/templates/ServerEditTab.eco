@@ -1,4 +1,7 @@
 <%# Server add or edit tab, takes { data: Thing, add: true|false } as data (title, description, ...); parent is a content %>
+<label>External submission URL (optional)
+  <input type="text" name="submissionurl" value="<%= @data.submissionurl %>"  placeholder="http://..."/>
+</label>
 <label>Administrator Accounts
   <input type="button" name="addadmin" value="Add account"/>
 </label>

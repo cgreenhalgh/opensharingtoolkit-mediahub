@@ -19,8 +19,10 @@ module.exports = class ServerEditView extends ThingEditView
         admins.push { username: username, password: password }
     console.log "found admins #{JSON.stringify admins}"
     #TODO servertype = $('input[name="atomfilename"]', @$el).val()
+    submissionurl = $('input[name="submissionurl"]', @$el).val()
     @model.set 
       admins: admins
+      submissionurl: submissionurl
 
   render: () =>
     super()

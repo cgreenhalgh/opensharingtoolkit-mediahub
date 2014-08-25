@@ -661,73 +661,36 @@ getServerUrl = (task) ->
 
 servers = {}
 
-handleSubmission = (req, res, pathels, uploaddir) ->
-    if pathels.length!=1
-      res.writeHead 404, {'content-type': 'text/plain'}
-      res.end "Not found (submission #{req.url})"
-      return
+headers =
+        'content-type': 'text/plain'
+        'access-control-allow-origin': '*'
 
-    name = pathels[0]
-    name = decodeURIComponent name
-    ts = for id,t of tasks when t.config?.taskType=='buildserver' and t.config?.subjectId==name
-      t
-    if ts.length==0
-      res.writeHead 404, {'content-type': 'text/plain'}
-      res.end "Submission server unknown (#{name})"
-      return
-    task = ts[0]
-    log "submission for server #{task.config.subjectId}, task #{task.id}, #{req.method}"
 
-    serverurl = getServerUrl task
-    nano = servers[serverurl]
-    if not nano
-      console.log "Initialise nano for submission server #{serverurl}"
-      servers[serverurl] = nano = require('nano') serverurl
+handleFormdata = (req, res, formdatasub, serverurl, nano) ->
+  try
+    formdata = JSON.parse formdatasub
+  catch err
+    res.writeHead 400, headers
+    res.end "Form data parse error: #{err.message}"
+    return        
+  # submission metadata cf https://bitbucket.org/javarosa/javarosa/wiki/OpenRosaMetaDataSchema
+  # JSON has no attributes per se (for required form id & optional version) so we will
+  # pass in meta section as id & version
+  # In meta, instanceID as required to uniquely identify form instance (version), as 'uuid:...'
+  # e.g. {"meta":{"id":"123","instanceID":"uuid:234"}}
+  # Other defined instance metadata: timeStart, timeEnd, userID (mailto: openid:), 
+  #   deviceID (imei: mac: uuid:), 
+  #   deprecatedID (superceded instance/version) 
+  meta = formdata.meta
+  if not meta or not meta.id or not meta.instanceID
+    res.writeHead 400, headers
+    res.end "Form data missing required metadata: #{JSON.stringify meta}"
+    return
 
-    if req.method == 'POST' 
-      # parse a file upload
-      form = new multiparty.Form
-        uploadDir: uploaddir
-        maxFilesSize: MAX_FILES_SIZE
-        autoFiles: true
-  
-      form.parse req, (err, fields, files) ->
-        if err?
-          res.writeHead 400, {'content-type': 'text/plain'}
-          res.end "Form submission error - #{err}"
-          return        
-
-        log "uploaded submission #{JSON.stringify fields} with #{JSON.stringify files}"
-        formdatasub = fields['json_submission_file']
-        if not formdatasub
-          res.writeHead 400, {'content-type': 'text/plain'}
-          res.end "Form field 'json_submission_file' not found"
-          return        
-        try
-          formdata = JSON.parse formdatasub
-        catch err
-          res.writeHead 400, {'content-type': 'text/plain'}
-          res.end "Form data parse error: #{err.message}"
-          return        
-
-        # submission metadata cf https://bitbucket.org/javarosa/javarosa/wiki/OpenRosaMetaDataSchema
-        # JSON has no attributes per se (for required form id & optional version) so we will
-        # pass in meta section as id & version
-        # In meta, instanceID as required to uniquely identify form instance (version), as 'uuid:...'
-        # e.g. {"meta":{"id":"123","instanceID":"uuid:234"}}
-        # Other defined instance metadata: timeStart, timeEnd, userID (mailto: openid:), 
-        #   deviceID (imei: mac: uuid:), 
-        #   deprecatedID (superceded instance/version) 
-        meta = formdata.meta
-        if not meta or not meta.id or not meta.instanceID
-          res.writeHead 400, {'content-type': 'text/plain'}
-          res.end "Form data missing required metadata: #{JSON.stringify meta}"
-          return
-
-        # TODO check valid form ID, etc.?
-        # TODO check valid data?
-        now = new Date().getTime()
-        submission = 
+  # TODO check valid form ID, etc.?
+  # TODO check valid data?
+  now = new Date().getTime()
+  submission = 
           _id: uuid()
           type: 'submission'
           data: formdata
@@ -747,23 +710,99 @@ handleSubmission = (req, res, pathels, uploaddir) ->
         nano.insert submission, (err, body) ->
           if err
             log "Error adding form submission to db #{serverurl}: #{err}"
-            res.writeHead 500, {'content-type': 'text/plain'}
+            res.writeHead 500, headers
             res.end 'Error adding form submission to db'
             return
           log "Added form submission to db #{serverurl} as #{submission._id}"
           # OpenRosa created, not 200
-          res.writeHead 201, {'content-type': 'text/plain'}
+          res.writeHead 201, headers
           # Warning: non-standard response
           res.end "Added form submission to db #{serverurl} as #{submission._id}"
           return
 
+handleSubmission = (req, res, pathels, uploaddir) ->
+    if pathels.length!=1
+      res.writeHead 404, headers
+      res.end "Not found (submission #{req.url})"
+      return
+
+    name = pathels[0]
+    name = decodeURIComponent name
+    ts = for id,t of tasks when t.config?.taskType=='buildserver' and t.config?.subjectId==name
+      t
+    if ts.length==0
+      res.writeHead 404, headers 
+      res.end "Submission server unknown (#{name})"
+      return
+    task = ts[0]
+    log "submission for server #{task.config.subjectId}, task #{task.id}, #{req.method}"
+    serverurl = getServerUrl task
+    nano = servers[serverurl]
+    if not nano
+      console.log "Initialise nano for submission server #{serverurl}"
+      servers[serverurl] = nano = require('nano') serverurl
+
+    if req.method == 'POST'
+      contenttype = req.headers['content-type']
+      if (contenttype.indexOf 'multipart/form-data') == 0
+
+        # parse a file upload
+        form = new multiparty.Form
+          uploadDir: uploaddir
+          maxFilesSize: MAX_FILES_SIZE
+          autoFiles: true
+  
+        form.parse req, (err, fields, files) ->
+          if err?
+            res.writeHead 400, headers
+            res.end "Form submission error - #{err}"
+            return        
+
+          log "uploaded submission #{JSON.stringify fields} with #{JSON.stringify files}"
+          formdatasub = fields['json_submission_file']
+          if not formdatasub
+            res.writeHead 400, headers
+            res.end "Form field 'json_submission_file' not found"
+            return        
+          handleFormdata req, res, formdatasub, serverurl, nano
+
+      else if contenttype == 'application/x-www-form-urlencoded' 
+        body = ''
+        req.on 'data', (data) ->
+            body += data;
+            # Too much POST data, kill the connection!
+            if (body.length > 1e6)
+              req.connection.destroy()
+        req.on 'end', () ->
+          parameters = body.split '&'
+          for p in parameters
+            ix = p.indexOf '='
+            if ix>=0
+              pname = decodeURIComponent (p.substring 0,ix)
+              if pname == 'json_submission_file'
+                formdatasub = decodeURIComponent (p.substring ix+1)
+                #console.log "got json_submission_file = #{formdata}"
+                return handleFormdata req, res, formdatasub, serverurl, nano  
+          res.writeHead 400, headers
+          res.end "Form field 'json_submission_file' not found"
+
+      else
+        res.writeHead 400, 
+          'content-type': 'text/html'
+          'access-control-allow-origin': '*'
+        res.end "Unsupported POST content-type #{contenttype}"
+
     else if req.method == 'HEAD' 
-      res.writeHead 200, 'content-type': 'text/html'
+      res.writeHead 200, 
+        'content-type': 'text/html'
+        'access-control-allow-origin': '*'
       res.end()
 
     else if req.method == 'GET' 
       # show a form upload form
-      res.writeHead 200, 'content-type': 'text/html;charset=utf-8'
+      res.writeHead 200, 
+        'content-type': 'text/html;charset=utf-8'
+        'access-control-allow-origin': '*'
       # cf OpenDataKit / OpenRosa / JavaRosa
       # https://bitbucket.org/javarosa/javarosa/wiki/FormSubmissionAPI
       # i.e. multipart/form-data, one (first) part 
@@ -772,12 +811,19 @@ handleSubmission = (req, res, pathels, uploaddir) ->
       res.end(
         '<form action="" enctype="multipart/form-data" method="post">'+
         '<label>JSON submission data<br/><textarea name="json_submission_file" style="width:90%;"></textarea></label><br/>'+
-        '<input type="submit" value="Upload">'+
+        '<input type="submit" value="Upload (form-data)">'+
+        '</form>'+
+        '<form action="" enctype="application/x-www-form-urlencoded" method="post">'+
+        '<label>JSON submission data<br/><textarea name="json_submission_file" style="width:90%;"></textarea></label><br/>'+
+        '<input type="submit" value="Upload (url-encoded)">'+
         '</form>'
       )
 
     else
-      res.writeHead 405, {'content-type': 'text/plain', 'allow': 'GET, HEAD, POST'}
+      res.writeHead 405, 
+        'content-type': 'text/plain'
+        'access-control-allow-origin': '*'
+        'allow': 'GET, HEAD, POST'
       res.end "Not allowed: #{req.method}"
 
 startUploadServer = () ->
@@ -843,9 +889,9 @@ gcTask = (task) ->
     log "gcTask #{task.id} cannot find path"
 
 doBuildserver = (task) ->
-  serverurl = getServerUlr task
-  if not server
-    return taskError task, "Buildserver did not specify valid subjectId: #{task.config.subjectId}"
+  serverurl = getServerUrl task
+  if not serverurl
+    return taskError task, "Buildserver did not specify valid subjectId: #{task.config?.subjectId}"
   # DB exists? if not expect 404
 
   utils.readJson serverurl, (err,res) ->

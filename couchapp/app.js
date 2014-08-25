@@ -57,6 +57,12 @@ var showManifest = function(doc, req) {
       manifest = manifest + "# MEDIAHUB-ITEM "+doc.items[i].type+" "+doc.items[i].id+"\n"+doc.items[i].url+"\n";
     }
   } 
+  if (doc && doc.servers) {
+    manifest = manifest + "\nNETWORK:\n";
+    for (var i in doc.servers) {
+      manifest = manifest + "# MEDIAHUB-SERVER "+doc.servers[i].id+"\n"+doc.servers[i].submissionurl+"\n";
+    }
+  }
   return {
     headers: {"Content-type": "text/cache-manifest"},
     body: manifest

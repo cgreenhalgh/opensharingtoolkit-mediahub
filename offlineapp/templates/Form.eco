@@ -5,7 +5,7 @@
     </li>
   </ul>
 </nav>
-<div class="row">
+<div class="row top-item">
 <% if @cardinality=='*': %>
   <input type="button" name="form-newinstance" class="form-newinstance" value="Start new form instance"/>
 <% end %>

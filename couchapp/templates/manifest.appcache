@@ -19,6 +19,11 @@ CACHE MANIFEST
 ../../vendor/leaflet/images/marker-shadow.png
 ../../vendor/leaflet/images/my-icon-2x.png
 ../../vendor/leaflet/images/my-icon.png
+# upload icons
+../../icons/upload.png
+../../icons/uploading.png
+../../icons/upload-success.png
+../../icons/upload-error.png
 
 # general network access
 NETWORK:

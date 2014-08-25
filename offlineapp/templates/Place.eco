@@ -5,7 +5,7 @@
     </li>
   </ul>
 </nav>
-<div class="row">
+<div class="row top-item">
   <div class="columns large-4 medium-6 small-12">
     <div class="stretch-100 map-parent"><div class="stretch-child"><div class="place-map" tabindex="0"></div></div></div>
   </div>

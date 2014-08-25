@@ -12,8 +12,10 @@ ListView = require 'views/List'
 FormView = require 'views/Form'
 
 ThingListView = require 'views/ThingList'
+FormUploadView = require 'views/FormUpload'
 
 localdb = require 'localdb'
+formdb = require 'formdb'
 
 #config = window.mediahubconfig
 
@@ -33,6 +35,7 @@ class Router extends Backbone.Router
     "booklet/:id/:page": "bookletPage"
     "booklet/:id/:page/": "bookletPage"
     "booklet/:id/:page/:anchor": "bookletPage"
+    "upload": "upload"
 
   removeCurrentView: ->
     if currentView?
@@ -41,6 +44,14 @@ class Router extends Backbone.Router
       catch err
         console.log "error removing current view: #{err.message}"
       currentView = null
+
+  upload: () ->
+    console.log "show upload"
+    @removeCurrentView()
+    $('#home').hide()
+    currentView = new FormUploadView model: formdb.getFormUploadState()
+    $('body').append currentView.el
+    true
 
   entries: ->
     console.log "router: entries"
@@ -131,6 +142,7 @@ checkConfig = (app) ->
   console.log  "config(app): "+app 
   try 
     app = JSON.parse app
+    formdb.setApp app
     loadThings app,topLevelThings
   catch err
     console.log "error parsing app config: #{err.message}: #{app} - #{err.stack}"

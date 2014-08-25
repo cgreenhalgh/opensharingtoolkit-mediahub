@@ -1,5 +1,6 @@
 # FormInstance (offline) View
 templateFormInstance = require 'templates/FormInstance'
+formdb = require 'formdb'
 
 module.exports = class FormInstanceView extends Backbone.View
 
@@ -70,15 +71,19 @@ module.exports = class FormInstanceView extends Backbone.View
     data = @formToData()
     console.log "doSave #{@model.id} data = #{JSON.stringify data}"
     metadata = JSON.parse(JSON.stringify @model.attributes.metadata)
+    # TODO old metadata versions
     metadata.saved = true
     metadata.savedtime = now
     metadata.finalized = data._finalized
+    metadata.submitted = false
     delete data._finalized
     @model.set 
         draftdata: null
         formdata: data
         metadata: metadata  
     @saveToDb()
+    if metadata.finalized
+      formdb.addFinalizedForm @model
     @changed = false
     @render()
     if @model.attributes.metadata.finalized

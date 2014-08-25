@@ -1,0 +1,8 @@
+<%# FormUploadWidget view - in a (for now); data is FormUpload %>
+<% if @uploading: %>
+  <img src="../../icons/uploading.png" class="upload-icon upload-uploading"/>
+<% else : %>
+  <img src="../../icons/upload.png" class="upload-icon <%=if @uploadInstanceIds?.length==0 then 'upload-idle' else 'upload-upload' %>"/>
+  <img src="../../icons/upload-success.png" class="upload-overlay upload-success <%= if @lastUploadState!='success' then 'hide' %>"/>
+  <img src="../../icons/upload-error.png" class="upload-overlay upload-error <%= if @lastUploadState!='error' then 'hide' %>"/>
+<% end %> 
