@@ -76,7 +76,7 @@ check_json = (surl, baseurl) ->
       val = el.obj[ix]
       #console.log "check json #{el.ix} = #{typeof val} #{val}"
       if (typeof val)=='string'
-        if (typeof ix)=='string' and ix.length>=3 and (ix.lastIndexOf 'url')==(ix.length-3) and val.length>0
+        if (typeof ix)=='string' and ix.length>=3 and (ix.lastIndexOf 'url')==(ix.length-3) and val.length>0 and ix!='submissionurl'
           console.log "found json ...url #{el.ix} = #{val}"
           file.refs.push
             from: 0

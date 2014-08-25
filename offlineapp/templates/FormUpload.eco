@@ -16,10 +16,10 @@
 
 <div class="row top-item">
   <div class="columns large-12 small-12">
+    <p><%= @uploadInstanceIds.length %> form instances need uploading.</p>
 <% if @uploading: %>
     <p>Upload in progress</p>
 <% else if @uploadInstanceIds?.length==0: %>
-    <p>No form instances ready to upload</p>
 <% else: %>
     <p><input type="button" name="do-upload" value="Start upload"/></p>
 <% end %>

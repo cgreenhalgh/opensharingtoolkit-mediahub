@@ -1,5 +1,6 @@
 <%# Server add or edit tab, takes { data: Thing, add: true|false } as data (title, description, ...); parent is a content %>
-<label>External submission URL (optional)
+<% submission = "#{window.mediahubconfig.submissionurl}/#{encodeURIComponent @data._id}" %>
+<label>External submission URL (optional) - default <a href="<%= submission %>"><%= submission %></a>
   <input type="text" name="submissionurl" value="<%= @data.submissionurl %>"  placeholder="http://..."/>
 </label>
 <label>Administrator Accounts

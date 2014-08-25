@@ -18,7 +18,7 @@ module.exports = class FormUploadView extends Backbone.View
   render: =>
     if @formUploadWidgetView
       @formUploadWidgetView.remove()
-    console.log "render FormUploadView #{JSON.stringify @model.attributes}"
+    #console.log "render FormUploadView #{JSON.stringify @model.attributes}"
     @$el.html @template @model.attributes
     f = () ->
       @formUploadWidgetView = new FormUploadWidgetView model: formdb.getFormUploadState()

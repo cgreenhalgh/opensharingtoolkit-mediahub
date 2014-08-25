@@ -256,10 +256,6 @@ $outline-color: #000;
   };
 };
 
-.upload-widget {
-  position: relative;
-}
-
 .upload-icon {
   width: 1em;
   height: 1em;
@@ -269,17 +265,6 @@ $outline-color: #000;
 .upload-idle {
   opacity: 0.3;    
 };
-
-.upload-overlay {
-  position: absolute;
-  width: 1em;
-  height: 1em;
-  padding: 2px;
-  left: 0;
-  top: 0; 
-  z-index: 2; 
-  opacity: 0.5;
-}
 
 .top-item {
   margin-top: 1.25rem;

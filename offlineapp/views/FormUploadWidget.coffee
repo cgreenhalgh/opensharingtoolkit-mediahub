@@ -15,7 +15,7 @@ module.exports = class FormUploadWidgetView extends Backbone.View
     templateFormUploadWidget d
 
   render: =>
-    console.log "render FormUpload #{JSON.stringify @model.attributes}" 
+    #console.log "render FormUpload #{JSON.stringify @model.attributes}" 
     @$el.html @template @model.attributes
     @
 

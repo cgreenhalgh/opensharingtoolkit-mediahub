@@ -5,8 +5,6 @@ working = require 'working'
 FormInstanceView = require 'views/FormInstance'
 ThingView = require 'views/Thing'
 
-# TODO find/use formdata from formdb
-
 module.exports = class FormView extends ThingView
 
   initialize: ->
@@ -51,6 +49,8 @@ module.exports = class FormView extends ThingView
     console.log "Form #{@model.id} newInstance"
     instance = formdb.getNewFormInstance @model
     @setInstance instance
+    if @instances
+      @instances.add instance
 
   instanceDestroyed: () =>
     console.log "instanceDestroyed"
@@ -59,6 +59,8 @@ module.exports = class FormView extends ThingView
   remove: () =>
     if @instanceView
       @instanceView.remove()    
+    if @instances
+      formdb.releaseFormInstances @instances
     super()
 
   back: =>

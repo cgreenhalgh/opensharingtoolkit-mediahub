@@ -92,7 +92,10 @@ module.exports.getNewFormInstance = (form) ->
       console.log "Error saving new FormInstance #{id}: (validation)"
   catch err
     console.log "Error saving new FormInstance #{id}: (exception) #{err.message}"
+  instanceCache[instance._id] = instance
   instance
+
+instanceCache = {}
 
 module.exports.getInstancesForForm = (form, cb) ->
   console.log "Get instances for form #{form.id}"
@@ -112,6 +115,7 @@ module.exports.getInstancesForForm = (form, cb) ->
          instance.sync = BackbonePouch.sync
            db: db
          instances.add instance 
+         instanceCache[instance._id] = instance
        cb null, instances
   catch err
     console.log "Error doing getInstancesForForm: #{err.message} at #{err.stack}"
@@ -188,10 +192,23 @@ uploadTask = () ->
             return uploadFailed "submission return code #{xhr.status} - should be 201 (may be a proxy)"
           console.log "submission success code #{xhr.status} for #{instanceId}"
           removeUploadInstanceId instanceId
-          metadata = JSON.parse (JSON.stringify instance.metadata)
+          # instance cache?
+          model = instanceCache[instanceId]
+          if not model?
+            model = new FormInstance instance
+            model.sync =  BackbonePouch.sync
+              db: db
+          metadata = JSON.parse (JSON.stringify model.attributes.metadata)
           metadata.submitted = true
           # save done - 
-          # TODO refresh other models...?!
+          model.set metadata: metadata
+          if false == model.save null, {
+            success: () ->
+              console.log "saved submitted ok"
+            error: (model,res,options) ->
+              console.log "Save submitted error #{res}"
+            }
+            console.log "Save submitted error (validation)"
           setTimeout uploadTask, 0
         timeout: 30000
         type: 'POST'
@@ -208,4 +225,11 @@ module.exports.startUpload = () ->
   formUploadState.failedUploads = 0
   formUploadState.set uploading: true, lastUploadState: 'success'
   setTimeout uploadTask,0
+
+module.exports.releaseFormInstances = (instances) ->
+  for instance in instances.models
+    if instanceCache[instance._id]
+      delete instanceCache[instance._id]
+    else
+      console.log "Error: did not find instance #{instance._id} in instance cache (release)"
 
