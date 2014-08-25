@@ -23,7 +23,7 @@ FormInstanceList = require 'models/FormInstanceList'
 
 dbname = 'formdata'
 
-if window.openDatabase? 
+if false # window.openDatabase? 
   console.log "WARNING: forcing websql for formdb"  
   db = new PouchDB dbname, 
     adapter: 'websql'
@@ -62,21 +62,24 @@ module.exports.getNewFormInstance = (form) ->
 
 module.exports.getInstancesForForm = (form, cb) ->
   console.log "Get instances for form #{form.id}"
-  map = (doc, emit) ->
-    if doc.formdef?._id == form.id
-      emit doc.metadata?.createdtime
   instances = new FormInstanceList()
-  db.query {map:map}, {include_docs:true, reduce:false}, (err, response) ->
-     if err?
-       console.log "Error getting instances: #{err}"
-       return cb err
-     console.log "Query result: #{JSON.stringify response}"
-     for res in response.rows
-       console.log "Found instance #{res.doc._id} key #{res.key} for form #{res.doc.formdef._id}"
-       instance = new FormInstance res.doc
-       instance.sync = BackbonePouch.sync
-         db: db
-       instances.add instance 
-     cb null, instances
+  try
+    map = (doc, emit) ->
+      if doc.formdef?._id == form.id
+        emit doc.metadata?.createdtime
+    db.query {map:map}, {include_docs:true, reduce:false}, (err, response) ->
+       if err?
+         console.log "Error getting instances: #{err}"
+         return cb err
+       console.log "Query result: #{JSON.stringify response}"
+       for res in response.rows
+         console.log "Found instance #{res.doc._id} key #{res.key} for form #{res.doc.formdef._id}"
+         instance = new FormInstance res.doc
+         instance.sync = BackbonePouch.sync
+           db: db
+         instances.add instance 
+       cb null, instances
+  catch err
+    console.log "Error doing getInstancesForForm: #{err.message} at #{err.stack}"
   instances
 
