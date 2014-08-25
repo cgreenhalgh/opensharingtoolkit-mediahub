@@ -4,7 +4,7 @@
         <h1><a href="#">Form Upload</a></h1>
       </li>
       <!-- Remove the class "menu-icon" to get rid of menu icon. Take out "Menu" to just have icon alone -->
-      <li class="toggle-topbar menu-icon"><a href="#"><span>Menu</span></a></li>
+      <!-- <li class="toggle-topbar menu-icon"><a href="#"><span>Menu</span></a></li> -->
     </ul>
     <section class="top-bar-section">
       <!-- Right Nav Section -->
@@ -18,9 +18,16 @@
     <p><%= @uploadInstanceIds.length %> form instances need uploading.</p>
 <% if @uploading: %>
     <p>Upload in progress</p>
-<% else if @uploadInstanceIds?.length==0: %>
+    <% if @lastUploadState: %>
+      <p>So far: <%= @lastUploadState %></p> 
+    <% end %>
 <% else: %>
+  <% if @lastUploadState: %>
+    <p>Last upload attempt: <%= @lastUploadState %></p> 
+  <% end %>
+  <% if @uploadInstanceIds?.length>0: %>
     <p><input type="button" name="do-upload" value="Start upload"/></p>
+  <% end %>
 <% end %>
   </div>
 </div>
