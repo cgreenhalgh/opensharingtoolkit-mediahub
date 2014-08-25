@@ -1,4 +1,5 @@
 <%# FormUploadWidget view - in a (for now); data is FormUpload %>
+<a>
 <% if @uploading: %>
   <img src="../../icons/uploading.png" class="upload-icon"/>
 <% else if @uploadInstanceIds?.length==0 and @lastUploadState=='success': %>
@@ -10,4 +11,4 @@
 <% else: %>
   <img src="../../icons/upload.png" class="upload-icon"/>
 <% end %>
-
+</a>

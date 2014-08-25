@@ -20,9 +20,11 @@ module.exports = class FormUploadView extends Backbone.View
       @formUploadWidgetView.remove()
     #console.log "render FormUploadView #{JSON.stringify @model.attributes}"
     @$el.html @template @model.attributes
-    f = () ->
+    f = () =>
       @formUploadWidgetView = new FormUploadWidgetView model: formdb.getFormUploadState()
-      $('.upload-state-holder', @$el).replaceWith @formUploadWidgetView.el
+      $('section.top-bar-section > ul.right', @$el).append @formUploadWidgetView.el
+      # topbar fix
+      $(document).foundation()
     setTimeout f, 0
     @
 

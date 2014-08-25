@@ -16,9 +16,11 @@ module.exports = class HomeView extends Backbone.View
 
   render: =>
     @$el.html @template @model
-    f = () ->
+    f = () =>
       @formUploadWidgetView = new FormUploadWidgetView model: formdb.getFormUploadState()
-      $('.upload-state-holder', @$el).replaceWith @formUploadWidgetView.el
+      $('section.top-bar-section > ul.right', @$el).append @formUploadWidgetView.el
+      # topbar fix
+      $(document).foundation()
     setTimeout f, 0
     @
 
