@@ -15,6 +15,15 @@ ddoc = {
 
 module.exports = ddoc;
 
+// view type Form
+ddoc.views.typeForm = {
+  map: function(doc) {
+    if (doc._id && doc.type=='form') {
+      emit(doc.title, null);
+    }  
+  }
+};
+
 ddoc.validate_doc_update = function (newDoc, oldDoc, userCtx) {
   function user_is(role) {
     return userCtx.roles.indexOf(role) >= 0;

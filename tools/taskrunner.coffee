@@ -100,7 +100,6 @@ startAuth = () ->
   log "connect to #{dburl}"
   db = require('nano') dburl
   start()
-
 start = () ->
 
   # errors?
@@ -913,16 +912,44 @@ updateServer = (task, serverurl) ->
     if err
       return taskError task,"Error updating security on #{serverurl}: #{err}"
     log "Updated security on #{serverurl}"
-    updateServerapp task, serverurl
+    updateServerapp task, serverurl, nano
 
 SERVERDIR = __dirname+"/../server"
-updateServerapp = (task, serverurl) ->
+updateServerapp = (task, serverurl, nano) ->
   console.log "Pushing server app to #{serverurl}"
   doSpawn task, "/usr/bin/node", [SERVERDIR+"/../node_modules/couchapp/bin.js", "push", SERVERDIR+"/couchapp/server.js", serverurl], SERVERDIR, true, (task)->
     # replicate Forms associated with Server (via Apps)
-    # TODO query view _design/app/_view/serverId with key=serverId
-    # TODO check items for .type 'form' -> .id
-    # TODO replicate from mediahub to server db with docs_ids = [form ids])
-    # TODO - update nginx config
-    taskDone task
+    # query view _design/app/_view/serverId with key=serverId
+    formIds = []
+    couchurl = dburl.substring 0,(serverurl.lastIndexOf '/')
+    hubdbname = dburl.substring (dburl.lastIndexOf '/')+1
+    serverdbname = serverurl.substring (serverurl.lastIndexOf '/')+1
+    nanodb = require('nano') couchurl
+    nanohub = nanodb.use hubdbname
+    nanohub.view 'app', 'serverId', {
+        include_docs: true
+        key: task.config.subjectId
+      }, (err, body) ->
+      if err
+        return taskError task,"Error listing apps for server #{task.config.subjectId}: #{err}"
+      # rows .id .doc
+      log "Found #{body.rows?.length} Apps for server #{task.config.subjectId}" # #{JSON.stringify body}"
+      for row in (body.rows ? []) 
+        # check items for .type 'form' -> .id
+        for item in (row.doc?.items ? []) when item.type=='form' and item.id
+          formIds.push item.id
+      log "Found #{formIds.length} Forms referred to be Apps"
+      # replicate from mediahub to server db with docs_ids = [form ids])
+      nanodb.db.replicate hubdbname, serverdbname, {
+          continuous: false
+          create_target: false
+          doc_ids: formIds
+        }, (err, body) ->
+          if err
+            return taskError task,"Error replicating forms from #{hubdbname} to #{serverdbname}: #{err}"
+          if not body.ok
+            return taskError task,"Error replicating forms from #{hubdbname} to #{serverdbname}: reponse not ok: #{JSON.stringify body}"
+          log "Replicated #{formIds.length} forms from #{hubdbname} to #{serverdbname}: #{JSON.stringify body}"
+          # TODO - update nginx config
+          taskDone task
 
