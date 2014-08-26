@@ -5,11 +5,14 @@ stitch  = require("stitch")
 fs = require('fs')
 argv    = process.argv.slice(2)
 
-buildapp = (from,to,extrasource) ->
-  console.log "compile #{from} to #{to}..."
+buildapp = (froms,to,extrasource) ->
+  paths = for from in froms
+    __dirname + from
+
+  console.log "compile #{froms} to #{to}..."
   pckg1 = stitch.createPackage(
     # Specify the paths you want Stitch to automatically bundle up
-    paths: [ __dirname + from ]
+    paths: paths
 
     # Specify your base libraries
     dependencies: [
@@ -28,7 +31,8 @@ buildapp = (from,to,extrasource) ->
       )
   )
 
-buildapp '/webapp','public/js/webapp.js'
-buildapp '/offlineapp','public/js/offlineapp.js'
+buildapp ['/common','/webapp'],'public/js/webapp.js'
+buildapp ['/common','/offlineapp'],'public/js/offlineapp.js'
+buildapp ['/common','/server/webapp'],'public/js/serverapp.js'
 #buildapp '/tools','tools.js','require("exportapp");'
 

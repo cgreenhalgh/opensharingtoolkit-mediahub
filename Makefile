@@ -34,3 +34,6 @@ coffee:
 couchapplocal:
 	`npm bin`/couchapp push couchapp/app.js ${COUCHDB}
 
+serverapplocal:
+	`npm bin`/couchapp push server/couchapp/server.js ${COUCHDB}
+

@@ -1,0 +1,56 @@
+<!doctype html>
+<html class="no-js" lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>OpenSharingToolkit Server</title>
+    <link rel="stylesheet" href="../../stylesheets/server.css" />
+    <link rel="stylesheet" href="../../vendor/leaflet/leaflet.css" /> 
+    <link rel="stylesheet" href="../../vendor/tapmodo/Jcrop/css/jquery.Jcrop.min.css" type="text/css" />
+    <script src="../../vendor/modernizr/modernizr.js"></script>
+  </head>
+  <body>
+    <nav class="top-bar" data-topbar>
+      <ul class="title-area">
+        <li class="name">
+          <h1><a href="#">Server</a></h1>
+        </li>
+      </ul>
+    </nav>
+    <div id="deleteModalHolder" class="reveal-modal" data-reveal></div>
+    <div id="workingModal" class="working-modal">
+      <img src="../../icons/loading.gif"/>
+    </div>
+    <div id="errorModalHolder" class="reveal-modal" data-reveal></div>
+
+    <script src="../../vendor/jquery/dist/jquery.min.js"></script>
+    <script src="../../vendor/tapmodo/Jcrop/js/jquery.Jcrop.min.js"></script>
+    <script src="../../vendor/foundation/js/foundation.min.js"></script>
+    <script src="../../vendor/foundation/js/foundation/foundation.reveal.js"></script>
+    <script src="../../vendor/foundation/js/foundation/foundation.topbar.js"></script>
+    <script src="../../vendor/foundation/js/foundation/foundation.tab.js"></script>
+    <script src="../../vendor/underscore/underscore.js"></script>
+    <script src="../../vendor/backbone/backbone.js"></script>
+    <script src="../../vendor/pouchdb/dist/pouchdb-3.0.2.min.js"></script>
+    <script src="../../vendor/backbone-pouchdb/dist/backbone-pouch.js"></script>
+    <script src="../../vendor/filesaver/FileSaver.js"></script>
+    <script src="../../vendor/node-uuid/uuid.js"></script>
+    <script src="../../js/config.js"></script>
+    <script src="../../js/serverapp.js"></script>
+    <script src="../../vendor/ckeditor/ckeditor.js"></script>
+    <script src="../../vendor/leaflet/leaflet.js"></script>
+    <!-- geocoding -->
+    <script src="https://maps.googleapis.com/maps/api/js?v=3.exp"></script>
+
+    <script type="text/javascript" charset="utf-8">
+    $(document).ready(function() 
+    {
+      // general start-up
+      $(document).foundation();
+      console.log("Running app...");
+      var App = require("app");
+      App.init();
+    });
+    </script>
+  </body>
+</html>
