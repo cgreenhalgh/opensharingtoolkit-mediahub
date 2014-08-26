@@ -136,6 +136,14 @@ ddoc.views.typeThing = {
     }  
   }
 };
+// view of App by serverId
+ddoc.views.serverId = {
+  map: function(doc) {
+    if (doc._id.indexOf('app:')===0 && doc.serverId) {
+      emit(doc.serverId);
+    }  
+  }
+};
 
 // filter type Html
 ddoc.filters.typeHtml = function(doc) {

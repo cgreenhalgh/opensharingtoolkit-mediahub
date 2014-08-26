@@ -912,7 +912,17 @@ updateServer = (task, serverurl) ->
   utils.doHttp "#{serverurl}/_security",'PUT','{"admins":{"names":["admin"],"roles":[]},"members":{"names":[],"roles":["serverreader","serverwriter"]}}', (err,res) ->
     if err
       return taskError task,"Error updating security on #{serverurl}: #{err}"
-    log "Updated security on #{serverurl}"    
-    # TODO - install/update couchapp ?!
+    log "Updated security on #{serverurl}"
+    updateServerapp task, serverurl
+
+SERVERDIR = __dirname+"/../server"
+updateServerapp = (task, serverurl) ->
+  console.log "Pushing server app to #{serverurl}"
+  doSpawn task, "/usr/bin/node", [SERVERDIR+"/../node_modules/couchapp/bin.js", "push", SERVERDIR+"/couchapp/server.js", serverurl], SERVERDIR, true, (task)->
+    # replicate Forms associated with Server (via Apps)
+    # TODO query view _design/app/_view/serverId with key=serverId
+    # TODO check items for .type 'form' -> .id
+    # TODO replicate from mediahub to server db with docs_ids = [form ids])
+    # TODO - update nginx config
     taskDone task
 
