@@ -4,20 +4,40 @@ db = require 'serverdb'
 
 FormList = require 'models/FormList'
 FormListView = require 'views/FormList'
+FormView = require 'views/Form'
 
 forms = new FormList()
 formsView = null
+currentView = null
 
 class Router extends Backbone.Router
   routes: 
     "" : "forms"
+    "Form/:formid" : "form"
+
+  clear: () ->
+    if formsView
+      formsView.$el.addClass 'hide'
+    if currentView
+      currentView.remove()
+      currentView = null
 
   forms: () ->
     console.log "Router: forms"
+    @clear()
     if not formsView
       formsView = new FormListView model: forms
       $('body').append formsView.el
     formsView.$el.removeClass 'hide'
+
+  form: (formid) ->
+    console.log "Router: form/#{formid}"
+    @clear()
+    form = forms.get formid
+    if not form
+      return alert "Could not find form #{formid}"
+    currentView = new FormView model: form
+    $('body').append currentView.el    
 
 App = 
   init: ->

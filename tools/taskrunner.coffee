@@ -690,7 +690,7 @@ handleFormdata = (req, res, formdatasub, serverurl, nano) ->
   # TODO check valid data?
   now = new Date().getTime()
   submission = 
-          _id: uuid()
+          _id: 'submission:'uuid()
           type: 'submission'
           data: formdata
           submissiontime: now
