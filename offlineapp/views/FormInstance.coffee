@@ -16,7 +16,8 @@ module.exports = class FormInstanceView extends Backbone.View
  
   render: =>
     console.log "metadata.finalized = #{@model.attributes.metadata.finalized}, draftdata._finalized = #{@model.attributes.draftdata?._finalized}"
-    @$el.html @template @model.attributes 
+    # eco templating adds escape ?!
+    @$el.html @template _.extend {}, @model.attributes 
     @setChanged @changed 
     @
 
@@ -93,6 +94,8 @@ module.exports = class FormInstanceView extends Backbone.View
 
 
   saveToDb: () =>
+    console.log 'saveToDb:'
+    console.log @model
     if false == @model.save null, {
         success: () ->
           console.log "saved ok"

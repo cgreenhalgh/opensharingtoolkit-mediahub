@@ -84,7 +84,9 @@ module.exports.getNewFormInstance = (form) ->
   instance.sync = BackbonePouch.sync
     db: db
   try
-    if false == instance.save {
+    console.log "form instance:"
+    console.log instance
+    if false == instance.save null, {
         success: () -> 
           console.log "Saved new FormInstance #{id}"
         error: (model,res,options) ->
@@ -166,7 +168,8 @@ uploadTask = () ->
     data.meta.deviceID = 'uuid:'+window.clientid # see client.js - uuid in cookie
     # custom extension
     data.meta.applicationID = $('meta[name=mediahub-appid]').attr('content')
-    data.meta.userID = user.getUserId()
+    if user.getUserId()
+      data.meta.userID = user.getUserId()
     data.meta.version = instance.formdef?.version
     data.meta.timeStart = new Date(instance.metadata.createdtime).toISOString()
     data.meta.timeEnd = new Date(instance.metadata.savedtime).toISOString()
