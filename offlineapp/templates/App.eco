@@ -1,0 +1,37 @@
+<div class="off-canvas-wrap" data-offcanvas>
+  <div class="inner-wrap">
+
+    <!-- Off Canvas Menu -->
+    <aside class="left-off-canvas-menu">
+      <ul class="off-canvas-list">
+        <li><a href="#">Home</a></li>
+        <li><label>Upload</label></li>
+        <!-- <li><a href="#user">User</a></li> -->
+        <li><a href="#upload">Manage</a></li>
+      </ul>
+    </aside>
+
+    <!-- top-bar equivalent -->
+    <nav class="tab-bar">
+      <section class="left-small">
+        <a class="left-off-canvas-toggle menu-icon" href="#"><span></span></a>
+      </section>
+
+      <section class="middle tab-bar-section">
+        <a href="#" ><h1 class="title" id="app-title">Home</h1></a>
+      </section>
+
+      <section class="right-small">
+        <div id="upload-status-holder"></div>
+      </section>
+    </nav>
+
+    <div id="appcache-status-holder"></div>
+    <div id="page-content-holder"></div>
+
+    <!-- close the off-canvas menu -->
+    <a class="exit-off-canvas"></a>
+
+  </div>
+</div>
+

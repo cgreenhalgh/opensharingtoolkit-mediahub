@@ -5,13 +5,13 @@
         <a href="#" class="button tiny right updateReady ">Reload</a>
       <% end %>
       <%= @message %>
-      <!-- <a href="#" class="close">&times;</a> -->
       <% if @bookmark: %>
         <br/>Bookmark this page to return it
       <% end %>
       <% if @unsavedLocaldbs: %>
         <br/>Unsaved changes in <%= JSON.stringify @unsavedLocaldbs %>
       <% end %>
+      <a href="#" class="close">&times;</a>
     </div>
   </div>
 

@@ -11,6 +11,7 @@ module.exports = class ThingListView extends Backbone.View
     @listenTo @model, 'add', @addItem
     @listenTo @model, 'remove', @removeItem
     @listenTo @model, 'reset', @reset
+    @render()
 
   render: =>
     @model.forEach @addItem

@@ -21,6 +21,7 @@
 FormInstance = require 'models/FormInstance'
 FormInstanceList = require 'models/FormInstanceList'
 FormUpload = require 'models/FormUpload'
+user = require 'user'
 
 dbname = 'formdata'
 app = undefined
@@ -162,6 +163,10 @@ uploadTask = () ->
     ix = instanceId.indexOf ':'
     data.meta.instanceID = "uuid:#{ if ix<0 then instanceId else instanceId.substring ix+1}"
     data.meta.id = instance.formdef?._id
+    data.meta.deviceID = 'uuid:'+window.clientid # see client.js - uuid in cookie
+    # custom extension
+    data.meta.applicationID = $('meta[name=mediahub-appid]').attr('content')
+    data.meta.userID = user.getUserId()
     data.meta.version = instance.formdef?.version
     data.meta.timeStart = new Date(instance.metadata.createdtime).toISOString()
     data.meta.timeEnd = new Date(instance.metadata.savedtime).toISOString()

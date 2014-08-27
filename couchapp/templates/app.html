@@ -15,7 +15,7 @@
 <body>
     <div id="loading-alert" class="row">
       <div class="large-12 columns">
-        <div data-alert class="alert-box"><img src="../../icons/loading.gif"/>Loading offlineApp app...
+        <div data-alert class="alert-box">Loading offlineApp app...
           <br/>If this message remains after 10 seconds then there has probably been a problem loading or running the app - please try reloading it, or try it on a different device or in a difference browser
         </div>
       </div>
@@ -27,6 +27,7 @@
     <script src="../../vendor/jquery/dist/jquery.min.js"></script>
     <script src="../../vendor/foundation/js/foundation.min.js"></script>
     <script src="../../vendor/foundation/js/foundation/foundation.reveal.js"></script>
+    <script src="../../vendor/foundation/js/foundation/foundation.offcanvas.js"></script>
     <script src="../../vendor/foundation/js/foundation/foundation.topbar.js"></script>
     <script src="../../vendor/underscore/underscore.js"></script>
     <script src="../../vendor/backbone/backbone.js"></script>
@@ -42,7 +43,7 @@
     $(document).ready(function() 
     {
       // general start-up
-      $(document).foundation();
+      // done in app: $(document).foundation();
       console.log("Running app...");
       var App = require("app");
       App.init();

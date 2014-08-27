@@ -1,10 +1,3 @@
-<nav class="top-bar" data-topbar>
-  <ul class="title-area">
-    <li class="name">
-      <h1><a href="#"><%= @title %></a></h1>
-    </li>
-  </ul>
-</nav>
 <div class="row top-item">
   <div class="columns large-4 medium-6 small-12">
     <div class="stretch-100 map-parent"><div class="stretch-child"><div class="place-map" tabindex="0"></div></div></div>

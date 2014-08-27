@@ -1,8 +1,10 @@
 # offline app - for App
 
 appcache = require 'appcache'
+templateApp = require 'templates/App'
 HomeView = require 'views/Home'
 CacheStateWidgetView = require 'views/CacheStateWidget'
+FormUploadWidgetView = require 'views/FormUploadWidget'
 
 BookletView = require 'views/Booklet'
 ThingView = require 'views/Thing'
@@ -16,11 +18,13 @@ FormUploadView = require 'views/FormUpload'
 
 localdb = require 'localdb'
 formdb = require 'formdb'
+working = require 'working'
 
 #config = window.mediahubconfig
 
 appid = null
 dburl = null
+appconfig = null
 
 items = {}
 currentView = null
@@ -45,24 +49,31 @@ class Router extends Backbone.Router
         console.log "error removing current view: #{err.message}"
       currentView = null
 
+  setCurrentView: (view) ->
+    @removeCurrentView()
+    currentView = view
+    $('#page-content-holder').empty()
+    if not view.el
+      console.log "Error: new current view has no element - trying to render"
+      view.render()
+    $('#page-content-holder').append view.el
+    if view.model?.attributes?.title
+      $('#app-title').html view.model.attributes.title
+    else if HomeView.prototype.isPrototypeOf view
+      $('#app-title').html appconfig?.title ? 'Home'
+
   upload: () ->
     console.log "show upload"
-    @removeCurrentView()
-    $('#home').hide()
-    currentView = new FormUploadView model: formdb.getFormUploadState()
-    $('body').append currentView.el
+    @setCurrentView new FormUploadView model: formdb.getFormUploadState()
     true
 
   entries: ->
     console.log "router: entries"
-    @removeCurrentView()
-    $('#home').show()
-    # TODO
+    @setCurrentView new HomeView model: topLevelThings, id: ''
+    true
 
   thing: (id) ->
     console.log "show thing #{id}"
-    @removeCurrentView()
-    $('#home').hide()
     thing = items[id]
     if not thing?
       alert "Sorry, could not find thing #{id}"
@@ -70,23 +81,23 @@ class Router extends Backbone.Router
       return false
     
     if thing.attributes.type=='booklet'
-      currentView = new BookletView model: thing
+      view = new BookletView model: thing
     else if thing.attributes.type=='place'
-      currentView = new PlaceView model: thing
+      view = new PlaceView model: thing
     else if thing.attributes.type=='html'
-      currentView = new HtmlView model: thing
+      view = new HtmlView model: thing
     else if thing.attributes.type=='form'
-      currentView = new FormView model: thing
+      view = new FormView model: thing
     else if thing.attributes.type=='list'
-      currentView = new ListView model: thing
+      view = new ListView model: thing
     else if thing.attributes.type?
-      currentView = new ThingView model: thing
+      view = new ThingView model: thing
     else
       alert "Sorry, not sure how to display #{id}"
       @navigate '#', { trigger:true, replace:true }
       return false
-
-    $('body').append currentView.el
+ 
+    @setCurrentView view
     true
 
   bookletPage: (id,page,anchor) ->
@@ -137,18 +148,23 @@ loadThings = (app,collection) ->
   for thingId in app.thingIds
     # id, url, type
     loadThing thingId,collection
+  working.done()
 
 checkConfig = (app) ->
   console.log  "config(app): "+app 
   try 
-    app = JSON.parse app
+    appconfig = app = JSON.parse app
+    if currentView and HomeView.prototype.isPrototypeOf currentView
+      $('#app-title').html (app.title ? 'Home') 
     formdb.setApp app
     loadThings app,topLevelThings
   catch err
     console.log "error parsing app config: #{err.message}: #{app} - #{err.stack}"
+    working.error 'Sorry, could not load initial information - please try reloading this app'
 
 refresh = ()->
   console.log "refresh #{dburl} #{appid}"
+  working.working 'refresh'
   topLevelThings.reset()
   $.ajax dburl+"/"+encodeURIComponent(appid),
     success: checkConfig
@@ -158,13 +174,18 @@ refresh = ()->
       # on android (at least) files from cache sometimes have status 0!!
       if xhr.status==0 && xhr.responseText
         checkConfig xhr.responseText
+      else
+        working.error 'Sorry, could not load initial information - please try reloading this app'
 
 App = 
   init: ->
 
-    home = new HomeView model:{}
-    home.el.id = 'home'
-    $('body').append home.el
+    $('body').append templateApp {} 
+    # (re)init foundation
+    setTimeout (()->$(document).foundation()), 0
+    # fix for off-screen menu size - https://github.com/zurb/foundation/issues/3800
+    $('a.left-off-canvas-toggle').click () ->
+      $('.inner-wrap').css('min-height', $(window).height()+'px')
 
     appid = $('meta[name="mediahub-appid"]').attr('content')
     exported = $('meta[name="mediahub-exported"]').attr('content')
@@ -192,11 +213,10 @@ App =
         true
 
     appcacheWidget = new CacheStateWidgetView model: appcache.state
-    $('#home').append appcacheWidget.el
+    $('#appcache-status-holder').replaceWith appcacheWidget.el
 
-    topLevelThingsView = new ThingListView model: topLevelThings
-    topLevelThingsView.render()
-    $('#home').append topLevelThingsView.el
+    uploadWidget = new FormUploadWidgetView model: formdb.getFormUploadState()
+    $('#upload-status-holder').replaceWith uploadWidget.el
 
     #Backbone.sync =  BackbonePouch.sync
     #  db: db
