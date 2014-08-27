@@ -1,0 +1,12 @@
+<div class="row top-item">
+  <div class="columns large-12 small-12">
+    <label>Your email address or nick-name
+      <input type="text" name="username" value="<%= @username %>"/>
+    </label>
+  </div>
+  <div class="columns large-12 small-12">
+    <input type="button" name="_save" value="Save" disabled/>
+    <input type="button" name="_reset" value="Reset" disabled/>
+  </div>
+</div>
+

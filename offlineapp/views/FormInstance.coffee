@@ -34,6 +34,8 @@ module.exports = class FormInstanceView extends Backbone.View
       "click input[name=_reset]": "doReset"
       "click input[name=_delete]": "doDelete"
       "change input": "onChange"
+      "paste input": "onChange"
+      "keyup input": "onChange"
       "change textarea": "onChange"
       "paste textarea": "onChange"
       "keyup textarea": "onChange"

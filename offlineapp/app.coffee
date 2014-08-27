@@ -12,6 +12,7 @@ PlaceView = require 'views/Place'
 HtmlView = require 'views/Html'
 ListView = require 'views/List'
 FormView = require 'views/Form'
+UserView = require 'views/User'
 
 ThingListView = require 'views/ThingList'
 FormUploadView = require 'views/FormUpload'
@@ -40,6 +41,7 @@ class Router extends Backbone.Router
     "booklet/:id/:page/": "bookletPage"
     "booklet/:id/:page/:anchor": "bookletPage"
     "upload": "upload"
+    "user": "user"
 
   removeCurrentView: ->
     if currentView?
@@ -59,8 +61,12 @@ class Router extends Backbone.Router
     $('#page-content-holder').append view.el
     if view.model?.attributes?.title
       $('#app-title').html view.model.attributes.title
+    else if view.title
+      $('#app-title').html view.title
     else if HomeView.prototype.isPrototypeOf view
       $('#app-title').html appconfig?.title ? 'Home'
+    else
+      $('#app-title').html 'Home'
 
   upload: () ->
     console.log "show upload"
@@ -105,6 +111,9 @@ class Router extends Backbone.Router
       if not @thing id
         return
     currentView.showPage page,anchor
+
+  user: () ->
+    @setCurrentView new UserView model: (require 'user').getUser()
 
 makeThing = (data, collection) ->
   try

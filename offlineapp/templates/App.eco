@@ -6,7 +6,7 @@
       <ul class="off-canvas-list">
         <li><a href="#">Home</a></li>
         <li><label>Upload</label></li>
-        <!-- <li><a href="#user">User</a></li> -->
+        <li><a href="#user">User</a></li>
         <li><a href="#upload">Manage</a></li>
       </ul>
     </aside>

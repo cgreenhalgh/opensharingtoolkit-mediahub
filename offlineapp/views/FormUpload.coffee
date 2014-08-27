@@ -6,6 +6,8 @@ formdb = require 'formdb'
 
 module.exports = class FormUploadView extends Backbone.View
 
+  title: 'Upload'
+
   tagName: 'div'
 
   initialize: ->
@@ -17,7 +19,8 @@ module.exports = class FormUploadView extends Backbone.View
 
   render: =>
     #console.log "render FormUploadView #{JSON.stringify @model.attributes}"
-    @$el.html @template @model.attributes
+    username = (require 'user').getUserId()
+    @$el.html @template _.extend { meta: { userID: username } }, @model.attributes
     @
 
   remove: () =>
