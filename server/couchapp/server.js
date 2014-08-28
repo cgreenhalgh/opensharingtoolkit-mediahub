@@ -23,6 +23,20 @@ ddoc.views.typeForm = {
     }  
   }
 };
+// view formdata by meta.applicationID / meta.id (form) / meta.userID ? meta.deviceID -> _count
+ddoc.views.formdataByAppFormUser = {
+  map: function(doc) {
+    if (doc._id && doc.type=='formdata') {
+      if (doc.meta) 
+        emit([doc.meta.applicationID ? doc.meta.applicationID : '', 
+          doc.meta.id ? doc.meta.id : '', 
+          doc.meta.userID ? doc.meta.userID : (doc.meta.deviceID ? doc.meta.deviceID : '')], null);
+      else
+        emit(['','',''], null);
+    }
+  },
+  reduce: '_count'
+};
 
 ddoc.validate_doc_update = function (newDoc, oldDoc, userCtx) {
   function user_is(role) {
