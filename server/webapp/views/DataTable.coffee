@@ -40,11 +40,33 @@ module.exports = class DataTableView extends Backbone.View
         for name,value of (row.doc.meta ? {})
           row.doc['_'+name] = value
         delete row.doc.meta
+        row.doc['_type'] = row.doc['type']
+        delete row.doc['type']
         for name,value of row.doc
           names[name] = true
       cnames = for name,value of names
         name
-      cnames.sort()
+      cnames.sort (a,b) ->
+        console.log "compare #{a} #{b}"
+        if a and (not b)
+          -1
+        else if (not a) and b
+          1
+        else if a.charAt(0) == '_' and not (b.charAt(0) == '_')
+          1
+        else if not (a.charAt(0) == '_') and b.charAt(0) == '_'
+          -1
+        else if a=='_userID'
+          -1
+        else if b=='_userID'
+          1
+        else if (typeof a)=='string'
+          a.localeCompare b
+        else if (typeof a)=='number'
+          a-b
+        else
+          String(a).localeCompare String(b)
+
       table = document.createElement 'TABLE'
       thead = table.createTHead()
       htr = thead.insertRow -1
