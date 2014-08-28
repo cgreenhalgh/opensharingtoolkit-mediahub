@@ -763,7 +763,7 @@ handleFormdata = (req, res, formdatasub, serverurl, servernano) ->
 
   servernano.get meta.id, (err, form) ->
     if err
-      log "Form #{meta.id} not found for submission to #{serverid}: #{err}"
+      log "Form #{meta.id} not found for submission to #{serverurl}: #{err}"
       res.writeHead 400, headers
       res.end "Form #{meta.id} not found for submission: #{err}"
       return
@@ -834,7 +834,7 @@ handleSubmission = (req, res, pathels, uploaddir) ->
             if ix>=0
               pname = decodeURIComponent (p.substring 0,ix)
               if pname == 'json_submission_file'
-                formdatasub = decodeURIComponent (p.substring ix+1)
+                formdatasub = decodeURIComponent ((p.substring ix+1).replace /\+/g, ' ')
                 #console.log "got json_submission_file = #{formdata}"
                 return handleFormdata req, res, formdatasub, serverurl, servernano  
           res.writeHead 400, headers

@@ -1,0 +1,6 @@
+<%# Home view %>
+<div class="columns large-12">
+  <h2>Options:</h2>
+  <p><a href="#makefilter">Filter formdata</a></p>
+</div>
+

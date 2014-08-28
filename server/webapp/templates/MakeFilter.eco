@@ -1,0 +1,37 @@
+<%# MakeFilter view %>
+<div class="columns large-12">
+  <h2>Make Filter</h2>
+</div>
+<div class="columns large-12">
+  <label>Filter type:
+    <select name="view">
+<% for view in @views: %>
+      <option value="<%= view.name %>" <%= if view.name==@view?.name then 'selected' %> >Filter by
+  <% for group, i in view.groups: %>
+    <%= if i>0 then '/ ' %><%= group.title %>
+  <% end %>
+      </option>
+<% end %>
+    </select>
+  </label><input type="button" name="update-view" value="Update"/><hr/>
+</div>
+<% for filter,i in @filters ? []: %>
+<div class="columns large-12">
+  <label>Specify <%= filter.title %>:
+    <select name="filter-<%= i %>">
+      <option value="" <%= if not filter.value then 'selected' %> >* (<%= filter.count %>)</option>
+<% for option in filter.options: %>
+      <option value="<%= option.value %>" <%= if filter.value == option.value then 'selected' %> ><%= option.title %>, <%= option.value %> (<%= option.count %>)</option>
+<% end %>
+    </select>
+<% if i < @view?.groups?.length : %>
+  </label><input type="button" name="update-filter-<%= i %>" value="Update"/>
+<% end %>
+  <hr/>
+</div>
+<% end %>
+<% if @view?: %>
+<div class="columns large-12">
+  <input type="button" name="show-table" value="View Data Table"/>
+</div>
+<% end %>
