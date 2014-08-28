@@ -5,6 +5,9 @@
     <option value="*" <%= if @data.cardinality=='*' then 'selected' %> >Any number of times</option>
   </select>
 </label>
+<label>Server auto-accept submitted form instances (else queue for explicit approval)
+  <input name="autoacceptSubmission" type="checkbox" <%= if @data.autoacceptSubmission then 'checked' %> />
+</label>
 <label>Inputs
   <input type="button" name="addsurveyitem" value="Add Form Element"/>
 </label>

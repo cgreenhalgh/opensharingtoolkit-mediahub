@@ -20,9 +20,11 @@ module.exports = class FormEditView extends ThingEditView
         survey.push { type:type, name:name, display: { text: displaytext }, }
     console.log "found survey items #{JSON.stringify survey}"
     cardinality = $('select[name="cardinality"]', @$el).val()
+    autoacceptSubmission = $('input[name="autoacceptSubmission"]', @$el).prop 'checked'
     @model.set 
       survey: survey
       cardinality: cardinality
+      autoacceptSubmission: autoacceptSubmission
 
   render: () =>
     super()

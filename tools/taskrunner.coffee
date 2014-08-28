@@ -299,6 +299,7 @@ taskDone = (next) ->
     sendState next
 
 taskError = (next,err) ->
+    log "taskError: #{JSON.stringify err}"
     if activeTask!=next
       log "Error: activeTask!=next in taskError"
       return
@@ -664,29 +665,18 @@ headers =
         'content-type': 'text/plain'
         'access-control-allow-origin': '*'
 
+# serverId -> formId -> form
+formCache = {}
 
-handleFormdata = (req, res, formdatasub, serverurl, nano) ->
-  try
-    formdata = JSON.parse formdatasub
-  catch err
-    res.writeHead 400, headers
-    res.end "Form data parse error: #{err.message}"
-    return        
-  # submission metadata cf https://bitbucket.org/javarosa/javarosa/wiki/OpenRosaMetaDataSchema
-  # JSON has no attributes per se (for required form id & optional version) so we will
-  # pass in meta section as id & version
-  # In meta, instanceID as required to uniquely identify form instance (version), as 'uuid:...'
-  # e.g. {"meta":{"id":"123","instanceID":"uuid:234"}}
-  # Other defined instance metadata: timeStart, timeEnd, userID (mailto: openid:), 
-  #   deviceID (imei: mac: uuid:), 
-  #   deprecatedID (superceded instance/version) 
-  meta = formdata.meta
-  if not meta or not meta.id or not meta.instanceID
-    res.writeHead 400, headers
-    res.end "Form data missing required metadata: #{JSON.stringify meta}"
-    return
+submissionComplete = (req, res, serverurl, submission) ->
+  # OpenRosa created, not 200
+  res.writeHead 201, headers
+  # Warning: non-standard response
+  res.end "Added form submission to db #{serverurl} as #{submission._id}"
+  return
 
-  # TODO check valid form ID, etc.?
+handleFormdataForm = (req, res, formdata, serverurl, servernano, form) ->
+
   # TODO check valid data?
   now = new Date().getTime()
   submission = 
@@ -706,18 +696,83 @@ handleFormdata = (req, res, formdatasub, serverurl, nano) ->
               date: req.headers['date']
             clientAddress: req.socket?.remoteAddress
 
-        nano.insert submission, (err, body) ->
+  servernano.insert submission, (err, body) ->
+    if err
+      log "Error adding form submission to db #{serverurl}: #{err}"
+      res.writeHead 500, headers
+      res.end 'Error adding form submission to db'
+      return
+    log "Added form submission to db #{serverurl} as #{submission._id}"
+    # autoaccept?
+    if form.autoacceptSubmission
+      if not formdata.meta?
+        formdata.meta = {}
+      formdata.meta.submissionID = submission._id
+      formdata.meta.submissiontime = submission.submissiontime
+      formdata._id = formdata.meta.instanceID
+      if not formdata._id
+        log "Warning: generating new instance ID for autoaccept submission #{JSON.stringify formdata}"
+        formdata._id = 'formdata:'+uuid()
+      else
+        ix = formdata._id.indexOf ':'
+        formdata._id = 'formdata:'+(formdata._id.substring ix+1)
+      formdata.type = 'formdata'
+      return servernano.get formdata._id, (err, oldvalue) ->
+        if not err
+          log "Autoaccept updating formdata #{formdata._id} from #{oldvalue._rev}"
+          formdata._rev = oldvalue._rev
+        return servernano.insert formdata, (err, body) ->
           if err
-            log "Error adding form submission to db #{serverurl}: #{err}"
+            log "Error autoupdate inserting #{formdata._id}: #{err} (#{JSON.stringify formdata}"
             res.writeHead 500, headers
-            res.end 'Error adding form submission to db'
+            res.end 'Error auto-updating form submission data in db'
             return
-          log "Added form submission to db #{serverurl} as #{submission._id}"
-          # OpenRosa created, not 200
-          res.writeHead 201, headers
-          # Warning: non-standard response
-          res.end "Added form submission to db #{serverurl} as #{submission._id}"
-          return
+          log "Auto-updated formdata #{formdata._id}"
+          return submissionComplete req, res, serverurl, submission
+
+    else
+      return submissionComplete req, res, serverurl, submission
+
+handleFormdata = (req, res, formdatasub, serverurl, servernano) ->
+  try
+    formdata = JSON.parse formdatasub
+  catch err
+    res.writeHead 400, headers
+    res.end "Form data parse error: #{err.message}"
+    return        
+  # submission metadata cf https://bitbucket.org/javarosa/javarosa/wiki/OpenRosaMetaDataSchema
+  # JSON has no attributes per se (for required form id & optional version) so we will
+  # pass in meta section as id & version
+  # In meta, instanceID as required to uniquely identify form instance (version), as 'uuid:...'
+  # e.g. {"meta":{"id":"123","instanceID":"uuid:234"}}
+  # Other defined instance metadata: timeStart, timeEnd, userID (mailto: openid:), 
+  #   deviceID (imei: mac: uuid:), 
+  #   deprecatedID (superceded instance/version) 
+  meta = formdata.meta
+  if not meta or not meta.id or not meta.instanceID
+    log "Form data missing required metadata: #{JSON.stringify meta}"
+    res.writeHead 400, headers
+    res.end "Form data missing required metadata: #{JSON.stringify meta}"
+    return
+
+  # check valid form ID, etc.?
+  forms = formCache[serverurl] ? {}
+  form = forms[meta.id]
+  if form?
+    return handleFormdataForm req, res, formdata, serverurl, servernano, form
+
+  servernano.get meta.id, (err, form) ->
+    if err
+      log "Form #{meta.id} not found for submission to #{serverid}: #{err}"
+      res.writeHead 400, headers
+      res.end "Form #{meta.id} not found for submission: #{err}"
+      return
+    forms = formCache[serverurl]
+    if not forms?
+      forms = formCache[serverurl] = {}
+    forms[meta.id] = form
+    log "Cached form #{meta.id} from server #{serverurl}"
+    return handleFormdataForm req, res, formdata, serverurl, servernano, form
 
 handleSubmission = (req, res, pathels, uploaddir) ->
     if pathels.length!=1
@@ -736,10 +791,10 @@ handleSubmission = (req, res, pathels, uploaddir) ->
     task = ts[0]
     log "submission for server #{task.config.subjectId}, task #{task.id}, #{req.method}"
     serverurl = getServerUrl task
-    nano = servers[serverurl]
-    if not nano
+    servernano = servers[serverurl]
+    if not servernano
       console.log "Initialise nano for submission server #{serverurl}"
-      servers[serverurl] = nano = require('nano') serverurl
+      servers[serverurl] = servernano = require('nano') serverurl
 
     if req.method == 'POST'
       contenttype = req.headers['content-type']
@@ -763,7 +818,7 @@ handleSubmission = (req, res, pathels, uploaddir) ->
             res.writeHead 400, headers
             res.end "Form field 'json_submission_file' not found"
             return        
-          handleFormdata req, res, formdatasub, serverurl, nano
+          handleFormdata req, res, formdatasub, serverurl, servernano
 
       else if contenttype == 'application/x-www-form-urlencoded' 
         body = ''
@@ -781,7 +836,7 @@ handleSubmission = (req, res, pathels, uploaddir) ->
               if pname == 'json_submission_file'
                 formdatasub = decodeURIComponent (p.substring ix+1)
                 #console.log "got json_submission_file = #{formdata}"
-                return handleFormdata req, res, formdatasub, serverurl, nano  
+                return handleFormdata req, res, formdatasub, serverurl, servernano  
           res.writeHead 400, headers
           res.end "Form field 'json_submission_file' not found"
 
@@ -906,50 +961,56 @@ doBuildserver = (task) ->
     return updateServer task, serverurl
 
 updateServer = (task, serverurl) ->
-  nano = require('nano') serverurl
+  servernano = require('nano') serverurl
   # (re)initialise security
   utils.doHttp "#{serverurl}/_security",'PUT','{"admins":{"names":["admin"],"roles":[]},"members":{"names":[],"roles":["serverreader","serverwriter"]}}', (err,res) ->
     if err
       return taskError task,"Error updating security on #{serverurl}: #{err}"
     log "Updated security on #{serverurl}"
-    updateServerapp task, serverurl, nano
+    updateServerapp task, serverurl, servernano
 
 SERVERDIR = __dirname+"/../server"
-updateServerapp = (task, serverurl, nano) ->
+updateServerapp = (task, serverurl, servernano) ->
   console.log "Pushing server app to #{serverurl}"
-  doSpawn task, "/usr/bin/node", [SERVERDIR+"/../node_modules/couchapp/bin.js", "push", SERVERDIR+"/couchapp/server.js", serverurl], SERVERDIR, true, (task)->
+  doSpawn task, "node", [SERVERDIR+"/../node_modules/couchapp/bin.js", "push", SERVERDIR+"/couchapp/server.js", serverurl], SERVERDIR, true, (task)->
+    # clear formCache for server
+    delete formCache[serverurl]
     # replicate Forms associated with Server (via Apps)
     # query view _design/app/_view/serverId with key=serverId
     formIds = []
-    couchurl = dburl.substring 0,(serverurl.lastIndexOf '/')
+    appIds = []
+    couchurl = dburl.substring 0,(dburl.lastIndexOf '/')
     hubdbname = dburl.substring (dburl.lastIndexOf '/')+1
     serverdbname = serverurl.substring (serverurl.lastIndexOf '/')+1
     nanodb = require('nano') couchurl
-    nanohub = nanodb.use hubdbname
-    nanohub.view 'app', 'serverId', {
+    db.view 'app', 'serverId', {
         include_docs: true
         key: task.config.subjectId
-      }, (err, body) ->
+    }, (err, body) ->
       if err
         return taskError task,"Error listing apps for server #{task.config.subjectId}: #{err}"
       # rows .id .doc
       log "Found #{body.rows?.length} Apps for server #{task.config.subjectId}" # #{JSON.stringify body}"
       for row in (body.rows ? []) 
+        # include app
+        if row.id
+          appIds.push row.id
         # check items for .type 'form' -> .id
         for item in (row.doc?.items ? []) when item.type=='form' and item.id
           formIds.push item.id
-      log "Found #{formIds.length} Forms referred to be Apps"
-      # replicate from mediahub to server db with docs_ids = [form ids])
+      log "Found #{formIds.length} Forms referred to by #{appIds.length} Apps"
+      # replicate from mediahub to server db with docs_ids = [form/app ids])
+      formIds = appIds.concat formIds
       nanodb.db.replicate hubdbname, serverdbname, {
           continuous: false
           create_target: false
           doc_ids: formIds
         }, (err, body) ->
           if err
-            return taskError task,"Error replicating forms from #{hubdbname} to #{serverdbname}: #{err}"
+            return taskError task,"Error replicating forms/apps from #{hubdbname} to #{serverdbname}: #{err}"
           if not body.ok
-            return taskError task,"Error replicating forms from #{hubdbname} to #{serverdbname}: reponse not ok: #{JSON.stringify body}"
-          log "Replicated #{formIds.length} forms from #{hubdbname} to #{serverdbname}: #{JSON.stringify body}"
+            return taskError task,"Error replicating forms/apps from #{hubdbname} to #{serverdbname}: reponse not ok: #{JSON.stringify body}"
+          log "Replicated #{formIds.length} forms/apps from #{hubdbname} to #{serverdbname}: #{JSON.stringify body}"
           # TODO - update nginx config
           taskDone task
 

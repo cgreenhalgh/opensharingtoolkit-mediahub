@@ -17,6 +17,12 @@ Thing = require 'models/Thing'
 #           [{setting_name, value, display: { title? } },...]
 #   SETTING_NAMEs: survey <with display:title> => title, form_id => id, 
 #                  form_version (int, YYYYMMDD) => version 
+#
+# Also client config for form:
+#   cardinality: 1|* - can single client create/submit multiple independent instances?
+#
+# Also submission server config for form:
+#   autoacceptSubmission: true|false
 
 module.exports = class Form extends Thing
   defaults:
@@ -27,6 +33,8 @@ module.exports = class Form extends Thing
     choices: []
     # id
     # version
+    cardinality: '1'
+    autoacceptSubmission: true
 
   idAttribute: '_id'
 

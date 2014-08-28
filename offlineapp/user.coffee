@@ -4,7 +4,7 @@ user = new Backbone.Model username: window.localStorage?.getItem 'username'
 
 module.exports.getUserId = () ->
   if user.attributes.username
-    if user.attributes.username.indexOf '@' >= 0
+    if (user.attributes.username.indexOf '@') >= 0
       'mailto:'+user.attributes.username
     else
       'nickname:'+user.attributes.username
