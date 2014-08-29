@@ -1,6 +1,7 @@
 <%# DataTable view %>
 <div class="columns large-12">
   <h2>Data Table</h2>
+  <p><input type="button" name="download-csv" value="Download CSV"/></p>
   <p>View <%= @view %>, key [<%= @key.join ',' %>]</p>
   <div class="table-holder"></div>
 </div>

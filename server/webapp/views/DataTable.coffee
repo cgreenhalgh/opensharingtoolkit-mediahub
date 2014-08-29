@@ -15,6 +15,20 @@ module.exports = class DataTableView extends Backbone.View
   template: (d) =>
     templateDataTable d
 
+  events:
+    "click input[name=download-csv]": "downloadCsv"
+
+  downloadCsv: (ev) =>
+    url = window.location.href
+    ix = url.indexOf '_design'
+    url = url.substring 0,ix
+    url = url+'_design/server/_list/csv/'+@model.attributes.view+'?include_docs=true&reduce=false'
+    if @model.attributes.key.length>0 
+      url = url+'&startkey='+encodeURIComponent(JSON.stringify @model.attributes.key)
+      url = url+'&endkey='+encodeURIComponent(JSON.stringify (@model.attributes.key.concat ['ZZZ']))
+    console.log "CSV URL: #{url}"
+    window.open url, '_blank'
+
   render: =>
     @$el.html @template @model.attributes
     @
@@ -47,7 +61,7 @@ module.exports = class DataTableView extends Backbone.View
       cnames = for name,value of names
         name
       cnames.sort (a,b) ->
-        console.log "compare #{a} #{b}"
+        #console.log "compare #{a} #{b}"
         if a and (not b)
           -1
         else if (not a) and b
