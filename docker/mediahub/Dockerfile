@@ -36,8 +36,8 @@ RUN apt-get -y install git && \
 # make couch database and deploy couchapp
 RUN couchdb -b && \
   sleep 3 && wget -qO- --method=PUT http://127.0.0.1:5984/mediahub && \
-  wget -qO- --method=PUT --header=Accept:application/json --header=Content-Type:application/json '--body-data={"_id":"org.couchdb.user:serverreader","type":"user","name":"serverreader","password":"serverreader","roles":["serverreader"]}' http://admin:ADMINPASSWORD@127.0.0.1:5984/_users/org.couchdb.user:serverreader && \
-  wget -qO- --method=PUT --header=Accept:application/json --header=Content-Type:application/json '--body-data={"_id":"org.couchdb.user:serverwriter","type":"user","name":"serverwriter","password":"serverwriter","roles":["serverwriter"]}' http://admin:ADMINPASSWORD@127.0.0.1:5984/_users/org.couchdb.user:serverwriter && \
+  wget -qO- --method=PUT --header=Accept:application/json --header=Content-Type:application/json '--body-data={"_id":"org.couchdb.user:serverreader","type":"user","name":"serverreader","password":"serverreader","roles":["serverreader"]}' http://127.0.0.1:5984/_users/org.couchdb.user:serverreader && \
+  wget -qO- --method=PUT --header=Accept:application/json --header=Content-Type:application/json '--body-data={"_id":"org.couchdb.user:serverwriter","type":"user","name":"serverwriter","password":"serverwriter","roles":["serverwriter"]}' http://127.0.0.1:5984/_users/org.couchdb.user:serverwriter && \
   cd /home/root/opensharingtoolkit-mediahub && \
   make COUCHDB=http://127.0.0.1:5984/mediahub couchapplocal && \
   wget -qO- --method=POST --header=Accept:application/json --header=Content-Type:application/json http://127.0.0.1:5984/mediahub/_ensure_full_commit && \

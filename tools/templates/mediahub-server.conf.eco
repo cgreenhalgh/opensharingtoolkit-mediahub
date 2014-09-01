@@ -19,7 +19,7 @@ location /server/<%= @id %>/mediahub/ {
 
 location /server/<%= @id %>/admin/ {
 	auth_basic "<%= @title %> <%= @id %>";
-	auth_basic_user_file <%= @id %>.htpasswd;
+	auth_basic_user_file <%= @htpasswdpath %>;
 
 	proxy_pass http://127.0.0.1:5984/<%= @id %>/;
 	#proxy_redirect default;
@@ -30,7 +30,7 @@ location /server/<%= @id %>/admin/ {
 
 location /server/<%= @id %>/audit/ {
 	auth_basic "<%= @title %> <%= @id %>";
-	auth_basic_user_file <%= @id %>.htpasswd;
+	auth_basic_user_file <%= @htpasswdpath %>;
 
 	proxy_pass http://127.0.0.1:5984/<%= @id %>/;
 	#proxy_redirect default;

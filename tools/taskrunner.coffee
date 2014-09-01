@@ -1056,8 +1056,9 @@ updateServerNginx = (task) ->
     catch err
       instance = 'mediahub'
       log "Error reading instance name from #{instancepath}: #{err.message}"
+    htpasswdpath = nginxconfdir+'/'+serverId+'.htpasswd'
     conf = eco.render templateMediahubServerConf, 
-      _.extend {instance:instance, id: serverId }, server
+      _.extend {instance:instance, id: serverId,  htpasswdpath: htpasswdpath }, server
     try 
       path = nginxconfdir+'/'+serverId+'.conf'
       log "Write nginx config for #{serverId} to #{path} with instance=#{instance}"
@@ -1069,11 +1070,10 @@ updateServerNginx = (task) ->
       password = ssha (admin.password ? '')
       htpasswd = htpasswd+admin.username+':'+password+'\n'
     try 
-      path = nginxconfdir+'/'+serverId+'.htpasswd'
-      log "Write nginx htpasswd for #{serverId} #{path}"
-      fs.writeFileSync path, htpasswd, encoding:'utf8'
+      log "Write nginx htpasswd for #{serverId} #{htpasswdpath}"
+      fs.writeFileSync htpasswdpath, htpasswd, encoding:'utf8'
     catch err
-      return taskError task, "Error writing server htpasswd #{path}: #{err.message}"
+      return taskError task, "Error writing server htpasswd #{htpasswdpath}: #{err.message}"
     # kick nginx...
     log "** FORCE NGINX CONFIG RELOAD - probably fails in dev mode! **"
     doSpawn task, "nginx", ["-s", "reload"], SERVERDIR, true,
