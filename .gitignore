@@ -13,3 +13,4 @@ docker/mediahub-*
 docker/nginxdev/html/*
 docker/nginxdev/conf/*
 server/out.log
+instance

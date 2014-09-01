@@ -1049,11 +1049,21 @@ updateServerNginx = (task) ->
   db.get serverId, (err, server) ->
     if err
       return taskError task, "Error getting Server record #{serverId}: #{err}"
+    serverId = serverId.substring (serverId.indexOf ':')+1
+    # guess instance name?!
+    instance = 'mediahub'
+    instancepath = __dirname+"/../instance"
+    try 
+      instance = fs.readFileSync instancepath, "utf-8"
+      instance = instance.trim()
+    catch err
+      instance = 'mediahub'
+      log "Error reading instance name from #{instancepath}: #{err.message}"
     conf = eco.render templateMediahubServerConf, 
-      _.extend {}, server
+      _.extend {instance:instance, id: serverId }, server
     try 
       path = nginxconfdir+'/'+serverId+'.conf'
-      log "Write nginx config for #{serverId} #{path}"
+      log "Write nginx config for #{serverId} to #{path} with instance=#{instance}"
       fs.writeFileSync path, conf, encoding:'utf8'
     catch err
       return taskError task, "Error writing server conf #{path}: #{err.message}"

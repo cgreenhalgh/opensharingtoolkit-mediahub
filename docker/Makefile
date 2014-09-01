@@ -37,13 +37,16 @@ passwd = $(shell openssl passwd $(password) )
 mediahub-$(NAME)/htpasswd: mediahub-$(NAME) mediahub/htpasswd.template mediahub-$(NAME)/password
 	cat mediahub/htpasswd.template | sed -e "s/#{NAME}/$(NAME)/g" -e "s_#{PASSWD}_$(passwd)_g" > mediahub-$(NAME)/htpasswd
 
+mediahub-$(NAME)/instance: 
+	echo $(NAME) > mediahub-$(NAME)/instance
+
 mediahub-$(NAME)/nginx-mediahub: mediahub-$(NAME) mediahub/nginx-mediahub.template 
 	cat mediahub/nginx-mediahub.template | sed -e "s/#{NAME}/$(NAME)/g" > mediahub-$(NAME)/nginx-mediahub
 
 mediahub-$(NAME)/Dockerfile: mediahub-$(NAME) mediahub/Dockerfile.template 
 	cat mediahub/Dockerfile.template | sed -e "s/#{NAME}/$(NAME)/g" > mediahub-$(NAME)/Dockerfile
 
-mediahub-$(NAME)/image.timestamp: mediahub-$(NAME)/Dockerfile mediahub-$(NAME)/htpasswd mediahub-$(NAME)/nginx-mediahub mediahub/image.timestamp
+mediahub-$(NAME)/image.timestamp: mediahub-$(NAME)/Dockerfile mediahub-$(NAME)/htpasswd mediahub-$(NAME)/nginx-mediahub mediahub/image.timestamp mediahub-$(NAME)/instance
 # "make image for $(NAME)"
 	sudo docker build -t mediahub-$(NAME) mediahub-$(NAME)
 	touch mediahub-$(NAME)/image.timestamp
