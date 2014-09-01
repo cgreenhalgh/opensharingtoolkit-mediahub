@@ -107,7 +107,7 @@ checkThings = (model, thingIds, items, files, servers) ->
     console.log "Checked all things, found #{items.length} items, #{files.length} files and #{servers.length} servers"
     model.set { items: items, files: files, servers: servers }
     
-  addPlace: (files, lat, lon, zoom) ->
+addPlace = (files, lat, lon, zoom) ->
     console.log "add place #{lat},#{lon},#{zoom}"
     if not zoom?
       zoom = defaultZoom
@@ -141,6 +141,7 @@ checkThings = (model, thingIds, items, files, servers) ->
       if z>=minZoom
         for x in [x1..x2]
           for y in [y1..y2]
+            s = subdomains[Math.abs(x + y) % subdomains.length]
             url = mapUrl.replace( '{s}', s ).replace( '{z}', z ).replace( '{x}',x ).replace( '{y}', y )    
             file = { url: url, title: 'map tile' } 
             files[file.url] = file

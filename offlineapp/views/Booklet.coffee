@@ -33,13 +33,13 @@ module.exports = class BookletView extends Backbone.View
         else if el.nodeType == 1 and nodeName == 'div' and $el.hasClass( 'mediahubcomment' )
           # ignore
         else if el.nodeType == 1 and nodeName == 'h1'
-          title = $el.html()
+          title = $el.text().trim()
           anchor = anchorPrefix+(pages.length+1)+'_'+(nextAnchor++)
           toc.push { level: 1, title: title, page: pages.length, anchor: anchor }
           ahtml = $.parseHTML "<a id='#{anchor}'><h1>#{title}</h1></a>"
           page.push ahtml[0]
         else if el.nodeType == 1 and nodeName == 'h2'
-          title = $el.html()
+          title = $el.text().trim()
           anchor = anchorPrefix+(pages.length+1)+'_'+(nextAnchor++)
           toc.push { level: 2, title: title, page: pages.length, anchor: anchor }
           ahtml = $.parseHTML "<a id='#{anchor}'><h2>#{title}</h2></a>"
