@@ -40,8 +40,10 @@ module.exports = class FormView extends ThingView
     @instanceView = new FormInstanceView model: instance
     @listenTo instance, 'destroy', @instanceDestroyed
     $('.form-instance-holder', @$el).append @instanceView.el
-    if not instance.metadata?.saved or not instance.metadata?.finalized or @instanceView.changed
+    if not instance.attributes.metadata?.saved or not instance.attributes.metadata?.finalized or @instanceView.changed
       $('.form-newinstance', @$el).prop 'disabled', true
+    else
+      $('.form-newinstance', @$el).prop 'disabled', false
 
   newInstance: (ev) =>
     if ev
