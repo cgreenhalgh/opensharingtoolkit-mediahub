@@ -1,0 +1,41 @@
+# nginx config for mediahub data server instance (template).
+# @ is server { _id: , title: , ... } 
+
+location /server/<%= @_id %>/public/ {
+	proxy_pass http://127.0.0.1:5984/<%= @_id %>/_design/server/_rewrite/;
+	break;
+}
+
+location /server/<%= @_id %>/mediahub/ {
+	auth_basic "mediahub";
+	auth_basic_user_file conf/htpasswd;
+
+	proxy_pass http://127.0.0.1:5984/<%= @_id %>/;
+	#proxy_redirect default;
+	# admin:admin authorization on couchdb
+	proxy_set_header Authorization "Basic YWRtaW46YWRtaW4=";
+	break;
+}
+
+location /server/<%= @_id %>/admin/ {
+	auth_basic "<%= @title %> <%= @_id %>";
+	auth_basic_user_file <%= @_id %>.htpasswd;
+
+	proxy_pass http://127.0.0.1:5984/<%= @_id %>/;
+	#proxy_redirect default;
+        # serverwriter:serverwriter authorization on couchdb
+	proxy_set_header Authorization "Basic c2VydmVyd3JpdGVyOnNlcnZlcndyaXRlcg==";
+	break;
+}
+
+location /server/<%= @_id %>/audit/ {
+	auth_basic "<%= @title %> <%= @_id %>";
+	auth_basic_user_file <%= @_id %>.htpasswd;
+
+	proxy_pass http://127.0.0.1:5984/<%= @_id %>/;
+	#proxy_redirect default;
+        # serverreader:serverreader authorization on couchdb
+	proxy_set_header Authorization "Basic c2VydmVycmVhZGVyOnNlcnZlcnJlYWRlcg==";
+	break;
+}
+

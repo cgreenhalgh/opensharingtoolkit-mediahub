@@ -6,12 +6,17 @@ spawn = require('child_process').spawn
 parse_url = require('url').parse
 utils = require('./utils')
 uuid = require 'node-uuid'
+eco = require 'eco'
+_ = require 'underscore'
 
 log = (msg) -> 
   # compatible with couchdb external processes
   console.log JSON.stringify ["log", msg]
 
 log "Node version #{JSON.stringify process.version}"
+
+templateMediahubServerConf = fs.readFileSync __dirname+"/templates/mediahub-server.conf.eco", "utf-8"
+
 #log "Environment #{JSON.stringify process.env}"
 newmask = 0o0022
 try
@@ -22,6 +27,7 @@ catch err
 
 dburl = 'http://127.0.0.1:5984/mediahub'
 publicwebdir = '../docker/nginxdev/html/public'
+nginxconfdir = '../docker/nginxdev/conf/mediahub-servers'
 serverport = 8090
 MAX_PROCESS_TIME = 300000
 MAX_FILES_SIZE = 50000000
@@ -39,6 +45,10 @@ stdin.on 'data', (d) ->
       publicwebdir = conf.publicwebdir
       if publicwebdir.length>0 and (publicwebdir.lastIndexOf '/')==publicwebdir.length-1
         publicwebdir = publicwebdir.substring 0, publicwebdir.length-1
+    if conf.nginxconfdir?
+      nginxconfdir = conf.nginxconfdir
+      if nginxconfdir.length>0 and (nginxconfdir.lastIndexOf '/')==nginxconfdir.length-1
+        nginxconfdir = nginxconfdir.substring 0, nginxconfdir.length-1
     if conf.serverport?
       serverport = Number(conf.serverport)
     if !started
@@ -48,7 +58,7 @@ stdin.on 'data', (d) ->
   catch err
     log "Error reading config #{d}: #{err.message}"
 
-log "requesting config like #{JSON.stringify { dburl: dburl, publicwebdir: publicwebdir, serverport: serverport }}"
+log "requesting config like #{JSON.stringify { dburl: dburl, publicwebdir: publicwebdir, serverport: serverport, nginxconfdir: nginxconfdir }}"
 console.log JSON.stringify ["get", "taskrunner"]
 
 tasks = {} 
@@ -56,6 +66,7 @@ tasks = {}
 nano = null
 db = null
 publicwebdirerror = true
+nginxconfdirerror = true
 cookie = null
 
 checkCookie = (headers) ->
@@ -107,6 +118,8 @@ start = () ->
   log "using publicwebdir #{publicwebdir}"
   if fs.existsSync publicwebdir
     publicwebdirerror = false
+  if fs.existsSync nginxconfdir
+    nginxconfdirerror = false
 
   db.list
     include_docs: true
@@ -259,6 +272,8 @@ schedule = () ->
 
   if publicwebdirerror
     return taskError next,"Public web directory not found (#{publicwebdir})"
+  if nginxconfdirerror
+    return taskError next,"Nginx confinguration directory not found (#{nginxconfdir})"
   if next.config.taskType=='exportapp'
     doExportapp next
   else if next.config.taskType=='exportkiosk'
@@ -417,7 +432,6 @@ doExportkiosk = (task) ->
   if (path=(checkPath task, publicwebdir, true))?
     doSpawn task, "/usr/local/bin/coffee", ["#{__dirname}/exportkiosk.coffee",kioskurl,publicurl,task.config.path], path, true,
       (task) ->
-        # TODO cache builder
         doTar task
 
 doBackup = (task) ->
@@ -1011,6 +1025,51 @@ updateServerapp = (task, serverurl, servernano) ->
           if not body.ok
             return taskError task,"Error replicating forms/apps from #{hubdbname} to #{serverdbname}: reponse not ok: #{JSON.stringify body}"
           log "Replicated #{formIds.length} forms/apps from #{hubdbname} to #{serverdbname}: #{JSON.stringify body}"
-          # TODO - update nginx config
-          taskDone task
+          updateServerNginx task
+
+# https://gist.github.com/itorres/2947088
+crypto = require('crypto')
+ssha = (cleartext, salt) ->
+  try 
+    sum = crypto.createHash('sha1')
+    salt = salt ? new Buffer(crypto.randomBytes(20)).toString('base64')
+    sum.update(cleartext)
+    sum.update(salt)
+    digest = sum.digest()
+    ssha = '{SSHA}' + new Buffer(digest+salt,'binary').toString('base64')
+    ssha
+  catch err
+    log "Error hashing password: #{err.message}"
+    '{PLAIN}'+admin.password
+ 
+
+updateServerNginx = (task) ->
+  # get Server record
+  serverId = task.config.subjectId
+  db.get serverId, (err, server) ->
+    if err
+      return taskError task, "Error getting Server record #{serverId}: #{err}"
+    conf = eco.render templateMediahubServerConf, 
+      _.extend {}, server
+    try 
+      path = nginxconfdir+'/'+serverId+'.conf'
+      log "Write nginx config for #{serverId} #{path}"
+      fs.writeFileSync path, conf, encoding:'utf8'
+    catch err
+      return taskError task, "Error writing server conf #{path}: #{err.message}"
+    htpasswd = "# admins for mediahub server #{serverId} - #{server.title}\n"
+    for admin in (server.admins ? [])
+      password = ssha (admin.password ? '')
+      htpasswd = htpasswd+admin.username+':'+password+'\n'
+    try 
+      path = nginxconfdir+'/'+serverId+'.htpasswd'
+      log "Write nginx htpasswd for #{serverId} #{path}"
+      fs.writeFileSync path, htpasswd, encoding:'utf8'
+    catch err
+      return taskError task, "Error writing server htpasswd #{path}: #{err.message}"
+    # kick nginx...
+    log "** FORCE NGINX CONFIG RELOAD - probably fails in dev mode! **"
+    doSpawn task, "nginx", ["-s", "reload"], SERVERDIR, true,
+      (task) ->
+        taskDone task
 

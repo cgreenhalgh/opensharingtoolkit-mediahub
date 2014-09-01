@@ -57,9 +57,23 @@
     <h4>(Re)Build App-specific Server</h4>
 
 <% submission = "#{window.mediahubconfig.submissionurl}/#{encodeURIComponent @subjectId}" %>
+<% serverId = @subjectId.substring (@subjectId.indexOf ':')+1 %>
     <p>Will create/maintain a database and upload server for form submission and other user uploads from associated apps.</p>
     <p>Server <%= @subjectId %></p>
     <p>Form submission <a target="_blank" href="<%= submission %>"><%= submission %></a></p> 
+<% if window.mediahubconfig.serversurl : %>
+<% serverurl = "#{window.mediahubconfig.serversurl}/#{encodeURIComponent serverId}" %>
+<% servermediahub = "#{serverurl}/mediahub/_design/server/html/server/index.html" %>
+<% serveradmin = "#{serverurl}/admin/_design/server/html/server/index.html" %>
+
+    <p>Server admin using your mediahub username/password: <a target="_blank" href="<%= servermediahub %>"><%= servermediahub %></a></p> 
+    <p>Server admin using server-specific admin accounts: <a target="_blank" href="<%= serveradmin %>"><%= serveradmin %></a></p> 
+<% else: %>
+<% ix = window.mediahubconfig.dburl.lastIndexOf '/' %>
+<% servermediahub = "#{window.mediahubconfig.dburl.substring 0, ix}/#{encodeURIComponent serverId}/_design/server/html/server/index.html" %>
+    <p>Server admin (dev mode): <a target="_blank" href="<%= servermediahub %>"><%= servermediahub %></a></p> 
+
+<% end %>
 
 <% else if @taskType=='exportserver': %>
     <h4>Export (Dump) Data from App-specific Server</h4>

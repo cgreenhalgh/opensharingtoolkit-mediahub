@@ -124,7 +124,9 @@ nginx/container.timestamp: nginx/image.timestamp
 nginxdev/container.timestamp: nginxdev/image.timestamp
 	-mkdir nginxdev/html
 	-mkdir nginxdev/html/public
-	sudo docker run --name nginxdev -h nginxdev -v $(ROOT_DIR)/nginxdev/html:/usr/share/nginx/html/:ro -d -p 8080:80 nginxdev
+	-mkdir nginxdev/conf
+	-mkdir nginxdev/conf/mediahub-servers
+	sudo docker run --name nginxdev -h nginxdev -v $(ROOT_DIR)/nginxdev/html:/usr/share/nginx/html/:ro -v $(ROOT_DIR)/nginxdev/conf/mediahub-servers:/etc/nginx/mediahub-servers/:ro -d -p 8080:80 nginxdev
 	touch nginxdev/container.timestamp
 
 nginxdev: nginxdev/container.timestamp 

@@ -13,6 +13,8 @@ RUN apt-get -y install php5-cli php5-fpm && \
   ( echo "php-fpm, /usr/sbin/php5-fpm" >> /var/cfengine/inputs/processes_run.csv )
 
 COPY nginx-default.conf /etc/nginx/sites-available/default
+# dev - admin:admin
+RUN echo "admin:QVWFd1fogzgdk" > /etc/nginx/conf/htpasswd
 
 EXPOSE 80
 

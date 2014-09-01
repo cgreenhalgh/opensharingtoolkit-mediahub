@@ -1,6 +1,7 @@
 FROM mediahub
 
 # nginx config
+RUN mkdir -p /etc/nginx/mediahub-servers/ && \
 ADD nginx-mediahub /etc/nginx/sites-available/default
 ADD htpasswd /etc/nginx/conf/
 

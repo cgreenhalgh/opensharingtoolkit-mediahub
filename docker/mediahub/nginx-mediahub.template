@@ -64,6 +64,9 @@ server {
 	location /public/ {
 		break;
 	}
+
+        include /etc/nginx/mediahub-servers/*.conf;
+
 	location / {
 		deny all;
 	}
