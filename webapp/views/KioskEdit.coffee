@@ -8,6 +8,8 @@ module.exports = class KioskEditView extends ListEditView
   tabs: ->
     super().concat [ { title: 'Kiosk', template: templateKioskEditTab } ]
 
+  listTypes: () -> [ 'file', 'app' ]
+
   formToModel: () =>
     super()
     cs = $('.kiosk-campaign', @$el)

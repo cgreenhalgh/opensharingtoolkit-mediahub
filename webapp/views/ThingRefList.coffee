@@ -3,6 +3,7 @@ templateThingRefList = require 'templates/ThingRefList'
 ThingRefInListView = require 'views/ThingRefInList'
 ThingMultiselectModalView = require 'views/ThingMultiselectModal'
 ThingRef = require 'models/ThingRef'
+ThingList = require 'models/ThingList'
 allthings = require 'allthings'
 
 module.exports = class ThingRefListView extends Backbone.View
@@ -135,7 +136,7 @@ module.exports = class ThingRefListView extends Backbone.View
     ix = @getIndex ev
     console.log "addBelow #{ix}..."
     if not @multiseletModal?
-      thingList = allthings.get()
+      thingList = new ThingList allthings.get().filter ((t) => @model.acceptsThing t)
       @multiselectModal = new ThingMultiselectModalView model: thingList
       @multiselectModal.render()
       @$el.append @multiselectModal.el

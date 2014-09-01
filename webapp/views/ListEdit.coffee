@@ -10,13 +10,14 @@ module.exports = class ListEditView extends ThingEditView
   tabs: ->
     super().concat [ { title: 'List', template: templateListEditTab } ]
 
+  listTypes: () -> [ 'html', 'booklet', 'place', 'form', 'list' ]
+
   render: =>
     super()
-    things = []
+    @thingRefList = new ThingRefList [], types: @listTypes()
     if @model.attributes.thingIds?
       for thingId, i in @model.attributes.thingIds
-        things.push new ThingRef thingId: thingId, _id: uuid()
-    @thingRefList = new ThingRefList things
+        @thingRefList.add new ThingRef thingId: thingId, _id: uuid()
     @thingRefListView =  new ThingRefListView model: @thingRefList
     $('.thingref-list-holder', @$el).append @thingRefListView.el
 
