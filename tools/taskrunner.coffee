@@ -483,12 +483,13 @@ addRmTask = (path) ->
       enabled: true
   log "addRmTask #{path}"
 
-doSpawn = (task, cmd, args, cwd, dolog, continuation) ->
+doSpawn = (task, cmd, args, cwd, dolog, continuation, logfilename) ->
   log "doSpawn: #{cmd} #{JSON.stringify args} in #{cwd}"
   if dolog
     try
-      out = fs.openSync("#{cwd}/out.log", 'a')
-      err = fs.openSync("#{cwd}/out.log", 'a')
+      logfilename = logfilename ? 'out.log'
+      out = fs.openSync("#{cwd}/#{logfilename}", 'a')
+      err = fs.openSync("#{cwd}/#{logfilename}", 'a')
       logstdio = [ 'ignore', out, err ]
     catch err
       log "doSpawn: error opening log file #{err.message}"
@@ -1025,6 +1026,7 @@ updateServerapp = (task, serverurl, servernano) ->
           updateServerNginx task
 
 # https://gist.github.com/itorres/2947088
+# Note: doesn't seem to work (i.e. authenticate user) with nginx
 crypto = require('crypto')
 ssha = (cleartext, salt) ->
   try 
@@ -1066,14 +1068,38 @@ updateServerNginx = (task) ->
     catch err
       return taskError task, "Error writing server conf #{path}: #{err.message}"
     htpasswd = "# admins for mediahub server #{serverId} - #{server.title}\n"
-    for admin in (server.admins ? [])
-      password = ssha (admin.password ? '')
-      htpasswd = htpasswd+admin.username+':'+password+'\n'
     try 
       log "Write nginx htpasswd for #{serverId} #{htpasswdpath}"
       fs.writeFileSync htpasswdpath, htpasswd, encoding:'utf8'
     catch err
       return taskError task, "Error writing server htpasswd #{htpasswdpath}: #{err.message}"
+    admins = [].concat (server.admins ? [])
+    updateServerAdmins task, admins, htpasswdpath
+
+updateServerAdmins = (task, admins, htpasswdpath) ->
+  if admins.length>0
+    admin = (admins.splice 0,1)[0]
+    outpath = SERVERDIR+"/password.tmp"
+    withPassword = (task) ->
+        try
+          out = fs.readFileSync outpath, "utf-8"
+        catch err
+          return taskError "Unable to read encrypted server password from #{outpath}: #{err.message}"
+        password = out.trim()
+        htpasswd = admin.username+':'+password+'\n'
+        try 
+          fs.appendFileSync htpasswdpath, htpasswd, encoding:'utf8'
+        catch err
+          return taskError task, "Error appending server htpasswd #{htpasswdpath}: #{err.message}"
+        # recurse
+        updateServerAdmins task, admins, htpasswdpath
+    try
+      fs.unlinkSync outpath
+    catch err
+      log "Warning: unable to unlink #{outpath}: #{err.message}"
+    doSpawn task, "openssl", ["passwd", admin.password], SERVERDIR, true, withPassword, 'password.tmp'
+
+  else
     # kick nginx...
     log "** FORCE NGINX CONFIG RELOAD - probably fails in dev mode! **"
     doSpawn task, "nginx", ["-s", "reload"], SERVERDIR, true,
