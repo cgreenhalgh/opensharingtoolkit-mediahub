@@ -664,10 +664,7 @@ getServerUrl = (task) ->
   # buildserver task only! 
   if not task.config.subjectId
     return null
-  ix = task.config.subjectId.lastIndexOf ':'
-  dbname = task.config.subjectId.substring (ix+1)
-  if not dbname
-    return null
+  dbname = task.config.subjectId.replace /:/g, '-'
   ix = dburl.lastIndexOf '/'
   couchurl = dburl.substring 0, ix
   serverurl = couchurl+'/'+dbname
@@ -1036,8 +1033,8 @@ ssha = (cleartext, salt) ->
     sum.update(cleartext)
     sum.update(salt)
     digest = sum.digest()
-    ssha = '{SSHA}' + new Buffer(digest+salt,'binary').toString('base64')
-    ssha
+    res = '{SSHA}' + new Buffer(digest+salt,'binary').toString('base64')
+    res
   catch err
     log "Error hashing password: #{err.message}"
     '{PLAIN}'+admin.password
@@ -1049,7 +1046,7 @@ updateServerNginx = (task) ->
   db.get serverId, (err, server) ->
     if err
       return taskError task, "Error getting Server record #{serverId}: #{err}"
-    serverId = serverId.substring (serverId.indexOf ':')+1
+    serverId = serverId.replace /:/g, '-'
     # guess instance name?!
     instance = 'mediahub'
     instancepath = __dirname+"/../instance"

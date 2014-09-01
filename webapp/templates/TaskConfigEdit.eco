@@ -57,7 +57,7 @@
     <h4>(Re)Build App-specific Server</h4>
 
 <% submission = "#{window.mediahubconfig.submissionurl}/#{encodeURIComponent @subjectId}" %>
-<% serverId = @subjectId.substring (@subjectId.indexOf ':')+1 %>
+<% serverId = @subjectId.replace /:/g, '-' %>
     <p>Will create/maintain a database and upload server for form submission and other user uploads from associated apps.</p>
     <p>Server <%= @subjectId %></p>
     <p>Form submission <a target="_blank" href="<%= submission %>"><%= submission %></a></p> 
