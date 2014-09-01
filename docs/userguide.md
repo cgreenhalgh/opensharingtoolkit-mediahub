@@ -196,3 +196,118 @@ Note that if you delete a `Background Task` then the mediahub will also try to t
 
 Most `Background Task`s have one associated directory on the web server, and each directory can be associated with only one `Background Task`: if you try to create a second task with the same directory then you will get a warning and be presented with the existing `Background Task` for that directory.
 
+## Server Quick(ish)start
+
+You can set up apps so that users can give you feedback or data. This is a bit more complicated than just publishing information as we have done so far. To do this you need to create a `Server` to accept and store this data and include a `Form` in your app to specify what you want to get from each user.
+
+This brief tutorial takes you through creating a first upload server (within your mediahub) and adding an upload form to your app.
+
+### 1. Define a Server
+
+In your mediahub, if you are not at the `Content Types` list then click on `Mediahub` in the title bar.
+
+Click `Server` to see a list of current upload servers (the `Server List`). Click `Add...` and the `Add Server` form will appear. This has two tabs: `Overview` and `Server`.
+
+In the `Overview` tab give the data server a title e.g. `test server`.
+
+Click `Add` to create the `Server` and return to the `Server List`.
+
+### 2. Create (or Update) a Server
+
+If you are not at the `Server List` view then click on `Mediahub` in the title bar and click `Server` from the `Content Types` view.
+
+On the entry for your new server, click `Build...`. The `Add Background Task` form will appear, sub-titled `(Re)Build App-specific Server`. Click `Create` (or `Update` if the task already exists) to ask your mediahub server to make or update that particular upload server. The `Task status` should change to green (`Task complete`) after a few seconds if the data server has been created.
+
+Try clicking the `Server admin using your mediahub username/password` link; this should open the admin/management view of that data server, which looks a little like the mediahub but has the title `Server` and a list of options, initially only `Filter formdata` (which we'll come back to later). You can save this web page (e.g. in your bookmarks) so that you can return to it more easily.
+
+### 3. Create a Form
+
+In your mediahub, if you are not at the `Content Types` list then click on `Mediahub` in the title bar.
+
+Click `Form` to go to the (initially empty) `Form List`.
+
+Click `Add...` to show the `Add Form` view, which has two tabs, `Overview` and `Form`.
+
+In the `Overview` tab give the form a title, e.g. `test feedback`.
+
+In the `Form` tab change the `Cardinality of Form` from `Once` to `Any number of times` - this will allow a single user to give feedback multiple times using the same form (e.g. a set of different suggestions).
+
+Also in the `Form` tab ensure that the `Server auto-accept submitted form` checkbox remains checked (or you will not be able to view/find the submitted information later on the server).
+
+Finally, in the `Form` tab, click `Add Form Element` to start defining what information you want to collect. A row appears with the form element's `Name`, `Prompt` and `Type`. 
+
+- Set the `Type` to `Text`, i.e. you want the user to give you some textual information. 
+- Set the `Name` to a short string such as `feedback` which will identify this part of the form in the collected data (Note, every element in a single form must have a different `Name`). 
+- Set the `Prompt` to the text you want to present to the user, e.g. `What is your feedback?`
+
+Now click `Save` to create the form.
+
+### 4. Add the Form to an App
+
+If you are not at the `App List` view then click on `Mediahub` in the title bar and click `App` from the `Content Types` view.
+
+On the entry for the app you already created, click `Edit`.
+
+In the `App` tab set the `Server` to your new server (as created above).
+
+In the `List` tab add your new form to the list of `Specific Items`.
+
+Now `Save changes` to the app.
+
+### 5. Completing a Form on an App
+
+Now try testing the app - click `Test Offline` from the app's entry in the `App List`. Wait for the app to update and click `reload` to get the new version of the app which includes the form. The app should then appear, with a top-level entry for your feedback form.
+
+Click on the form entry. If the form cardinality was `Any number of times` then you will see a button `Start new form instance` - click this. (Otherwise you will see only allowed copy of the form.)
+
+The form should be visible with the prompt specified for each form element and a suitable input (e.g. text box). There is also a checkbox `Ready for upload?` which tells the app whether you are happy to upload this information, and `Save`, `Discard unsaved changes` and `Delete` buttons.
+
+Enter some text in the feedback box.
+
+Check `Ready to upload?`, and click `Save`. The information you entered is now saved in the app ready to upload to the server, but the server isn't quite ready yet...
+
+### 6. Adding the Form to the Server
+
+Go back to the Mediahub, to the `Server List` and click `Build...` for your server (alternatively you can go to the `Background Task List` and click the `buildserver` entry for your server.
+
+Click `Update` to make sure that your server is up to date; in particular this will copy information about the app which is using your server including the information about the form in it. 
+
+Note: this will only work AFTER the app has been tested offline or exported! (which we did above)
+
+Note: you will have to do again this if you change the form or if you add another form to an app which uses the same server.
+
+### 7. Uploading data from an App
+
+Go back to your app and `Test offline` again. 
+
+If you click on your form you should still see the information that you entered. 
+
+Click on the menu/bars at the top left of the app and click `User`. Enter a short name in the box `Your email address or nick-name` and click `Save` - this name will be included with the uploaded data.
+
+Click on the menu/bars at the top left of the app and click `Manage` under `Upload` (alternatively click the up arrow at the right of the app title bar). This `Upload` view should report that there is `1 form instances need uploading`; if not then find your form again in the app and check that `Ready to upload?` is checked and `Save`.
+
+Click `Start upload`. The app should now upload your completed feedback information to your new data server. (This will always require an internet connection, but if it fails no data will be lost - you can try to upload it later.)
+
+### 8. Viewing Uploaded Data
+
+Go back to the Mediahub, to the `Server List` and click `Build...` for your server (alternatively you can go to the `Background Task List` and click the `buildserver` entry for your server.
+
+Click the `Server admin using your mediahub username/password` link to open the admin/management view of that data server.
+
+Click `Filter formdata`. You will see a view `Make Filter` with a dropdown for `Filter type`. Leave this as `Filter to App / Form / User` and click `Update` immediately underneath it. 
+
+A new dropdown `Specify App` appears, initially showing `* (1)`, i.e. any app, for which there are a total of 1 form(s) uploaded (the one we just did). From the dropdown select your app and click `Update` under that.
+
+A new dropdown `Specify Form` appears, initially showing `* (1)`, i.e. any form within that app, for which there are a total of 1 form(s) uploaded (the one we just did). From the dropdown select your form and click `Update` under that.
+
+A new dropdown `Specify User` appears, initially showing `* (1)`, i.e. any user of that form within that app, for which there are a total of 1 form(s) uploaded (the one we just did). You can leave this as `*` for now.
+
+Click `View Data Table` at the bottom (you could have done this earlier if you didn't want to filter by user, form or app).
+
+A `Data Table` view appears with a table showing the uploaded data - there should be one row with the feedback you have and the `_userID` that you entered in the app.
+
+Click `Download CSV` to download a copy of the data in the table. You can save this and import it into a spreadsheet application such as Microsoft Excel. It is in a format called "comma-separated values". 
+
+
+Well done, you have now set up a data collection server and an app which allows users to send you feedback or other data.
+
