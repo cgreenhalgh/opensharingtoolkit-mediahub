@@ -121,12 +121,12 @@ check_manifest = (surl) ->
   catch err
     return utils.logError "error reading manifest #{path}"
   # qrcode? - not working yet
-  #if publicqrurl
-  #  data = data+'\nCACHE:\n'+publicqrurl+'\n'
-  #  try
-  #    fs.writeFileSync path, data
-  #  catch err
-  #    utils.logError "Error updating manifest to include qrcode url: #{err.message}"      
+  if publicqrurl
+    data = data+'\nCACHE:\n'+publicqrurl+'\n'
+    try
+      fs.writeFileSync path, data
+    catch err
+      utils.logError "Error updating manifest to include qrcode url: #{err.message}"      
   file = 
     text: ''
     url: surl
@@ -318,16 +318,15 @@ cacheFile appurl, (err,path) ->
         '<meta name="mediahub-exported" content="true"/>'+
         html.substring( ix+6 )
       if publicurl
-        encodedPublicqrurl = encodeURI(publicqrurl)
         file.text = html.substring( 0, ix+6 )+
-          '<meta name="mediahub-publicqrurl" content="'+encodedPublicqrurl+'"/>'+
-          '<meta name="mediahub-publicurl" content="'+encodeURI(publicurl)+'"/>'+
+          '<meta name="mediahub-publicqrurl" content="'+publicqrurl+'"/>'+
+          '<meta name="mediahub-publicurl" content="'+publicurl+'"/>'+
           file.text.substring( ix+6 )
         from = ix+6+'<meta name="mediahub-publicqrurl" content="'.length
         file.refs.push
             type: 'html'
             from: from
-            to: from+encodedPublicqrurl.length
+            to: from+publicqrurl.length
             src: fix_relative_url file.baseurl, publicqrurl
 
     addSrcRefs file

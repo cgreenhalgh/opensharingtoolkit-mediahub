@@ -12,17 +12,18 @@ module.exports.setCouchurl = (url) ->
   couchurl = url
 
 module.exports.get_file_extension = get_file_extension = (url) ->
-  iq = url.indexOf '?'
-  if iq<0
-    iq = url.length
-  ix = url.lastIndexOf '/', iq
+  #iq = url.indexOf '?'
+  #if iq>=0
+  #  # not a real extension?
+  #  return null
+  ix = url.lastIndexOf '/' #, iq
   if ix<0
     ix = 0
-  ix2 = url.lastIndexOf '.', iq
+  ix2 = url.lastIndexOf '.' #, iq
   if ix2<ix or ix2==url.length-1
     null
   else
-    url.substring (ix2+1)
+    url.substring ix2+1 #, iq
 
 module.exports.checkMimetype = checkMimetype = (surl, fn) ->
   url = parse_url surl
@@ -180,7 +181,7 @@ module.exports.cacheUrls = cacheUrls = {}
 # maps domain name elements and path elements to folders
 module.exports.get_cache_path = get_cache_path = (url) ->
   url = parse_url url
-  # host, port, path (includes query), hash
+  # host, port, pathname, hash, search
   hs = if url.hostname? then url.hostname.split '.' else []
   # reverse non-IP order
   number = /^[0-9]+$/
@@ -194,10 +195,17 @@ module.exports.get_cache_path = get_cache_path = (url) ->
     String(h).toLowerCase()
   # ignore port for now!
   ps = []
-  if url.path?
-    # encode #, ? and &
-    p = url.path.replace( /[#]/g, '%23' ).replace( /[\?]/g, '%3F' ).replace( /[&]/g, '%26' )
-    ps = p.split '/'  
+  if url.pathname?
+    ps = url.pathname.split '/'
+  if url.hash or url.search
+    if ps.length==0
+      ps.push ''
+    fname = ps[ps.length-1]
+    if url.hash 
+      fname = fname+encodeURIComponent url.hash
+    if url.search 
+      fname = fname+encodeURIComponent url.search
+    ps[ps.length-1] = fname 
   # leading /?
   if ps.length>1 and ps[0]==''
     ps.shift()
@@ -259,29 +267,28 @@ module.exports.cacheFile = cacheFile = (surl,fn) ->
     lastmod = res.headers['last-modified']
     length = res.headers['content-length']
     type = res.headers['content-type']
-    extension = get_file_extension path
-    if not extension?
-      console.log "no extension found on #{path}"
-      # TODO file extension
-      if (type.indexOf 'image/')==0
-        path = path+'.'+type.substring(6)
-      else if (type.indexOf 'audio/')==0
-        path = path+'.'+type.substring(6)
-      else if (type.indexOf 'text/html')==0
-        path = path+'.html'
-      else if (type.indexOf 'text/cache-manifest')==0
-        path = path+'.appcache'
-      else if (type.indexOf 'application/javascript')==0 
-        path = path+'.json'
-      else if (type.indexOf 'text/plain')==0 and dir=='' 
-        # top-level document
-        path = path+'.json'
-      else if (type.indexOf 'application/pdf')==0 
-        path = path+'.pdf'
-      else
-        console.log "Missing extension for #{path} type #{type}"
-    else
-      console.log "extension #{extension} found on #{path}"
+    fileextension = get_file_extension url.path
+    # TODO file extension
+    if (type.indexOf 'image/')==0
+      mimeextension = type.substring(6)
+    else if (type.indexOf 'audio/')==0
+      mimeextension = type.substring(6)
+    else if (type.indexOf 'text/html')==0
+      mimeextension = 'html'
+    else if (type.indexOf 'text/cache-manifest')==0
+      mimeextension = 'appcache'
+    else if (type.indexOf 'application/javascript')==0 
+      mimeextension = 'json'
+    else if (type.indexOf 'text/plain')==0 and dir=='' 
+      # top-level document
+      mimeextension = 'json'
+    else if (type.indexOf 'application/pdf')==0 
+      mimeextension = 'pdf'
+    if mimeextension and mimeextension!=fileextension
+      path = path+'.'+mimeextension
+      console.log "adding extension #{mimeextension} to #{path}"
+    else if not fileextension
+      console.log "no extension found for #{path} / #{type}"
 
     tmppath = get_filesystem_path (dir + (if dir!='' then '/' else '') + '.cb_download')
     try 
@@ -327,7 +334,7 @@ module.exports.cacheFile = cacheFile = (surl,fn) ->
         # done!
       catch e
         console.log "Error renaming new cache file #{tmppath} to #{filepath}: #{e}"
-        fn 'error renaming new cache file'
+        return fn 'error renaming new cache file'
       console.log "Downloaded #{surl} -> #{filepath} aka #{path} (#{length} bytes, #{type})"
       cachePaths[surl] = filepath
       cacheUrls[surl] = path

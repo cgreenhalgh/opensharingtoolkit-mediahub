@@ -3,6 +3,9 @@
     <p>Get a copy of this app online...</p>
     <p><a href="<%= @publicurl %>" class="link-url" target="_blank"><%= @publicurl %></a></p>
     <p><img src="<%= @publicqrurl %>" alt="qr code" class="link-qrcode"/></p>
+<% if @exported!='true': %>
+    <p>Sorry - this doesn't work until the app is exported (you seem to be testing)</p>
+<% end %>
   </div>
 </div>
 

@@ -16,11 +16,8 @@ module.exports = class ShareView extends Backbone.View
   render: =>
     publicurl = $('meta[name="mediahub-publicurl"]').attr('content')
     publicqrurl = $('meta[name="mediahub-publicqrurl"]').attr('content')
-    if publicurl
-      publicurl = decodeURI publicurl
-    #if publicqrurl 
-    #  publicqrurl = decodeURI publicqrurl
+    exported = $('meta[name="mediahub-exported"]').attr('content')
 
-    @$el.html @template _.extend { publicurl: publicurl, publicqrurl: publicqrurl }, @model.attributes 
+    @$el.html @template _.extend { publicurl: publicurl, publicqrurl: publicqrurl, exported: exported }, @model.attributes 
     @
 
