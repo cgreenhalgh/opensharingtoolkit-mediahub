@@ -432,7 +432,7 @@ doExportkiosk = (task) ->
   if (path=(checkPath task, publicwebdir, true))?
     doSpawn task, "/usr/local/bin/coffee", ["#{__dirname}/exportkiosk.coffee",kioskurl,publicurl,task.config.path], path, true,
       (task) ->
-        doTar task
+        doZip task
 
 doBackup = (task) ->
   dbfile = "/var/lib/couchdb/mediahub.couch"
@@ -455,8 +455,18 @@ doTar = (task) ->
     ix = file.lastIndexOf '/'
     if ix>=0
       file = file.substring ix+1
-    tar = "../#{file}.tgz"
+    tar = "../#{file}.tar.gz"
     doSpawn task, "tar", ["czf", tar, '.'], path, false
+
+doZip = (task) ->
+  path = task.config.path
+  if (path=(checkPath task, publicwebdir, false))?
+    file = path
+    ix = file.lastIndexOf '/'
+    if ix>=0
+      file = file.substring ix+1
+    zip = "../#{file}.zip"
+    doSpawn task, "zip", ["-r", zip, '.'], path, false
 
 doRm = (task) ->
   path = task.config.path

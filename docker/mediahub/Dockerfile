@@ -22,6 +22,7 @@ RUN apt-get -y install git && \
   npm install -g coffee-script && \
   apt-get -y install ruby1.9.1 ruby1.9.1-dev && \
   gem install compass && \
+  apt-get -y install zip && \
   mkdir -p /home/root && \
   cd /home/root && \
   git clone https://github.com/cgreenhalgh/opensharingtoolkit-kiosk && \

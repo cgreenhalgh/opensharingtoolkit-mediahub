@@ -9,7 +9,7 @@
 <%# cf taskrunner.coffee %>
 <%   appurl = "#{window.mediahubconfig.publicurl}/#{@path}/_design/app/_show/app/#{@subjectId}.html" %>
 <%   appredirecturl = "#{window.mediahubconfig.publicurl}/#{@path}/app.html" %>
-<%   tarfile = "#{window.mediahubconfig.publicurl}/#{@path}.tgz" %>
+<%   tarfile = "#{window.mediahubconfig.publicurl}/#{@path}.tar.gz" %>
     <p>Will export app to <a target="_blank" href="<%= appurl %>"><%= appurl %><img src="../../icons/link-options.png" class="link-options"/></a>, with a redirect page at <a target="_blank" href="<%= appredirecturl %>"><%= appredirecturl %><img src="../../icons/link-options.png" class="link-options"/></a> (Tar file <a target="_blank" href="<%= tarfile %>"><%= tarfile %><img src="../../icons/link-options.png" class="link-options"/></a>)</p>
 
 <% else if @taskType=='exportkiosk': %>
@@ -17,13 +17,13 @@
 <%# cf taskrunner.coffee %>
 <%   atomurl = "#{window.mediahubconfig.publicurl}/#{@path}/#{ if @subject?.atomfilename then @subject.atomfilename else 'default.xml' }" %>
 <%   kioskurl = "#{window.mediahubconfig.publicurl}/#{@path}/index.html?f=#{ encodeURIComponent( if @subject?.atomfilename then @subject.atomfilename else 'default.xml' ) }" %>
-<%   tarfile = "#{window.mediahubconfig.publicurl}/#{@path}.tgz" %>
-    <p>Will export kiosk configuration to <a target="_blank" href="<%= atomurl %>"><%= atomurl %><img src="../../icons/link-options.png" class="link-options"/></a>, web kiosk view <a target="_blank" href="<%= kioskurl %>"><%= kioskurl %><img src="../../icons/link-options.png" class="link-options"/></a> (Tar file <a target="_blank" href="<%= tarfile %>"><%= tarfile %><img src="../../icons/link-options.png" class="link-options"/></a>)</p>
+<%   zipfile = "#{window.mediahubconfig.publicurl}/#{@path}.zip" %>
+    <p>Will export kiosk configuration to <a target="_blank" href="<%= atomurl %>"><%= atomurl %><img src="../../icons/link-options.png" class="link-options"/></a>, web kiosk view <a target="_blank" href="<%= kioskurl %>"><%= kioskurl %><img src="../../icons/link-options.png" class="link-options"/></a> (Zip file <a target="_blank" href="<%= zipfile %>"><%= zipfile %><img src="../../icons/link-options.png" class="link-options"/></a>)</p>
 
 <% else if @taskType=='tar': %>
     <h4>Tar webserver directory</h4>
 <%# cf taskrunner.coffee %>
-<%   tarfile = "#{window.mediahubconfig.publicurl}/#{@path}.tgz" %>
+<%   tarfile = "#{window.mediahubconfig.publicurl}/#{@path}.tar.gz" %>
     <p>Will create tarfile <a target="_blank" href="<%= tarfile %>"><%= tarfile %><img src="../../icons/link-options.png" class="link-options"/></a></p>
 
 <% else if @taskType=='rm': %>
@@ -35,14 +35,14 @@
     <h4>Backup main Couch database to webserver directory</h4>
 <%# cf taskrunner.coffee %>
 <%   file = "#{window.mediahubconfig.publicurl}/#{@path}/mediahub.couch" %>
-<%   tarfile = "#{window.mediahubconfig.publicurl}/#{@path}.tgz" %>
+<%   tarfile = "#{window.mediahubconfig.publicurl}/#{@path}.tar.gz" %>
     <p>Will create DB file <a target="_blank" href="<%= file %>"><%= file %><img src="../../icons/link-options.png" class="link-options"/></a> (Tar file <a target="_blank" href="<%= tarfile %>"><%= tarfile %><img src="../../icons/link-options.png" class="link-options"/></a>)</p>
 
 <% else if @taskType=='checkpoint': %>
     <h4>Update checkpoint of editable content in webserver directory</h4>
 <%# cf taskrunner.coffee %>
 <%   file = "#{window.mediahubconfig.publicurl}/#{@path}/" %>
-<%   tarfile = "#{window.mediahubconfig.publicurl}/#{@path}.tgz" %>
+<%   tarfile = "#{window.mediahubconfig.publicurl}/#{@path}.tar.gz" %>
     <p>Will update checkpoint in directory <a target="_blank" href="<%= file %>"><%= file %><img src="../../icons/link-options.png" class="link-options"/></a> (Tar file <a target="_blank" href="<%= tarfile %>"><%= tarfile %><img src="../../icons/link-options.png" class="link-options"/></a>)</p>
 
 <% else if @taskType=='import': %>
@@ -50,7 +50,7 @@
 <%# cf taskrunner.coffee %>
 <%   upload = "#{window.mediahubconfig.uploadurl}/#{encodeURIComponent @_id}" %>
 <%   file = "#{window.mediahubconfig.publicurl}/#{@path}/" %>
-<%   tarfile = "#{window.mediahubconfig.publicurl}/#{@path}.tgz" %>
+<%   tarfile = "#{window.mediahubconfig.publicurl}/#{@path}.tar.gz" %>
     <p>Will upload and import a checkpoint in directory <a target="_blank" href="<%= file %>"><%= file %><img src="../../icons/link-options.png" class="link-options"/></a> (Tar file <a target="_blank" href="<%= tarfile %>"><%= tarfile %><img src="../../icons/link-options.png" class="link-options"/></a>)</p>
     <p>Use upload form <a target="_blank" href="<%= upload %>"><%= upload %><img src="../../icons/link-options.png" class="link-options"/></a></p>
 
@@ -82,7 +82,7 @@
     <p>Server <%= @_id %></p>
 
 <%   file = "#{window.mediahubconfig.publicurl}/#{@path}/" %>
-<%   tarfile = "#{window.mediahubconfig.publicurl}/#{@path}.tgz" %>
+<%   tarfile = "#{window.mediahubconfig.publicurl}/#{@path}.tar.gz" %>
     <p>Will update data dump in directory <a target="_blank" href="<%= file %>"><%= file %><img src="../../icons/link-options.png" class="link-options"/></a> (Tar file <a target="_blank" href="<%= tarfile %>"><%= tarfile %><img src="../../icons/link-options.png" class="link-options"/></a>)</p>
 
 <% else if @taskType=='importserver': %>
@@ -92,7 +92,7 @@
 
 <%   upload = "#{window.mediahubconfig.uploadurl}/#{encodeURIComponent @_id}" %>
 <%   file = "#{window.mediahubconfig.publicurl}/#{@path}/" %>
-<%   tarfile = "#{window.mediahubconfig.publicurl}/#{@path}.tgz" %>
+<%   tarfile = "#{window.mediahubconfig.publicurl}/#{@path}.tar.gz" %>
     <p>Will upload and import a data dump in directory <a target="_blank" href="<%= file %>"><%= file %><img src="../../icons/link-options.png" class="link-options"/></a> (Tar file <a target="_blank" href="<%= tarfile %>"><%= tarfile %><img src="../../icons/link-options.png" class="link-options"/></a>)</p>
     <p>Use upload form <a target="_blank" href="<%= upload %>"><%= upload %><img src="../../icons/link-options.png" class="link-options"/></a></p>
 
