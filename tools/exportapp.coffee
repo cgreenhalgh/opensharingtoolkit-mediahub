@@ -5,6 +5,10 @@ fs = require 'fs'
 parse_url = (require 'url').parse
 resolve_url = (require 'url').resolve
 utils = require './utils'
+eco = require 'eco'
+_ = require 'underscore'
+
+templateAppRedirect = fs.readFileSync __dirname+"/templates/appredirect.html.eco", "utf-8"
 
 if process.argv.length!=4 && process.argv.length!=5 
   utils.logError 'usage: coffee exportapp.coffee <APP-URL> <PUBLIC-URL> [<PUBLIC-PATH>]', 2
@@ -34,6 +38,10 @@ get_file_extension = utils.get_file_extension
 
 cachePaths = utils.cachePaths
 cacheUrls = utils.cacheUrls
+
+# initialised later...
+publicurl = null
+publicqrurl = null
 
 addSrcRefs = (file) ->
   if file.text?
@@ -112,6 +120,13 @@ check_manifest = (surl) ->
     data = fs.readFileSync path,{encoding:'utf8'}
   catch err
     return utils.logError "error reading manifest #{path}"
+  # qrcode? - not working yet
+  #if publicqrurl
+  #  data = data+'\nCACHE:\n'+publicqrurl+'\n'
+  #  try
+  #    fs.writeFileSync path, data
+  #  catch err
+  #    utils.logError "Error updating manifest to include qrcode url: #{err.message}"      
   file = 
     text: ''
     url: surl
@@ -255,6 +270,18 @@ cacheFile appurl, (err,path) ->
     utils.logError "error cacheing app #{appurl}: #{err}"
     utils.exit()
   console.log "cached #{appurl} as #{path}"
+  # create top-level redirect(s)
+  relurl = appurl.substring (appurl.indexOf '/_design/')+1
+  redirect = eco.render templateAppRedirect, { url: relurl+'.html' }
+  try
+    fs.writeFileSync 'app.html', redirect
+    console.log "Wrote redirect to app.html"
+  catch err
+    utils.logError "error writing redirect for app to app.html: #{err.message}"
+  if process.argv.length>4
+    publicurl = process.argv[3]+'/'+process.argv[4]+'/'+relurl+'.html'
+    # try google qrcode generator http://chart.apis.google.com/chart?cht=qr&chs=150x150&choe=UTF-8&chl=http%3A%2F%2F1.2.4
+    publicqrurl = 'http://chart.apis.google.com/chart?cht=qr&chs=150x150&choe=UTF-8&chl='+encodeURIComponent(publicurl)
 
   # html index
   readCacheTextFile appurl, (err,html) ->
@@ -287,7 +314,22 @@ cacheFile appurl, (err,path) ->
     if ix<0
       utils.logError "cannot find <head> to mark as exported in #{appurl}"
     else
-      file.text = html.substring( 0, ix+6 )+'<meta name="mediahub-exported" content="true"/>'+html.substring( ix+6 )
+      file.text = html.substring( 0, ix+6 )+
+        '<meta name="mediahub-exported" content="true"/>'+
+        html.substring( ix+6 )
+      if publicurl
+        encodedPublicqrurl = encodeURI(publicqrurl)
+        file.text = html.substring( 0, ix+6 )+
+          '<meta name="mediahub-publicqrurl" content="'+encodedPublicqrurl+'"/>'+
+          '<meta name="mediahub-publicurl" content="'+encodeURI(publicurl)+'"/>'+
+          file.text.substring( ix+6 )
+        from = ix+6+'<meta name="mediahub-publicqrurl" content="'.length
+        file.refs.push
+            type: 'html'
+            from: from
+            to: from+encodedPublicqrurl.length
+            src: fix_relative_url file.baseurl, publicqrurl
+
     addSrcRefs file
     if not (get_file_extension file.url)?
       file.extension = '.html'

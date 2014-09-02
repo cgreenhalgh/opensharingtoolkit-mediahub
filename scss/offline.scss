@@ -270,3 +270,23 @@ $outline-color: #000;
   margin-top: 1.25rem;
 }
 
+.link-qrcode {
+  width: 70%;
+  max-width: 500px;
+  height: auto;
+  padding: 10px;
+};
+
+.link-url {
+  font-family: Monospace;
+  font-size: 120%;
+  text-align: center;
+  word-wrap: break-word;
+  //background-color: #ccc;
+  -webkit-user-select:text;
+  -khtml-user-select:text;
+  -moz-user-select:text;
+  -ms-user-select:text;
+  user-select:text;
+};
+

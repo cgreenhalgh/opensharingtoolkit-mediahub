@@ -20,6 +20,8 @@ require 'plugins/Kiosk'
 require 'plugins/Server'
 require 'plugins/TaskConfig'
 
+templateLinkOptionsModal = require 'templates/LinkOptionsModal'
+
 config = window.mediahubconfig
 
 tempViews = []
@@ -118,6 +120,17 @@ App =
     contentTypesView = new ContentTypeListView model:contentTypes
     contentTypesView.render()
     $('body').append contentTypesView.el
+
+    $('body').on 'click', '.link-options', (ev) ->
+      url = $(ev.target).parent()?.attr 'href'
+      console.log "Click link-options for #{url}..."
+      ev.preventDefault()
+      if url
+        # TODO
+        # try google qrcode generator http://chart.apis.google.com/chart?cht=qr&chs=150x150&choe=UTF-8&chl=http%3A%2F%2F1.2.4
+        qrurl = 'http://chart.apis.google.com/chart?cht=qr&chs=150x150&choe=UTF-8&chl='+encodeURIComponent(url)
+        $('#linkOptionsModalHolder').html templateLinkOptionsModal {url:url, qrurl:qrurl}
+        $('#linkOptionsModalHolder').foundation 'reveal', 'open'
 
     # in-app virtual pages
     router = new Router

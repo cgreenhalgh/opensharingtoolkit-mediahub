@@ -12,10 +12,13 @@ module.exports.setCouchurl = (url) ->
   couchurl = url
 
 module.exports.get_file_extension = get_file_extension = (url) ->
-  ix = url.lastIndexOf '/'
+  iq = url.indexOf '?'
+  if iq<0
+    iq = url.length
+  ix = url.lastIndexOf '/', iq
   if ix<0
     ix = 0
-  ix2 = url.lastIndexOf '.'
+  ix2 = url.lastIndexOf '.', iq
   if ix2<ix or ix2==url.length-1
     null
   else

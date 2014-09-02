@@ -1,0 +1,25 @@
+<div class="row top-item">
+  <div class="columns large-12 small-12">
+    <h2><%= @title %></h2>
+    <%- @aboutText %>
+    <hr/>
+<% if @version: %>
+    <p>Version <%= @version %></p>
+<% end %>
+<% if @createdtime? and @createdtime>0 : %>
+    <p>Created <%= new Date(@createdtime).toISOString() %></p>
+<% end %>
+<% if @lastupdatedtime? and @lastupdatedtime>0 : %>
+    <p>Last updated <%= new Date(@lastupdatedtime).toISOString() %></p>
+<% end %>
+<% if @licenseShortName: %>
+    <p>License: <%= @licenseShortName %>
+<% if @licenseVersion: %>
+      (version <%= @licenseVersion %>)
+<% end %>
+    </p>
+<% end %>
+    <p>Created with OpenSharingToolkit Watoto / Mediahub.</p> 
+  </div>
+</div>
+

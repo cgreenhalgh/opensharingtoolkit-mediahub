@@ -5,6 +5,8 @@
     <aside class="left-off-canvas-menu">
       <ul class="off-canvas-list">
         <li><a href="#">Home</a></li>
+        <li id="showAbout" class="hide"><a href="#about">About</a></li>
+        <li id="showShare" class="hide"><a href="#share">Share</a></li>
         <li><label>Upload</label></li>
         <li><a href="#user">User</a></li>
         <li><a href="#upload">Manage</a></li>

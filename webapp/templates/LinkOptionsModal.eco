@@ -1,0 +1,7 @@
+<%# error %>
+<%# <div id="linkOptionsModal" class="reveal-modal" data-reveal> %>
+  <p><a href="<%= @url %>" class="link-url" target="_blank"><%= @url %></a></p>
+  <p><img src="<%= @qrurl %>" alt="qr code" class="link-qrcode"/></p>
+  <a class="close-reveal-modal">&#215;</a>
+<%# </div> %>
+

@@ -209,3 +209,33 @@ $outline-color: $primary-color; //scale-color($primary-color, $lightness: -66%);
   };
 };
 
+.link-options {
+  //background-image: url('../icons/link-options.png');
+  //background-repeat: no-repeat;
+  //text-decoration: none;
+  width: 0.65em;
+  height: 0.65em;
+  margin-left: 0.1em;
+  margin-right: 0.1em;
+  vertical-align: text-top;
+};
+
+.link-qrcode {
+  width: 40%;
+  height: auto;
+  padding: 10px;
+};
+
+.link-url {
+  font-family: Monospace;
+  font-size: 120%;
+  text-align: center;
+  word-wrap: break-word;
+  //background-color: #ccc;
+  -webkit-user-select:text;
+  -khtml-user-select:text;
+  -moz-user-select:text;
+  -ms-user-select:text;
+  user-select:text;
+};
+

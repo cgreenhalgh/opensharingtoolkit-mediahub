@@ -1,6 +1,6 @@
 <%# App add or edit tab, takes { data: Thing, add: true|false } as data (title, description, ...); parent is a content %>
     <!-- <input type="button" value="Prepare for download" class="do-update"/> -->
-    <label>Server
+    <label>Server (to handle any uploaded form data)
       <select name="server">
         <option value="" <%= if not @data.serverId then 'selected' %> >No server</option>
 <% for server in @servers: %>
@@ -8,4 +8,42 @@
 <% end %>
       </select>
     </label>
-
+<hr/>
+<label>Include 'About' section
+  <input type="checkbox" name="showAbout" <%= if @data.showAbout then 'checked' %> />
+</label><br/>
+<label>'About' text
+  <textarea name="aboutText"><%= @data.aboutText %></textarea>
+</label>
+<label>App version (text)
+  <input type="text" name="version" value="<%= @data.version %>" />
+</label><br/>
+<label>Copyright/license short name
+  <select name="licenseShortName">
+    <option value="" <%= if not @data.licenseShortName then 'selected' %> >(not specified)</option
+    <option value="copyright" <%= if @data.licenseShortName == 'copyright' then 'selected' %> >Copyright (all rights reserved)</option> 
+    <option value="CC BY" <%= if @data.licenseShortName == 'CC BY' then 'selected' %> >CC BY (Creative Commons Attribution)</option> 
+    <option value="CC BY-ND" <%= if @data.licenseShortName == 'CC BY-ND' then 'selected' %> >CC BY-ND (Creative Commons Attribution-NoDerivs)</option>
+    <option value="CC BY-NC-ND" <%= if @data.licenseShortName == 'CC BY-NC-ND' then 'selected' %> >CC BY-NC-ND (Creative Commons Attribution-NonCommercial-NoDerivs)</option>
+    <option value="CC BY-NC" <%= if @data.licenseShortName == 'CC BY-NC' then 'selected' %> >CC BY-NC-ND (Creative Commons Attribution-NonCommercial)</option>
+    <option value="CC BY-NC-SA" <%= if @data.licenseShortName == 'CC BY-NC-SA' then 'selected' %> >CC BY-NC-SA (Creative Commons Attribution-NonCommercial-ShareAlike)</option>
+    <option value="CC BY-SA" <%= if @data.licenseShortName == 'CC BY-SA' then 'selected' %> >CC BY-SA (Creative Commons Attribution-ShareAlike)</option>
+    <option value="CC0" <%= if @data.licenseShortName == 'CC0' then 'selected' %> >CC0 (Creative Common No Rights Reserved)</option>
+    <option value="PD" <%= if @data.licenseShortName == 'PD' then 'selected' %> >PD (Public Domain)</option>
+  </select>
+</label>
+<label>License version
+  <input type="text" name="licenseVersion" value="<%= @data.licenseVersion %>" />
+</label>
+<hr/>
+<label>Include 'Share' section with URL and QR Code
+  <input type="checkbox" name="showShare" <%= if @data.showShare then 'checked' %> />
+</label>
+<hr/>
+<!-- TODO
+<label>Include 'Location' section with GPS controls 
+  <input type="checkbox"  name="showLocation" <%= if @data.showLocation then 'checked' %> />
+</label><br/>
+<label>Default map 
+</label>
+-->

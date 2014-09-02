@@ -16,6 +16,8 @@ UserView = require 'views/User'
 
 ThingListView = require 'views/ThingList'
 FormUploadView = require 'views/FormUpload'
+AboutView = require 'views/About'
+ShareView = require 'views/Share'
 
 localdb = require 'localdb'
 formdb = require 'formdb'
@@ -26,6 +28,8 @@ working = require 'working'
 appid = null
 dburl = null
 appconfig = null
+
+appmodel = new Backbone.Model {}
 
 items = {}
 currentView = null
@@ -42,6 +46,8 @@ class Router extends Backbone.Router
     "booklet/:id/:page/:anchor": "bookletPage"
     "upload": "upload"
     "user": "user"
+    "about": "about"
+    "share": "share"
 
   removeCurrentView: ->
     if currentView?
@@ -59,10 +65,10 @@ class Router extends Backbone.Router
       console.log "Error: new current view has no element - trying to render"
       view.render()
     $('#page-content-holder').append view.el
-    if view.model?.attributes?.title
-      $('#app-title').html view.model.attributes.title
-    else if view.title
+    if view.title
       $('#app-title').html view.title
+    else if view.model?.attributes?.title
+      $('#app-title').html view.model.attributes.title
     else if HomeView.prototype.isPrototypeOf view
       $('#app-title').html appconfig?.title ? 'Home'
     else
@@ -115,6 +121,12 @@ class Router extends Backbone.Router
   user: () ->
     @setCurrentView new UserView model: (require 'user').getUser()
 
+  about: () ->
+    @setCurrentView new AboutView model: appmodel
+
+  share: () ->
+    @setCurrentView new ShareView model: appmodel
+
 makeThing = (data, collection) ->
   try
     thing = new Backbone.Model data
@@ -163,13 +175,20 @@ checkConfig = (app) ->
   console.log  "config(app): "+app 
   try 
     appconfig = app = JSON.parse app
-    if currentView and HomeView.prototype.isPrototypeOf currentView
-      $('#app-title').html (app.title ? 'Home') 
-    formdb.setApp app
-    loadThings app,topLevelThings
   catch err
     console.log "error parsing app config: #{err.message}: #{app} - #{err.stack}"
     working.error 'Sorry, could not load initial information - please try reloading this app'
+  try 
+    if currentView and HomeView.prototype.isPrototypeOf currentView
+      $('#app-title').html (app.title ? 'Home') 
+    appmodel.set appconfig
+    $('#showAbout').toggleClass 'hide', appconfig.showAbout!=true
+    $('#showShare').toggleClass 'hide', appconfig.showShare!=true
+    formdb.setApp app
+    loadThings app,topLevelThings
+  catch err
+    console.log "error initialising app with new config: #{err.message}: #{JSON.stringify appconfig} - #{err.stack}"
+    working.error 'Sorry, could not initialise app - please try reloading this app'
 
 refresh = ()->
   console.log "refresh #{dburl} #{appid}"
