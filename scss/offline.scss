@@ -290,3 +290,21 @@ $outline-color: #000;
   user-select:text;
 };
 
+.location-icon {
+  width: 1em;
+  height: 1em;
+  padding: 2px;
+};
+
+.location-old {
+  opacity: 0.3;    
+};
+
+.topbar-widget {
+  float: right;
+  padding-left: 0.5em;
+  padding-right: 0.5em;
+  //display: inline-block;
+  border-left: solid 1px #000;
+  border-right: solid 1px #000;
+};

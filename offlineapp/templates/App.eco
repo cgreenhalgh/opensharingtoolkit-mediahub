@@ -5,8 +5,11 @@
     <aside class="left-off-canvas-menu">
       <ul class="off-canvas-list">
         <li><a href="#">Home</a></li>
+        <li><label>Help</label></li>
         <li id="showAbout" class="hide"><a href="#about">About</a></li>
         <li id="showShare" class="hide"><a href="#share">Share</a></li>
+        <li><label>Settings</label></li>
+        <li id="showLocation" class="hide"><a href="#location">Location</a></li>
         <li><label>Upload</label></li>
         <li><a href="#user">User</a></li>
         <li><a href="#upload">Manage</a></li>
@@ -20,11 +23,9 @@
       </section>
 
       <section class="middle tab-bar-section">
+        <div id="location-status-holder" class="right inline-block"></div>
+        <div id="upload-status-holder" class="right inline-block"></div>
         <a href="#" ><h1 class="title" id="app-title">Home</h1></a>
-      </section>
-
-      <section class="right-small">
-        <div id="upload-status-holder"></div>
       </section>
     </nav>
 

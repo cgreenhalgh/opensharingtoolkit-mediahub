@@ -1,0 +1,31 @@
+<div class="row top-item">
+  <div class="columns large-12 small-12">
+    <label><input type="checkbox" name="showOnMap" <%= if @showOnMap then 'checked' %> />Show location on map(s)
+    </label> 
+  </div>
+  <div class="columns large-12 small-12">
+    <label><input type="checkbox" name="continuous" <%= if @continuous then 'checked' %> />Monitor location continuously - may use more power
+    </label>
+  </div>
+  <div class="columns large-12 small-12">
+    <label><input type="checkbox" name="highAccuracy" <%= if @highAccuracy then 'checked' %> />Request high accuracy (use GPS if available) - may use more power
+    </label> 
+  </div>
+  <div class="columns large-12 small-12">
+    <label><input type="checkbox" name="requestRecent" <%= if @requestRecent then 'checked' %> />Request frequent updates - may use more power
+    </label>
+  </div>
+  <div class="columns large-12 small-12">
+    <input name="refresh" type="button" value="Request new position"/>
+  </div>
+  <div class="columns large-12 small-12">
+    <hr/>
+    <h4>Debug information</h4>
+    <p>searching: <%= @searching %></p>
+    <p>lastFix: <%= JSON.stringify @lastFix %></p>
+    <p>lastFixTime: <%= @lastFixTime %></p>
+    <p>old: <%= @old %></p>
+    <p>lastResult: <%= @lastResult %></p>
+  </div>
+</div>
+

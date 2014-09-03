@@ -5,6 +5,7 @@ templateFormUploadWidget = require 'templates/FormUploadWidget'
 module.exports = class FormUploadWidgetView extends Backbone.View
 
   tagName: 'div'
+  className: 'topbar-widget'
 
   initialize: ->
     @listenTo @model, 'change', @render

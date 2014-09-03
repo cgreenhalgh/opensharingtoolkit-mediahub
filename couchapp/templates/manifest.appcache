@@ -24,6 +24,10 @@ CACHE MANIFEST
 ../../icons/uploading.png
 ../../icons/upload-success.png
 ../../icons/upload-error.png
+# location icons
+../../icons/location-ok.png
+../../icons/location-searching.png
+../../icons/location-off.png
 
 # general network access
 NETWORK:

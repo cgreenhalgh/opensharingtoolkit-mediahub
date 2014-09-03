@@ -40,10 +40,10 @@
   <input type="checkbox" name="showShare" <%= if @data.showShare then 'checked' %> />
 </label>
 <hr/>
-<!-- TODO
 <label>Include 'Location' section with GPS controls 
   <input type="checkbox"  name="showLocation" <%= if @data.showLocation then 'checked' %> />
 </label><br/>
+<!-- TODO
 <label>Default map 
 </label>
 -->

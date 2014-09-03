@@ -17,6 +17,7 @@ module.exports = class AppEditView extends ListEditView
     licenseShortName = $('select[name=licenseShortName]', @$el).val()
     licenseVersion = $('input[name=licenseVersion]', @$el).val()
     showShare = $('input[name=showShare]', @$el).prop 'checked'
+    showLocation = $('input[name=showLocation]', @$el).prop 'checked'
     console.log "Selected server #{serverId}"
     now = new Date().getTime()
     createdtime = @model.attributes.createdtime ? now
@@ -29,6 +30,7 @@ module.exports = class AppEditView extends ListEditView
       licenseShortName: licenseShortName
       licenseVersion: licenseVersion
       showShare: showShare
+      showLocation: showLocation
       createdtime: createdtime
       lastupdatedtime: lastupdatedtime
 

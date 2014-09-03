@@ -16,7 +16,7 @@ module.exports = class App extends Thing
     lastupdatedtime: 0 
     createdtime: 0
     showShare: true
-    #showLocation: true
+    showLocation: true
     #defaultPlaceId: ''
 
   idAttribute: '_id'

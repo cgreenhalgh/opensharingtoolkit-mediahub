@@ -5,6 +5,7 @@ templateApp = require 'templates/App'
 HomeView = require 'views/Home'
 CacheStateWidgetView = require 'views/CacheStateWidget'
 FormUploadWidgetView = require 'views/FormUploadWidget'
+LocationWidgetView = require 'views/LocationWidget'
 
 BookletView = require 'views/Booklet'
 ThingView = require 'views/Thing'
@@ -18,10 +19,12 @@ ThingListView = require 'views/ThingList'
 FormUploadView = require 'views/FormUpload'
 AboutView = require 'views/About'
 ShareView = require 'views/Share'
+LocationView = require 'views/Location'
 
 localdb = require 'localdb'
 formdb = require 'formdb'
 working = require 'working'
+location = require 'location'
 
 #config = window.mediahubconfig
 
@@ -48,6 +51,7 @@ class Router extends Backbone.Router
     "user": "user"
     "about": "about"
     "share": "share"
+    "location": "location"
 
   removeCurrentView: ->
     if currentView?
@@ -127,6 +131,9 @@ class Router extends Backbone.Router
   share: () ->
     @setCurrentView new ShareView model: appmodel
 
+  location: () ->
+    @setCurrentView new LocationView model: location.getLocation()
+
 makeThing = (data, collection) ->
   try
     thing = new Backbone.Model data
@@ -185,6 +192,8 @@ checkConfig = (app) ->
     $('#showAbout').toggleClass 'hide', appconfig.showAbout!=true
     $('#showShare').toggleClass 'hide', appconfig.showShare!=true
     formdb.setApp app
+    location.getLocation().set 'showLocation', appconfig.showLocation
+    $('#showLocation').toggleClass 'hide', appconfig.showLocation!=true
     loadThings app,topLevelThings
   catch err
     console.log "error initialising app with new config: #{err.message}: #{JSON.stringify appconfig} - #{err.stack}"
@@ -220,7 +229,7 @@ App =
     console.log "OfflineApp starting... app.id=#{appid}, exported=#{exported}"
 
     # presume index is served by couchdb .../_design/app/_show/...
-    dburl = location.href
+    dburl = window.location.href
     if dburl.indexOf('/_design/')>=0
       dburl = dburl.substring 0,dburl.indexOf('/_design/')
 
@@ -245,6 +254,9 @@ App =
 
     uploadWidget = new FormUploadWidgetView model: formdb.getFormUploadState()
     $('#upload-status-holder').replaceWith uploadWidget.el
+
+    locationWidget = new LocationWidgetView model: location.getLocation()
+    $('#location-status-holder').replaceWith locationWidget.el
 
     #Backbone.sync =  BackbonePouch.sync
     #  db: db

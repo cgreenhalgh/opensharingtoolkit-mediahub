@@ -1,5 +1,6 @@
 # Place (offline) View
 templatePlace = require 'templates/Place'
+location = require 'location'
 
 myIcon = L.icon
     iconUrl: '../../vendor/leaflet/images/my-icon.png'
@@ -60,9 +61,11 @@ module.exports = class PlaceView extends Backbone.View
           console.log "invalidateSize"
           @map.invalidateSize()
       setTimeout re,1000
+      location.setCurrentMap @map
   
     if @map
       try
+        location.clearCurrentMap()
         @map.remove()
         @map = null
       catch err
@@ -73,6 +76,7 @@ module.exports = class PlaceView extends Backbone.View
   remove: () =>
     if @map
       try
+        location.clearCurrentMap()
         @map.remove()
         @map = null
       catch err
