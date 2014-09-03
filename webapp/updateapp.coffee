@@ -40,6 +40,15 @@ addHtml = (files,html) ->
             url: src
             title: 'img'
           files[file.url] = file
+      srcs = /<[sS][oO][uU][rR][cC][eE][^>]+src="?([^"\s>]+)"?[^>]*\/>/g
+      while m = ( srcs.exec html ) 
+        src = m[1]
+        if src.length>0
+          src = src.replace /[&]amp[;]/g, '&'
+          file = 
+            url: src
+            title: 'source'
+          files[file.url] = file
 
 addFile = (files, thing) ->
      if thing.attributes.fileType?

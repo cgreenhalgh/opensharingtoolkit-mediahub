@@ -12,8 +12,11 @@ module.exports = class HtmlEditView extends ThingEditView
     replace = () -> 
       console.log "Set up CKEditor..."
       ckconfig = {}
+      ckconfig.customConfig = '../../ckeditor_config_html.js'
       ckconfig.filebrowserBrowseUrl = 'filebrowse.html'
       ckconfig.filebrowserImageBrowseUrl = 'filebrowse.html?type=image%2F'
+      ckconfig.filebrowserAudioBrowseMpegUrl = 'filebrowse.html?type=audio%2Fmpeg'
+      ckconfig.filebrowserAudioBrowseOggUrl = 'filebrowse.html?type=audio%2Fogg'
       #editor = CKEDITOR.instances['htmlfragment']
       #if editor 
       #  editor.destroy(true)

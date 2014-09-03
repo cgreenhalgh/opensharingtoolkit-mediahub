@@ -28,6 +28,8 @@ module.exports = class BookletEditView extends ThingEditView
       ckconfig.customConfig = '../../ckeditor_config_booklet.js'
       ckconfig.filebrowserBrowseUrl = 'filebrowse.html'
       ckconfig.filebrowserImageBrowseUrl = 'filebrowse.html?type=image%2F'
+      ckconfig.filebrowserAudioBrowseMpegUrl = 'filebrowse.html?type=audio%2Fmpeg'
+      ckconfig.filebrowserAudioBrowseOggUrl = 'filebrowse.html?type=audio%2Fogg'
       #ckconfig.extraPlugins = 'widget,mediahubcolumn'
       CKEDITOR.replace 'htmlcontent', ckconfig
     setTimeout replace,0

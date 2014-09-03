@@ -5,6 +5,13 @@ ThingEditView = require 'views/ThingEdit'
 server = require 'server'
 allthings = require 'allthings'
 
+# seen .mp3 show up as audio/mp3, should be audio/mpeg for html5
+fixFileType = (type) ->
+  if type=='audio/mp3'
+    'audio/mpeg'
+  else
+    type
+
 module.exports = class FileEditView extends ThingEditView
 
   #className: 'row file-edit'
@@ -163,7 +170,7 @@ module.exports = class FileEditView extends ThingEditView
           @fileState = 'loaded'
           @model.set 'hasFile',true
           @model.set 'fileSize', blob.size
-          @model.set 'fileType', blob.type
+          @model.set 'fileType', fixFileType blob.type
           if file? and file.lastModified?
             @model.set 'fileLastModified', file.lastModified
           else

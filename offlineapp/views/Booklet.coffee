@@ -1,5 +1,6 @@
 # Booklet (offline) View
 templateBookletPage = require 'templates/BookletPage'
+audio = require 'audio'
 
 module.exports = class BookletView extends Backbone.View
 
@@ -84,6 +85,7 @@ module.exports = class BookletView extends Backbone.View
       $('.contentholder', $el).append page
       console.log "adding page #{$el}"
       @$el.append $el
+    setTimeout (() => audio.fixAudio(@$el)), 0
     @
 
   events:

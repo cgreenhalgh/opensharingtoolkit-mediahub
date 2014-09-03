@@ -1,5 +1,5 @@
 <%# Thing add or edit tab, takes { data: Thing, add: true|false } as data (title, description, ...); parent is a content %>
     <label>Content
-      <textarea name="htmlcontent"><%= @content %></textarea>
+      <textarea name="htmlcontent" rows="20"><%= @content %></textarea>
     </label>
 

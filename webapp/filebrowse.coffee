@@ -1,7 +1,8 @@
 # filebrowse App - for ckeditor integration, initially images
 
-ImageList = require 'models/ImageList'
+FilteredFileList = require 'models/FilteredFileList'
 ImageSelectListView = require 'views/ImageSelectList'
+FileSelectListView = require 'views/FileSelectList'
 getParams = require 'getParams'
 server = require 'server'
 
@@ -22,7 +23,7 @@ App =
     Backbone.Model.prototype.idAttribute = '_id'
     _.extend Backbone.Model.prototype, BackbonePouch.attachments()
 
-    fileList = new ImageList()
+    fileList = new FilteredFileList [], fileType: typePrefix
     try 
       server.working 'fileList'
       fileList.fetch
@@ -31,9 +32,15 @@ App =
     catch err
       alert "Error getting files: #{err.message}"
 
-    fileListView = new ImageSelectListView model: fileList
-    fileListView.render()
-    $('body').append fileListView.el
+    if (typePrefix.indexOf 'image')==0
+      fileListView = new ImageSelectListView model: fileList
+      fileListView.render()
+      $('body').append fileListView.el
+
+    else
+      fileListView = new FileSelectListView model: fileList
+      fileListView.render()
+      $('body').append fileListView.el
 
 module.exports = App
 
