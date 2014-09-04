@@ -19,9 +19,8 @@
   <% if @lastUploadState: %>
     <p>Last upload attempt: <%= @lastUploadState %></p> 
   <% end %>
-  <% if @uploadInstanceIds?.length>0: %>
-    <p><input type="button" name="do-upload" value="Start upload"/></p>
-  <% end %>
+  <p><input type="checkbox" name="upload-tags"/>Upload item tags such as 'like'</p>
+  <p><input type="button" name="do-upload" value="Start upload"/></p>
 <% end %>
   </div>
 </div>

@@ -697,6 +697,12 @@ submissionComplete = (req, res, serverurl, submission) ->
   res.end "Added form submission to db #{serverurl} as #{submission._id}"
   return
 
+# tag fake forms
+tagForms = 
+  'tags:v1':
+    _id: 'tags:v1'
+    autoacceptSubmission: true
+
 handleFormdataForm = (req, res, formdata, serverurl, servernano, form) ->
 
   # TODO check valid data?
@@ -780,6 +786,10 @@ handleFormdata = (req, res, formdatasub, serverurl, servernano) ->
   # check valid form ID, etc.?
   forms = formCache[serverurl] ? {}
   form = forms[meta.id]
+  if not form?
+    form = tagForms[meta.id]
+    if form?
+      log "Using tag pseudo-form #{form._id}"
   if form?
     return handleFormdataForm req, res, formdata, serverurl, servernano, form
 

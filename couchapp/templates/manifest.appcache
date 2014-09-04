@@ -28,6 +28,11 @@ CACHE MANIFEST
 ../../icons/location-ok.png
 ../../icons/location-searching.png
 ../../icons/location-off.png
+# like icons
+../../icons/like-undefined.png
+../../icons/like-0.png
+../../icons/like-1.png
+../../icons/like-2.png
 
 # general network access
 NETWORK:

@@ -17,8 +17,8 @@ module.exports = class LocationWidgetView extends Backbone.View
 
   render: =>
     #console.log "render Location #{JSON.stringify @model.attributes}" 
-    @$el.toggleClass 'hide', not @model.attributes.showLocation
     @$el.html @template @model.attributes
+    @$el.toggleClass 'hide', not @model.attributes.showLocation
     @
 
   events: 

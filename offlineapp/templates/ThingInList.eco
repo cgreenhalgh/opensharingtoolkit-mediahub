@@ -4,10 +4,7 @@
     <div class="thing-in-list-icon"><img src="<%= @iconurl %>"/></div>
   <% end %>
   <div class="thing-in-list-title"><%= @title %></div>
-  <!-- <div class="thing-in-list-buttons"> --><!--
-    --><!-- <div class="thing-in-list-button">1</div> --><!--
-    --><!-- <div class="thing-in-list-button">2</div> --><!--
-  --><!-- </div> -->
+  <div class="tag-widget-holder"></div>
   <div class="thing-in-list-clear"></div>
 </div>
 

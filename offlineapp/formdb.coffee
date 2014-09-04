@@ -68,6 +68,8 @@ module.exports.addFinalizedForm = (instance) ->
   uploadInstanceIds = formUploadState.attributes.uploadInstanceIds.concat [instance.id]
   formUploadState.set uploadInstanceIds: uploadInstanceIds
 
+applicationID = $('meta[name=mediahub-appid]').attr('content')
+
 module.exports.getNewFormInstance = (form) ->
   id = 'forminstance:'+uuid()
   now = new Date().getTime()
@@ -81,6 +83,7 @@ module.exports.getNewFormInstance = (form) ->
       saved: false
       finalized: false
       submitted: false
+    applicationID: applicationID
   instance.sync = BackbonePouch.sync
     db: db
   try
@@ -105,7 +108,7 @@ module.exports.getInstancesForForm = (form, cb) ->
   instances = new FormInstanceList()
   try
     map = (doc, emit) ->
-      if doc.formdef?._id == form.id
+      if doc.formdef?._id == form.id and doc.applicationID == applicationID
         emit doc.metadata?.createdtime
     db.query {map:map}, {include_docs:true, reduce:false}, (err, response) ->
        if err?
@@ -123,6 +126,10 @@ module.exports.getInstancesForForm = (form, cb) ->
   catch err
     console.log "Error doing getInstancesForForm: #{err.message} at #{err.stack}"
   instances
+
+tagsFormInstance = null
+module.exports.setTagsFormInstance = (i) ->
+  tagsFormInstance = i
 
 removeUploadInstanceId = (instanceId) ->
   ids = for id in (formUploadState.attributes.uploadInstanceIds ? []) when id!=instanceId
@@ -147,6 +154,39 @@ uploadTask = () ->
   db.get instanceId, (err, instance) ->
     if err?
       return uploadFailed "Error getting form instance (#{failedUploads}) #{instanceId}: #{err}"
+    now = new Date().getTime()
+    # tags pseudo-form
+    if tagsFormInstance and tagsFormInstance.id == instance._id
+      console.log "Fixing tags formInstance for upload"
+      removeUploadInstanceId tagsFormInstance.id
+      if not instance.metadata?
+        instance.metadata = {}
+      if not instance.formdata?
+        instance.formdata = {}
+      instance.metadata.saved = true 
+      instance.metadata.finalized = true 
+      instance.metadata.savedtime = now
+      if not instance.metadata.createdtime
+        instance.metadata.createdtime = now
+      # TODO changed?
+      instance.metadata.submitted = false 
+      dnames = []
+      for name,value of instance
+        ix = name.indexOf ':'
+        if ix>0
+          tagname = name.substring 0, ix
+          subjectId = name.substring ix+1
+          console.log "convert tag #{name} = #{value} -> formdata.#{tagname}.#{subjectId}"
+          if not instance.formdata[tagname]?
+            instance.formdata[tagname] = {}
+          instance.formdata[tagname][subjectId] = value
+          dnames.push name
+      for name in dnames
+        delete instance[name]
+      if dnames.length==0
+        console.log "No changes to tag Form instance"
+        return setTimeout uploadTask,0
+
     if not(instance.formdef?._id and instance.formdata? and instance.metadata?.saved and instance.metadata?.finalized and not instance.metadata?.submitted)
       console.log "Form instance no longer ready to submit: #{JSON.stringify instance}"
       removeUploadInstanceId instanceId
@@ -167,7 +207,7 @@ uploadTask = () ->
     data.meta.id = instance.formdef?._id
     data.meta.deviceID = 'uuid:'+window.clientid # see client.js - uuid in cookie
     # custom extension
-    data.meta.applicationID = $('meta[name=mediahub-appid]').attr('content')
+    data.meta.applicationID = applicationID
     if user.getUserId()
       data.meta.userID = user.getUserId()
     data.meta.version = instance.formdef?.version
@@ -225,12 +265,16 @@ uploadTask = () ->
       console.log "Error doing submit: #{err.message}"
       uploadFailed "Error doing submit: #{err.message}"
 
-module.exports.startUpload = () ->
+module.exports.startUpload = (includeTags) ->
   if formUploadState.attributes.uploading
     console.log "start upload when already uploading - ignored"
     return
+  if includeTags && tagsFormInstance
+    console.log "include tags in upload"
+    module.exports.addFinalizedForm tagsFormInstance
   console.log "Start upload..."
   formUploadState.failedUploads = 0
+
   formUploadState.set uploading: true, lastUploadState: 'success'
   setTimeout uploadTask,0
 

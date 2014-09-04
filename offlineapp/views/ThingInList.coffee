@@ -1,5 +1,7 @@
 # ThingInList View
 templateThingInList = require 'templates/ThingInList'
+TagListWidgetView = require 'views/TagListWidget'
+tags = require 'tags'
 
 module.exports = class ThingInListView extends Backbone.View
 
@@ -8,6 +10,7 @@ module.exports = class ThingInListView extends Backbone.View
 
   initialize: ->
     @listenTo @model, 'change', @render
+    @tagsView = new TagListWidgetView model: tags.getTagsForSubject @model.id
     @render()
 
   template: (d) =>
@@ -22,6 +25,7 @@ module.exports = class ThingInListView extends Backbone.View
       if @model.attributes.type?
         iconurl = "../../icons/#{@model.attributes.type}.png"
     @$el.html @template _.extend {}, @model.attributes, { iconurl: iconurl } 
+    $('.tag-widget-holder', @$el).replaceWith @tagsView.el
     @
 
   events:
@@ -34,4 +38,8 @@ module.exports = class ThingInListView extends Backbone.View
     ix = id.indexOf ':'
     type = if ix>0 then id.substring 0,ix else 'unknown'
     window.router.navigate "#thing/#{encodeURIComponent @model.id}", trigger:true
+
+  remove: () =>
+    @tagsView.remove()
+    super()
 

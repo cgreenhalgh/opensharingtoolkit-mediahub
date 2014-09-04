@@ -32,5 +32,6 @@ module.exports = class FormUploadView extends Backbone.View
   doUpload: (ev) =>
     console.log "doUpload"
     ev.preventDefault()
-    formdb.startUpload()
+    includeTags = $('input[name=upload-tags]', @$el).prop 'checked'
+    formdb.startUpload(includeTags)
 
