@@ -3,7 +3,18 @@
     <div class="stretch-100 map-parent"><div class="stretch-child"><div class="place-map" tabindex="0"></div></div></div>
   </div>
   <div class="columns large-8 medium-6 small-12">
-    <div class="place-address"><%= @address %></div>
-    <%- @description %>
+<% if @address: %>
+    <h4>Address</h4>
+    <div class="panel"><%= @address %></div>
+<% end %>
+<% if @description: %>
+  <h4>Description</h4>
+  <%- @description %>
+<% end %>
+<% if @lat? and @lon? :  %>
+<% geourl = "geo:#{@lat},#{@lon}" %>
+  <h4>Coordinates</h4>
+  <p><a href="<%= geourl %>" target="_blank"><%= geourl %></a></p> 
+<% end %>
   </div>
 </div>

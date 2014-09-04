@@ -145,14 +145,21 @@ module.exports = class PlaceEditView extends ThingEditView
             console.log "added marker #{marker}"
             marker.bindPopup "#{result.formatted_address}<br/><a href='#' class='button tiny do-use-address' data-address-marker='#{i}' >Use</a>"
             @addressMarkers.push marker
+            if i==0
+              @useMarkerAddress marker
           catch err
-            # TODO zurb alert/dialog
-            alert "Sorry, did not get find any matching addresses (#{err.message})"
+            console.log "error adding marker #{i} for #{JSON.stringify result}: #{err.message}"
         if bounds?
           @map.fitBounds bounds
         $('.map',@$el).focus()
+        if results.length == 0
+          # TODO zurb alert/dialog
+          alert "Sorry, did not get find any matching addresses"
+
       else 
         console.log "Geocode was not successful for the following reason: #{status}"
+        # TODO zurb alert/dialog
+        alert "Sorry, did not get find any matching addresses (#{status})"
 
   useAddress: (ev) =>
     ev.preventDefault()
@@ -165,12 +172,15 @@ module.exports = class PlaceEditView extends ThingEditView
       console.log "Could not find address marker #{i} - should have #{@addressMarker.length}"
       return
     marker.closePopup()
+    useMarkerAddress marker
+    @clearMap ev
+
+  useMarkerAddress: (marker) =>
     latLng = marker.getLatLng()
     @marker.setLatLng latLng
     $('input[name=lat]', @$el).val Number(latLng.lat).toFixed(6)
     $('input[name=lon]', @$el).val Number(latLng.lng).toFixed(6)
     $('input[name=zoom]', @$el).val String(@map.getZoom())
-    @clearMap ev
 
   useLatlon: (ev) =>
     ev.preventDefault()
