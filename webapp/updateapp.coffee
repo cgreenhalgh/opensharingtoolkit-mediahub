@@ -5,11 +5,11 @@ allthings = require 'allthings'
 
 config = window.mediahubconfig
 
-# TODO align with offlineapp/views/Place
+# NB align with offlineapp/views/Place
 maxZoom = 19 # max on OSM??
 defaultZoom = 16
-maxZoomIn = 2
-maxZoomOut = 5
+maxZoomIn = 1
+maxZoomOut = 1
 
 # http://wiki.openstreetmap.org/wiki/Slippy_map_tilenames
 # Math.floor...

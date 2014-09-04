@@ -13,10 +13,35 @@ myIcon = L.icon
     #shadowRetinaUrl: 'my-icon-shadow@2x.png'
     #shadowAnchor: [22, 94]
 
-# TODO align with webapp/models/AppEdit
+# NB align with webapp/updateapp.coffee
 maxZoom = 19
 maxZoomIn = 1
-maxZoomOut = 1
+maxZoomOutTiles = 1
+maxZoomOut = maxZoomOutTiles+7
+
+# http://wiki.openstreetmap.org/wiki/Slippy_map_tilenames
+# Math.floor...
+lon2tile = (lon,zoom) -> 
+  (lon+180)/360*Math.pow(2,zoom)
+# Math.floor...
+lat2tile = (lat,zoom)  -> 
+  (1-Math.log(Math.tan(lat*Math.PI/180) + 1/Math.cos(lat*Math.PI/180))/Math.PI)/2 *Math.pow(2,zoom)
+tile2lon = (x,z) ->
+  (x/Math.pow(2,z)*360-180)
+tile2lat = (y,z) ->
+  n=Math.PI-2*Math.PI*y/Math.pow(2,z)
+  (180/Math.PI*Math.atan(0.5*(Math.exp(n)-Math.exp(-n))))
+
+# get lat/lon bounds for centre point and zoom, assuming 400px map with 256px tiles
+getBounds = (lat, lon, zoom) ->
+  xtile = lon2tile lon, zoom
+  ytile = lat2tile lat, zoom
+  mx = Math.pow 2, zoom
+  dx = dy = 200/256
+  L.latLngBounds [ [ (tile2lat (Math.max 0, ytile-dy), zoom), 
+               (tile2lon (Math.max 0, xtile-dx), zoom) ],
+             [ (tile2lat (Math.min mx, ytile+dy), zoom),
+               (tile2lon (Math.min mx, xtile+dx), zoom) ] ]
 
 module.exports = class PlaceView extends Backbone.View
 
@@ -52,6 +77,11 @@ module.exports = class PlaceView extends Backbone.View
       @marker = L.marker [@model.attributes.lat, @model.attributes.lon], { icon: myIcon }
       #@marker.bindPopup "Current Lat/Lon" 
       @marker.addTo @map
+      # scope (zoomed out)
+      bs = getBounds @model.attributes.lat, @model.attributes.lon, Math.max(0, @model.attributes.zoom-maxZoomOutTiles)
+      console.log "map bounds = #{JSON.stringify bs}"
+      bound = L.rectangle bs, { color:'#5f5', fill:false, weight:3 }
+      bound.addTo @map
       @map.on 'zoomend', () =>
         @map.setView [@model.attributes.lat, @model.attributes.lon]
         

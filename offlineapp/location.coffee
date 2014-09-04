@@ -91,13 +91,13 @@ update = (oneshot) ->
   if location.attributes.continuous or watchId or oneshot
     # is or should be...
     maximumAge = if location.attributes.requestRecent then SHORT_MAXIMUM_AGE else LONG_MAXIMUM_AGE
-    if watchId && (options.highAccuracy != location.attributes.highAccuracy or options.maximumAge != maximumAge)
+    if watchId && (options.enableHighAccuracy != location.attributes.highAccuracy or options.maximumAge != maximumAge)
       console.log "cancel/restart watch on config change"
       clear()
     if not watchId?
       options = 
         maximumAge: maximumAge
-        highAccuracy: location.attributes.highAccuracy
+        enableHighAccuracy: location.attributes.highAccuracy
       console.log "start geo watch conintuous=#{location.attributes.continuous}, options=#{JSON.stringify options}"
       watchId = navigator.geolocation?.watchPosition positionSuccess, positionError, options
       if not watchId?
@@ -162,15 +162,19 @@ updateMarkers = () ->
     pos = L.latLng( location.attributes.lastFix.latitude, location.attributes.lastFix.longitude )
     if mapMarkers.length==0
       console.log "add map markers at #{pos}"
-      m = L.circle pos, (location.attributes.lastFix.accuracy ? 10)/2,
+      m = L.circle pos, (location.attributes.lastFix.accuracy ? 5),
         color: '#8af'
-        opacity: if location.attributes.old then 0.1 else 0.3
+        opacity: if location.attributes.old then 0.3 else 0.5
+        fillOpacity: if location.attributes.old then 0.1 else 0.3
+        weight: 3
       m.addTo currentMap
       mapMarkers.push m
       m = L.circleMarker pos, 
-        radius: 10
-        color: if location.attributes.old then '#018' else '#03f'
-        opacity: if location.attributes.old then 0.4 else 0.8
+        radius: 4
+        color: if location.attributes.old then '#02b' else '#03f'
+        opacity: 0.4
+        fillOpacity: 0.8
+        weight: 1
       m.addTo currentMap
       mapMarkers.push m
     else 
@@ -178,10 +182,10 @@ updateMarkers = () ->
       for m in mapMarkers
         m.setLatLng pos
       mapMarkers[0].setStyle
-        opacity: if location.attributes.old then 0.1 else 0.3
+        opacity: if location.attributes.old then 0.3 else 0.5
+        fillOpacity: if location.attributes.old then 0.1 else 0.3
       mapMarkers[1].setStyle
-        color: if location.attributes.old then '#018' else '#03f'
-        opacity: if location.attributes.old then 0.4 else 0.8
+        color: if location.attributes.old then '#02b' else '#03f'
 
   else if mapMarkers.length>0
     console.log "remove map markers"
