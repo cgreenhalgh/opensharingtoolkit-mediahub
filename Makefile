@@ -31,7 +31,14 @@ css:
 coffee:
 	coffee build.coffee
 
-couchapplocal:
+.PHONY: fixcouchapp 
+
+# there is a problem with couchapp 0.11.0 and request 2.41+ which this works around
+# https://github.com/mikeal/node.couchapp.js/issues/101
+fixcouchapp: 
+	sed -i 's/headers:h/headers:copy(h)/g' node_modules/couchapp/main.js
+
+couchapplocal: fixcouchapp
 	`npm bin`/couchapp push couchapp/app.js ${COUCHDB}
 
 serverapplocal:
