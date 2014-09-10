@@ -53,6 +53,7 @@
 <%   tarfile = "#{window.mediahubconfig.publicurl}/#{@path}.tar.gz" %>
     <p>Will upload and import a checkpoint in directory <a target="_blank" href="<%= file %>"><%= file %><img src="../../icons/link-options.png" class="link-options"/></a> (Tar file <a target="_blank" href="<%= tarfile %>"><%= tarfile %><img src="../../icons/link-options.png" class="link-options"/></a>)</p>
     <p>Use upload form <a target="_blank" href="<%= upload %>"><%= upload %><img src="../../icons/link-options.png" class="link-options"/></a></p>
+    <p><strong>Note: <a href="#reload">reload</a> this editor after importing to see any new/changed content</strong><p>
 
 <% else if @taskType=='buildserver': %>
     <h4>(Re)Build App-specific Server</h4>

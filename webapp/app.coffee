@@ -29,9 +29,15 @@ tempViews = []
 class Router extends Backbone.Router
   routes: 
     "" : "entries"
+    "reload" : "reload"
     "ContentType/:type" : "contentType"
     "ContentType/:type/:action" : "contentTypeAction"
     "ContentType/:type/:action/:id" : "contentTypeAction"
+
+  reload: ->
+    console.log "reload"
+    window.location.hash = ''
+    window.location.reload()
 
   entries: ->
     console.log "router: entries"

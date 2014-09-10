@@ -26,8 +26,8 @@ RUN apt-get -y install zip && \
 # build... (assume .css checked in)
 RUN  mkdir -p /home/root && \
   cd /home/root && \
-  ( wget -qO- https://github.com/cgreenhalgh/opensharingtoolkit-kiosk/archive/1.0.0-rc1.tar.gz | tar xzf - ) && \
-  mv opensharingtoolkit-kiosk-1.0.0-rc1 opensharingtoolkit-kiosk && \
+  ( wget -qO- https://github.com/cgreenhalgh/opensharingtoolkit-kiosk/archive/1.0.0-rc2.tar.gz | tar xzf - ) && \
+  mv opensharingtoolkit-kiosk-1.0.0-rc2 opensharingtoolkit-kiosk && \
   ( wget -qO- https://github.com/cgreenhalgh/opensharingtoolkit-mediahub/archive/1.0.0-rc1.tar.gz | tar xzf - ) && \
   mv opensharingtoolkit-mediahub-1.0.0-rc1 opensharingtoolkit-mediahub && \
   cd /home/root/opensharingtoolkit-kiosk/cache_builder && \
