@@ -17,11 +17,9 @@ RUN apt-get -y install couchdb && \
 
 RUN apt-get -y install npm nodejs-legacy
 
-# build...
+# build... (assume .css checked in)
 RUN apt-get -y install git && \
   npm install -g coffee-script && \
-  apt-get -y install ruby1.9.1 ruby1.9.1-dev && \
-  gem install compass && \
   apt-get -y install zip && \
   mkdir -p /home/root && \
   cd /home/root && \
@@ -31,12 +29,11 @@ RUN apt-get -y install git && \
   npm install && \
   cd /home/root/opensharingtoolkit-mediahub && \
   npm install && \
-  make coffee && \
-  make css
+  make coffee
 
 # make couch database and deploy couchapp
 RUN couchdb -b && \
-  sleep 3 && wget -qO- --method=PUT http://127.0.0.1:5984/mediahub && \
+  sleep 10 && wget -qO- --method=PUT http://127.0.0.1:5984/mediahub && \
   wget -qO- --method=PUT --header=Accept:application/json --header=Content-Type:application/json '--body-data={"_id":"org.couchdb.user:serverreader","type":"user","name":"serverreader","password":"serverreader","roles":["serverreader"]}' http://127.0.0.1:5984/_users/org.couchdb.user:serverreader && \
   wget -qO- --method=PUT --header=Accept:application/json --header=Content-Type:application/json '--body-data={"_id":"org.couchdb.user:serverwriter","type":"user","name":"serverwriter","password":"serverwriter","roles":["serverwriter"]}' http://127.0.0.1:5984/_users/org.couchdb.user:serverwriter && \
   cd /home/root/opensharingtoolkit-mediahub && \
@@ -58,7 +55,7 @@ RUN if [ -f /etc/pam.d/sshd ]; then \
   fi
 
 # testing only...
-EXPOSE 5984
+#EXPOSE 5984
 
 # See template for specific configuration...
 VOLUME ["/var/lib/couchdb","/var/log","/usr/share/nginx/html"]

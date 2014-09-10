@@ -2,7 +2,6 @@ node_modules/*
 bower_components/*
 .sass-cache/*
 public/*.DS_Store
-public/stylesheets/*
 *~
 *.timestamp
 docker/mediahub/mediahub.couch

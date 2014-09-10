@@ -1,0 +1,10 @@
+FROM mediahub
+
+# nginx config
+RUN mkdir -p /etc/nginx/mediahub-servers/
+ADD nginx-mediahub /etc/nginx/sites-available/default
+ADD instance /home/root/opensharingtoolkit-mediahub/
+ADD htpasswd /etc/nginx/conf/
+
+#cfengine
+ENTRYPOINT ["/var/cfengine/bin/docker_processes_run.sh"]

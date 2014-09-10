@@ -22,28 +22,29 @@ nginxdev/image.timestamp: nginxdev/Dockerfile
 #replace := $(shell echo $(NAME) | 's/#{NAME}/'$(NAME)'/g'
 # better password...!
 
-mediahub-$(NAME):
-	mkdir mediahub-$(NAME)
-
 newpass = $(shell openssl rand -base64 6)
 
-mediahub-$(NAME)/password: mediahub-$(NAME)
+mediahub-$(NAME)/password: 
 # new password...!
+	-mkdir mediahub-$(NAME)
 	echo $(newpass) > mediahub-$(NAME)/password
 
 password = $(shell cat mediahub-$(NAME)/password)
 passwd = $(shell openssl passwd $(password) )
 
-mediahub-$(NAME)/htpasswd: mediahub-$(NAME) mediahub/htpasswd.template mediahub-$(NAME)/password
+mediahub-$(NAME)/htpasswd: mediahub/htpasswd.template mediahub-$(NAME)/password
 	cat mediahub/htpasswd.template | sed -e "s/#{NAME}/$(NAME)/g" -e "s_#{PASSWD}_$(passwd)_g" > mediahub-$(NAME)/htpasswd
 
 mediahub-$(NAME)/instance: 
+	-mkdir mediahub-$(NAME)
 	echo $(NAME) > mediahub-$(NAME)/instance
 
-mediahub-$(NAME)/nginx-mediahub: mediahub-$(NAME) mediahub/nginx-mediahub.template 
+mediahub-$(NAME)/nginx-mediahub: mediahub/nginx-mediahub.template 
+	-mkdir mediahub-$(NAME)
 	cat mediahub/nginx-mediahub.template | sed -e "s/#{NAME}/$(NAME)/g" > mediahub-$(NAME)/nginx-mediahub
 
-mediahub-$(NAME)/Dockerfile: mediahub-$(NAME) mediahub/Dockerfile.template 
+mediahub-$(NAME)/Dockerfile: mediahub/Dockerfile.template 
+	-mkdir mediahub-$(NAME)
 	cat mediahub/Dockerfile.template | sed -e "s/#{NAME}/$(NAME)/g" > mediahub-$(NAME)/Dockerfile
 
 mediahub-$(NAME)/image.timestamp: mediahub-$(NAME)/Dockerfile mediahub-$(NAME)/htpasswd mediahub-$(NAME)/nginx-mediahub mediahub/image.timestamp mediahub-$(NAME)/instance
