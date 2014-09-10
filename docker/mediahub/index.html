@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>OpenSharingToolkit MediaHub</title>
+  </head>
+  <body>
+    <h1>OpenSharingToolkit MediaHub</h1>
+    <h2><a href="mediahub/_design/app/html/editor/index.html">Editor</a></h2>
+    <p>Note: password protected, and may require https: rather than http: (try <a id="httpslink" href="">this</a>)</p>
+<script type="text/javascript">
+console.log("hello... element is "+document.getElementById('httpslink'));
+var pathname = window.location.pathname;
+var ix = pathname.lastIndexOf('/');
+var href = "https://"+window.location.host+pathname.substring(0,ix+1)+"mediahub/_design/app/html/editor/index.html";
+console.log("new ref is "+href);
+document.getElementById('httpslink').href = href;
+</script>
+  </body>
+</html>

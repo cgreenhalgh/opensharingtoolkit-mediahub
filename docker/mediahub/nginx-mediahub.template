@@ -68,6 +68,15 @@ server {
 
         include /etc/nginx/mediahub-servers/*.conf;
 
+	location = / {
+		try_files $uri $uri/index.html
+                break;
+	}
+	location = /index.html {
+		allow all;
+		break;
+	}
+
 	location / {
 		deny all;
 	}

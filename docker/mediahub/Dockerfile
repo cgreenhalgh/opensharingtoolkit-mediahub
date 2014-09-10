@@ -12,12 +12,19 @@ RUN apt-get -y install couchdb && \
   mkdir -p /var/lib/couchdb && \
   ( echo "/usr/lib/erlang/erts-5.10.4/bin/beam, /usr/bin/couchdb" >> /var/cfengine/inputs/processes_run.csv )
 
-RUN apt-get -y install npm nodejs-legacy
+# node
+RUN apt-get -y install npm nodejs-legacy 
+
+# PHP for kiosk server-side
+RUN apt-get -y install php5-cli php5-fpm && \
+  ( echo "php-fpm, /usr/sbin/php5-fpm" >> /var/cfengine/inputs/processes_run.csv )
+
+# build setup
+RUN apt-get -y install zip && \
+  npm install -g coffee-script
 
 # build... (assume .css checked in)
-RUN npm install -g coffee-script && \
-  apt-get -y install zip && \
-  mkdir -p /home/root && \
+RUN  mkdir -p /home/root && \
   cd /home/root && \
   ( wget -qO- https://github.com/cgreenhalgh/opensharingtoolkit-kiosk/archive/1.0.0-rc1.tar.gz | tar xzf - ) && \
   mv opensharingtoolkit-kiosk-1.0.0-rc1 opensharingtoolkit-kiosk && \
@@ -40,12 +47,10 @@ RUN couchdb -b && \
   couchdb -d && \
   mkdir -p /usr/share/nginx/html/public
 
+ADD index.html /usr/share/nginx/html/
+
 # couchdb access config and helper process
 COPY local.ini /etc/couchdb/
-
-# PHP for kiosk server-side
-RUN apt-get -y install php5-cli php5-fpm && \
-  ( echo "php-fpm, /usr/sbin/php5-fpm" >> /var/cfengine/inputs/processes_run.csv )
 
 # See template for specific configuration...
 VOLUME ["/var/lib/couchdb","/var/log","/usr/share/nginx/html"]
