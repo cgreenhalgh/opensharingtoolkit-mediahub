@@ -1,5 +1,8 @@
 FROM mediahub
 
+# cfengine, no ssh fix
+RUN sed -i 's/"ssh",//' /var/cfengine/inputs/promises.cf
+
 # nginx config
 RUN mkdir -p /etc/nginx/mediahub-servers/
 ADD nginx-mediahub /etc/nginx/sites-available/default

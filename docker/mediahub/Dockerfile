@@ -1,9 +1,6 @@
 FROM cfengine
 
 RUN apt-get update
-RUN apt-get -y install openssh-server && \
-  mkdir -p /var/run/sshd && \
-  ( echo "root:password" | chpasswd )  # need a password for ssh
 
 RUN apt-get -y install nginx && \
   mkdir -p /etc/nginx/conf/ && \
@@ -18,13 +15,14 @@ RUN apt-get -y install couchdb && \
 RUN apt-get -y install npm nodejs-legacy
 
 # build... (assume .css checked in)
-RUN apt-get -y install git && \
-  npm install -g coffee-script && \
+RUN npm install -g coffee-script && \
   apt-get -y install zip && \
   mkdir -p /home/root && \
   cd /home/root && \
-  git clone https://github.com/cgreenhalgh/opensharingtoolkit-kiosk && \
-  git clone https://github.com/cgreenhalgh/opensharingtoolkit-mediahub && \
+  ( wget -qO- https://github.com/cgreenhalgh/opensharingtoolkit-kiosk/archive/1.0.0-rc1.tar.gz | tar xzf - ) && \
+  mv opensharingtoolkit-kiosk-1.0.0-rc1 opensharingtoolkit-kiosk && \
+  ( wget -qO- https://github.com/cgreenhalgh/opensharingtoolkit-mediahub/archive/1.0.0-rc1.tar.gz | tar xzf - ) && \
+  mv opensharingtoolkit-mediahub-1.0.0-rc1 opensharingtoolkit-mediahub && \
   cd /home/root/opensharingtoolkit-kiosk/cache_builder && \
   npm install && \
   cd /home/root/opensharingtoolkit-mediahub && \
@@ -49,18 +47,10 @@ COPY local.ini /etc/couchdb/
 RUN apt-get -y install php5-cli php5-fpm && \
   ( echo "php-fpm, /usr/sbin/php5-fpm" >> /var/cfengine/inputs/processes_run.csv )
 
-# Fix for sshd login (why?? maybe php pulled something in) 
-RUN if [ -f /etc/pam.d/sshd ]; then \
-    sed -i.orig 's|^session[ \t]*required[ \t]*pam_loginuid.so|#&|' /etc/pam.d/sshd; \
-  fi
-
-# testing only...
-#EXPOSE 5984
-
 # See template for specific configuration...
 VOLUME ["/var/lib/couchdb","/var/log","/usr/share/nginx/html"]
-EXPOSE 80 443 22
+EXPOSE 80
 #/usr/sbin/syslogd
 #ENTRYPOINT ["/var/cfengine/bin/docker_processes_run.sh"]
-CMD ["/usr/sbin/sshd", "/usr/sbin/nginx"]
+CMD ["/usr/sbin/nginx"]
 
