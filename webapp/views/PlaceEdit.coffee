@@ -4,8 +4,11 @@ ThingEditView = require 'views/ThingEdit'
 
 # geocode 
 window.lastGeocodeCallback = 0
-geocoder = new google.maps.Geocoder()
-  
+try
+  geocoder = new google.maps.Geocoder()
+catch err
+  console.log "Warning: could not create geocoder - location lookup will not work!"
+
 myIcon = L.icon
     iconUrl: '../../vendor/leaflet/images/my-icon.png'
     iconRetinaUrl: '../../vendor/leaflet/images/my-icon-2x.png'
@@ -122,6 +125,9 @@ module.exports = class PlaceEditView extends ThingEditView
     console.log "lookupAddress #{address}... (request #{geocodeCallback})"
     $('.do-lookup-address', @$el).addClass 'disabled'
     
+    if not geocode?
+      return alert "Sorry - cannot look up addresses (may be due to an Internet connection problem; couldn't load geocoder library)"
+
     geocoder.geocode { 'address': address}, (results, status) =>
       if geocodeCallback != window.lastGeocodeCallback
         console.log "ignore old geocode response #{geocodeCallback}"
