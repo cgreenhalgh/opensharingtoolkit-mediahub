@@ -2,12 +2,19 @@
 <label>Title
   <input type="text" name="title" placeholder="title" value="<%= @data.title %>"/>
 </label>
-<label>Description
+<label>Tags / comments (for editing ONLY)
+  <textarea name="comment" rows="3"><%= @data.comment %></textarea>
+</label>
+<label class="<%= if @data.type != 'place' and @data.type != 'app' and @data.type != 'file' then (if not @data.description then 'hide' else 'error') %>">Description
+<%= if @data.type == 'app' or @data.type == 'file' then 'for use by kiosk' %>
+<%= if @data.type != 'place' and @data.type != 'app' and @data.type != 'file' then '(NOTE: is NOT used)' %>
   <textarea name="description" placeholder="description" ><%= @data.description %></textarea>
 </label>
 <div class="row">
-  <div class="columns large-4 medium-6 small-12">
+  <div class="columns large-4 medium-6 small-12 <%= if @data.type != 'app' and @data.type != 'file' then (if not @data.imageurl then 'hide' else 'error') %>">
     <label>Image
+<%= if @data.type == 'app' or @data.type == 'file' then 'for use by kiosk' %>
+<%= if @data.type != 'app' and @data.type != 'file' then '(NOTE: please specify icon instead)' %>
       <div>
         <div class="image-select-icon">
           <div class="dummy"></div>
@@ -19,8 +26,9 @@
       </div>
     </label>
   </div>
-  <div class="columns large-4 medium-6 small-12">    
-    <label>Icon
+  <div class="columns large-4 medium-6 small-12 <%= if @data.type != 'list' and @data.type != 'place' and @data.type != 'html' and @data.type != 'booklet' and @data.type != 'form' then (if not @data.iconurl then 'hide' else 'error') %>"">    
+    <label>Icon for use in app
+<%= if @data.type != 'list' and @data.type != 'place' and @data.type != 'html' and @data.type != 'booklet' and @data.type != 'form' then '(NOTE: is NOT used)' %>
       <div>
         <div class="image-select-icon">
           <div class="dummy"></div>

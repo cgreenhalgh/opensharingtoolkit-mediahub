@@ -59,12 +59,14 @@ module.exports = class ThingEditView extends Backbone.View
   formToModel: () =>
     title = $('input[name="title"]', @$el).val()
     description = $(':input[name="description"]', @$el).val()
+    comment = $(':input[name="comment"]', @$el).val()
     imageurl = $('.image-image', @$el).attr 'src'
     iconurl = $('.image-icon', @$el).attr 'src'
     console.log "title=#{title}, description=#{description}, imageurl=#{imageurl}, iconurl=#{iconurl}"
     @model.set 
       title: title
       description: description
+      comment: comment
       imageurl: imageurl
       iconurl: iconurl
 

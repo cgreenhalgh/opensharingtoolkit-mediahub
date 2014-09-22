@@ -8267,3 +8267,13 @@ th.hide-for-touch {
   -ms-user-select: text;
   user-select: text;
 }
+
+/* line 242, ../../scss/app.scss */
+.comment {
+  text-wrap: none;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  height: 16pt;
+  padding-bottom: 0.2em;
+}

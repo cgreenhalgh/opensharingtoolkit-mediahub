@@ -239,3 +239,12 @@ $outline-color: $primary-color; //scale-color($primary-color, $lightness: -66%);
   user-select:text;
 };
 
+.comment {
+  text-wrap: none;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  height: 16pt;
+  padding-bottom: 0.2em;
+}
+

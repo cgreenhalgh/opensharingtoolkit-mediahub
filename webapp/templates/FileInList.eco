@@ -14,4 +14,5 @@
   <!-- <a href="#-save" class="action-button do-save right">Save</a> -->
   <!-- <a href="#-testapp" class="action-button do-testapp right">Test Offline</a> -->
 <% end %>
-</h3>
+</h4>
+<div class="comment"><%= @comment %></div>

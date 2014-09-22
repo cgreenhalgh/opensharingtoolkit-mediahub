@@ -6,4 +6,5 @@
   <a href="#" class="action-button do-export right">Export...</a>
   <a href="#" class="action-button do-import right">Import...</a>
   <a href="#" class="action-button do-build right">Build...</a>
-</h3>
+</h4>
+<div class="comment"><%= @comment %></div>
