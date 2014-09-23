@@ -241,7 +241,7 @@ module.exports = class FileEditView extends ThingEditView
     # image? try as img element...
     # Ajax requests often blocked by CORS :-(
     img = new Image()
-    img.crossOrigin = 'Anonymous'
+    img.crossOrigin = 'use-credentials'
 
     self = @
     type = 'image/png'
@@ -319,6 +319,7 @@ module.exports = class FileEditView extends ThingEditView
       ev.preventDefault()
     @removeJcrop()
     @cropCoords = null
+    $('select[name=image-aspect] > option', @$el).prop 'selected', false
 
     oldImage = if @img? then @img else $('.image-editor-image', @$el).get(0)
 
@@ -353,12 +354,14 @@ module.exports = class FileEditView extends ThingEditView
       @img.src = fileurl
       $('input[name=do-save-image]',@$el).prop 'disabled',true
       $('input[name=do-reset-image]',@$el).prop 'disabled',true
+      $('div.save-alert',@$el).addClass 'hide' 
     else
       # data url
       @img.src = url
       #@img.onload() 
       $('input[name=do-save-image]',@$el).prop 'disabled',false
       $('input[name=do-reset-image]',@$el).prop 'disabled',false
+      $('div.save-alert',@$el).removeClass 'hide' 
     $('input[name=do-crop-image]',@$el).prop 'disabled',true
 
     # Note: non-responsive!
@@ -515,6 +518,10 @@ module.exports = class FileEditView extends ThingEditView
     try  
       @jcrop.setOptions
         aspectRatio: aspect
+      c = @jcrop.tellSelect()
+      console.log "aspect tellSelect #{JSON.stringify c}"
+      if c.w!=0
+        @crop c
     catch err
       console.log "error setting aspect ratio to #{aspect}: #{err.message} #{err.stack}"
 
