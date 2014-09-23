@@ -435,7 +435,7 @@ select {
   }
 
   /* line 170, ../vendor/foundation/scss/foundation/components/_grid.scss */
-  .small-6 {
+  .small-6, .image-select {
     width: 50%;
   }
 
@@ -465,7 +465,7 @@ select {
   }
 
   /* line 170, ../vendor/foundation/scss/foundation/components/_grid.scss */
-  .small-12, .content-type-in-list, .thing-in-list, .image-select {
+  .small-12, .content-type-in-list, .thing-in-list {
     width: 100%;
   }
 
@@ -771,7 +771,7 @@ select {
   }
 
   /* line 170, ../vendor/foundation/scss/foundation/components/_grid.scss */
-  .medium-3 {
+  .medium-3, .image-select {
     width: 25%;
   }
 
@@ -786,7 +786,7 @@ select {
   }
 
   /* line 170, ../vendor/foundation/scss/foundation/components/_grid.scss */
-  .medium-6, .image-select {
+  .medium-6 {
     width: 50%;
   }
 
@@ -1285,7 +1285,7 @@ select {
   }
 
   /* line 170, ../vendor/foundation/scss/foundation/components/_grid.scss */
-  .large-2 {
+  .large-2, .image-select {
     width: 16.66667%;
   }
 
@@ -1295,7 +1295,7 @@ select {
   }
 
   /* line 170, ../vendor/foundation/scss/foundation/components/_grid.scss */
-  .large-4, .image-select {
+  .large-4 {
     width: 33.33333%;
   }
 

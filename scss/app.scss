@@ -83,9 +83,9 @@ $outline-color: $primary-color; //scale-color($primary-color, $lightness: -66%);
 
 .image-select {
   @extend .columns;
-  @extend .large-4;
-  @extend .medium-6;
-  @extend .small-12;
+  @extend .large-2;
+  @extend .medium-3;
+  @extend .small-6;
   border: 1px solid $outline-color;
   padding: 0.2em;
 };
