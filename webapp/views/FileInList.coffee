@@ -11,6 +11,7 @@ module.exports = class FileInListView extends ThingInListView
 
   events:
     "click .do-edit-file": "edit"
+    "click .do-copy-file": "copy"
     "click .do-delete-file": "delete"
     "click .do-save": "save"
     "click .do-testapp": "testapp"

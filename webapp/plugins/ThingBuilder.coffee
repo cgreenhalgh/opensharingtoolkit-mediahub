@@ -12,6 +12,7 @@ module.exports.createThingType = (attributes, ThisThing, ThisThingList, ThisThin
   ThisThing.contentType = contentType
   ThisThing.prototype.getContentType = () -> contentType
   ThisThing.addingThings = {}
+  contentType.getModel = () -> ThisThing
 
   # special case for generic ThingListView
   contentType.getThingView = (thing) ->

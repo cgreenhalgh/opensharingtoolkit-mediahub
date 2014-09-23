@@ -10,6 +10,7 @@
   <% end %>
   <a href="#-delete-file" class="action-button do-delete-file right">Delete</a>
   <a href="#-edit-file" class="action-button do-edit-file right">Edit</a>
+  <a href="#" class="action-button do-copy-file right">Copy</a>
 <% if @hasFile: %>
   <!-- <a href="#-save" class="action-button do-save right">Save</a> -->
   <!-- <a href="#-testapp" class="action-button do-testapp right">Test Offline</a> -->

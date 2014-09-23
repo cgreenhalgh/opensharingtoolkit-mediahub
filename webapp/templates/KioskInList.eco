@@ -2,6 +2,7 @@
 <h4 class="clearfix"><%= @title %>
   <a href="#" class="action-button do-delete-file right">Delete</a>
   <a href="#" class="action-button do-edit-file right">Edit</a>
+  <a href="#" class="action-button do-copy-file right">Copy</a>
   <!-- <a href="#" class="action-button do-view-file right">View</a> -->
   <a href="#" class="action-button do-export right">Export...</a>
 </h4>
