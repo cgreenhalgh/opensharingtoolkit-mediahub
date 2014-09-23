@@ -106,7 +106,7 @@ module.exports = class ThingMultiselectModalView extends Backbone.View
         @$el.foundation 'reveal', 'init'
       catch err
         console.log "error doing reveal init: #{err.message}"
-    $('input[type=checkbox]').attr 'checked', false
+    $('input[type=checkbox]', @$el).attr 'checked', false
     @callback = cb
     @$el.foundation 'reveal', 'open'
 
