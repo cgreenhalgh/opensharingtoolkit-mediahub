@@ -10,7 +10,9 @@ module.exports = class ListView extends ThingView
  
   render: =>
     @$el.html @template @model.attributes
-    if @model.things?
+    if @listView?
+      @listView.render()
+    else if @model.things?
       console.log "render ListView adding ThingListView"
       @listView = new ThingListView model: @model.things
       @listView.render()

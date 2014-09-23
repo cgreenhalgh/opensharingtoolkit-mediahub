@@ -14,11 +14,14 @@ module.exports = class ThingListView extends Backbone.View
     @render()
 
   render: =>
+    @reset()
     @model.forEach @addItem
     @
 
   addItem: (thing) =>
     console.log "ThingListView add #{thing.id}"
+    for view,i in @views when view.model.id == thing.id
+      return console.log "skip addItem for known #{thing.id}"
     view = new ThingInListView model: thing
     # TODO add in order / filter
     @$el.append view.$el
@@ -35,7 +38,7 @@ module.exports = class ThingListView extends Backbone.View
   reset: () =>
     for view in @views
       view.remove()
-    views = []
+    @views = []
 
   remove: () =>
     for view in @views
