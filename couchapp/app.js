@@ -30,7 +30,7 @@ function addIndex(name) {
     var index = "${@index}";
     return {
       headers: {"Content-type": "text/html"},
-      body: index.replace(/[$][{][@]id[}]/g, doc._id)
+      body: index.replace(/[$][{][@]id[}]/g, doc._id).replace(/[$][{][@]title[}]/g, doc.title)
     }
   };
   ddoc.shows[name] = showIndex.toString().replace("${@index}", minescape(index.toString()));
