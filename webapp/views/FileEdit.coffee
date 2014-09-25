@@ -9,6 +9,8 @@ allthings = require 'allthings'
 fixFileType = (type) ->
   if type=='audio/mp3'
     'audio/mpeg'
+  else if type=='image/vnd.microsoft.icon'
+    'image/x-icon'
   else
     type
 

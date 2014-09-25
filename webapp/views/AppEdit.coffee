@@ -22,6 +22,7 @@ module.exports = class AppEditView extends ListEditView
     now = new Date().getTime()
     createdtime = @model.attributes.createdtime ? now
     lastupdatedtime = now
+    faviconurl = $('.image-favicon', @$el).attr 'src'
     @model.set 
       serverId: serverId
       showAbout: showAbout
@@ -33,6 +34,7 @@ module.exports = class AppEditView extends ListEditView
       showLocation: showLocation
       createdtime: createdtime
       lastupdatedtime: lastupdatedtime
+      faviconurl: faviconurl
 
   template: (d) =>
     servers = (plugins.getContentType 'server')?.getThings()?.models
@@ -53,10 +55,18 @@ module.exports = class AppEditView extends ListEditView
       CKEDITOR.replace 'aboutText', ckconfig
     setTimeout f, 0
 
+  events:->
+    _.extend {}, super(),
+      "click .do-select-favicon": "selectThingFavicon"
+
   remove: () =>
     editor = CKEDITOR.instances['aboutText']
     if editor 
       console.log "destroy ckeditor aboutText"
       editor.destroy(true)
     super()
+
+  selectThingFavicon: (ev) =>
+    @selectImage ev,'.image-favicon', 'image/x-icon'
+
 

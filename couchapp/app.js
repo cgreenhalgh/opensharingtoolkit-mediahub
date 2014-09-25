@@ -28,9 +28,13 @@ function addIndex(name) {
   var index = fs.readFileSync(path.join(__dirname, "templates/"+name+".html"));
   var showIndex = function(doc, req) {
     var index = "${@index}";
+    var faviconurl = "favicon.ico";
+    if (doc.faviconurl) {
+      faviconurl = doc.faviconurl;
+    }
     return {
       headers: {"Content-type": "text/html"},
-      body: index.replace(/[$][{][@]id[}]/g, doc._id).replace(/[$][{][@]title[}]/g, doc.title)
+      body: index.replace(/[$][{][@]id[}]/g, doc._id).replace(/[$][{][@]title[}]/g, doc.title).replace(/[$][{][@]faviconurl[}]/g, faviconurl)
     }
   };
   ddoc.shows[name] = showIndex.toString().replace("${@index}", minescape(index.toString()));
@@ -46,6 +50,9 @@ var showManifest = function(doc, req) {
   // too volatile, really...
   manifest = manifest + "\n# version "+(new Date().toUTCString())+"\n";
   manifest = manifest + "CACHE:\n";
+  if (doc.faviconurl) {
+    manifest = manifest + "# favicon\n"+doc.faviconurl+"\n";
+  }
   manifest = manifest + "../../../../"+encodeURIComponent(doc._id)+"\n";
   if (doc && doc.files) {
     for (var i in doc.files) {

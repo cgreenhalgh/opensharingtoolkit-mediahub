@@ -47,3 +47,18 @@
 <label>Default map 
 </label>
 -->
+<div class="row">
+  <div class="columns large-4 medium-6 small-12">
+    <label>HTML favicon.ico
+      <div>
+        <div class="image-select-icon">
+          <div class="dummy"></div>
+          <img class="image-select-image image-favicon" src="<%= @data.faviconurl %>"/>
+        </div>
+      </div>
+      <div>
+        <a href="#" class="button small do-select-favicon">Browse server...</a> 
+      </div>
+    </label>
+  </div>
+</div>
