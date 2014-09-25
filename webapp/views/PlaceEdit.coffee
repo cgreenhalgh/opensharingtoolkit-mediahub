@@ -4,6 +4,7 @@ ThingEditView = require 'views/ThingEdit'
 
 # geocode 
 window.lastGeocodeCallback = 0
+geocoder = null
 try
   geocoder = new google.maps.Geocoder()
 catch err
@@ -125,7 +126,7 @@ module.exports = class PlaceEditView extends ThingEditView
     console.log "lookupAddress #{address}... (request #{geocodeCallback})"
     $('.do-lookup-address', @$el).addClass 'disabled'
     
-    if not geocode?
+    if not geocoder?
       return alert "Sorry - cannot look up addresses (may be due to an Internet connection problem; couldn't load geocoder library)"
 
     geocoder.geocode { 'address': address}, (results, status) =>
