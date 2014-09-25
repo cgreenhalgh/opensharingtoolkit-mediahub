@@ -14,6 +14,7 @@ HtmlView = require 'views/Html'
 ListView = require 'views/List'
 FormView = require 'views/Form'
 UserView = require 'views/User'
+MissingView = require 'views/Missing'
 
 ThingListView = require 'views/ThingList'
 FormUploadView = require 'views/FormUpload'
@@ -92,9 +93,9 @@ class Router extends Backbone.Router
     console.log "show thing #{id}"
     thing = items[id]
     if not thing?
-      alert "Sorry, could not find thing #{id}"
-      @navigate '#', { trigger:true, replace:true }
-      return false
+      console.log "could not find thing #{id}"
+      @setCurrentView new MissingView model: (new Backbone.Model _id: id)
+      return true
     
     if thing.attributes.type=='booklet'
       view = new BookletView model: thing
@@ -139,6 +140,15 @@ makeThing = (data, collection, thingIds) ->
     thing = new Backbone.Model data
     if thing.id
       items[thing.id] = thing
+      if currentView? and currentView.isMissing and currentView.model.id == thing.id
+        console.log "Loaded missing thing #{thing.id}"
+        try
+          if currentView.page?
+            window.router.bookletPage thing.id, currentView.page, currentView.anchor
+          else
+            window.router.thing thing.id        
+        catch err
+          console.log "error setting discovered thing: #{err.message} #{err.stacktrace}"
       # add in order of thingIds
       tix = thingIds.indexOf thing.id
       ix = 0
