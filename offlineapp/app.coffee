@@ -134,12 +134,18 @@ class Router extends Backbone.Router
   location: () ->
     @setCurrentView new LocationView model: location.getLocation()
 
-makeThing = (data, collection) ->
+makeThing = (data, collection, thingIds) ->
   try
     thing = new Backbone.Model data
     if thing.id
       items[thing.id] = thing
-    collection.add thing
+      # add in order of thingIds
+      tix = thingIds.indexOf thing.id
+      ix = 0
+      for tid,i in thingIds when i<tix and ix<collection.length
+        if (collection.at ix).id == tid
+          ix++
+      collection.add thing, at:ix
     if data.thingIds?
       console.log "create new thing collection for #{thing.id}"
       thing.things = new Backbone.Collection()
@@ -147,35 +153,35 @@ makeThing = (data, collection) ->
   catch err
     console.log "error making thing: #{err.message}: #{data}\n#{err.stack}"
 
-checkThing = (data,collection) ->
+checkThing = (data,collection,thingIds) ->
   #if instanceid isnt localdb.currentInstanceid()
   #  console.log "Ignore item on load; old instanceid #{instanceid} vs #{localdb.currentInstanceid()}"
   #  return
   try 
     data = JSON.parse data
     if data.type?
-      makeThing data, collection
+      makeThing data, collection, thingIds
     else
       console.log "unknown item type #{data.type} - ignored"
   catch err
     console.log "error parsing thing: #{err.message}: #{data}"
 
-loadThing = (thingId,collection) ->
+loadThing = (thingId,collection,thingIds) ->
   console.log "load thing #{thingId}"
   $.ajax dburl+"/"+encodeURIComponent(thingId),
     success: (data)->
-      checkThing data, collection
+      checkThing data, collection, thingIds
     dataType: "text"
     error: (xhr,status,err) ->
       console.log "get thing error "+xhr.status+": "+err.message
       # on android (at least) files from cache sometimes have status 0!!
       if xhr.status==0 && xhr.responseText
-        checkThing xhr.responseText, collection
+        checkThing xhr.responseText, collection, thingIds
 
 loadThings = (app,collection) ->
   for thingId in app.thingIds
     # id, url, type
-    loadThing thingId,collection
+    loadThing thingId,collection,app.thingIds
   working.done()
 
 checkConfig = (app) ->
