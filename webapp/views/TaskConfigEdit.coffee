@@ -103,7 +103,13 @@ module.exports = class TaskConfigEditView extends Backbone.View
 
   # syntax ok?? or (x...) -> 
   template: (d) =>
-    templateTaskConfigEdit d
+    # @path is used in URLs
+    pathels = (d.path ? "").split '/'
+    epathels = for pathel in pathels
+      encodeURIComponent pathel
+    epath = epathels.join '/'
+    #console.log "task config path #{d.path} -> #{epath}"
+    templateTaskConfigEdit _.extend {}, d, { path:epath }
 
   render: =>
     console.log "render TaskConfigEdit #{@model.attributes._id}"
