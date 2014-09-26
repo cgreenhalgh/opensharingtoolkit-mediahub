@@ -63,6 +63,14 @@ Each `mediahub-NAME` subdirectory includes `password`, the auto-generated passwo
 
 You should update the public-facing proxy configuration after running a new mediahub instance - see below (`make nginx`).
 
+### Dealing with logs
+
+Should probably make it run `logrotate`, but in the mean time you could ssh into it and
+```
+logrotate -v /home/root/opensharingtoolkit-mediahub/docker/mediahub/logrotate
+```
+These should probably rotate more often and keep fewer versions, aswell I think. Defaults are weekly, with 52 and 10 rotations, respectively.
+
 ## Public web access
 
 The common proxy front-end is build, run and updated by
