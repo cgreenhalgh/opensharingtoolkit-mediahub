@@ -20,9 +20,11 @@ module.exports = class ServerEditView extends ThingEditView
     console.log "found admins #{JSON.stringify admins}"
     #TODO servertype = $('input[name="atomfilename"]', @$el).val()
     submissionurl = $('input[name="submissionurl"]', @$el).val()
+    uploadNoHttps = $('input[name=uploadNoHttps]', @$el).prop 'checked'
     @model.set 
       admins: admins
       submissionurl: submissionurl
+      uploadNoHttps: uploadNoHttps
 
   render: () =>
     super()

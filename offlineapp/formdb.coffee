@@ -219,7 +219,14 @@ uploadTask = () ->
     if not app.serverId?
       return uploadFailed "app.serverId not set"
     submissionurls = for s in (app.servers ? []) when s.id==app.serverId
-      s.submissionurl 
+      if s.uploadNoHttps
+        console.log "force no https for upload to #{s.submissionurl}"
+        if s.submissionurl.indexOf('https:')==0
+          'http:'+s.submissionurl.substring(6)
+        else
+          s.submissionurl 
+      else
+        s.submissionurl 
     if submissionurls.length==0
       return uploadFailed "app.servers #{app.serverId} submissionurl not found"
     submissionurl = submissionurls[0]

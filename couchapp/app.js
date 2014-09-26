@@ -67,7 +67,16 @@ var showManifest = function(doc, req) {
   if (doc && doc.servers) {
     manifest = manifest + "\nNETWORK:\n";
     for (var i in doc.servers) {
-      manifest = manifest + "# MEDIAHUB-SERVER "+doc.servers[i].id+"\n"+doc.servers[i].submissionurl+"\n";
+      manifest = manifest + "# MEDIAHUB-SERVER "+doc.servers[i].id;
+      if (doc.servers[i].uploadNoHttps) {
+        if (doc.servers[i].submissionurl.indexOf('https:')==0) {
+          manifest = manifest+" (was https)\nhttp:"+doc.servers[i].submissionurl.substring(6)+"\n";
+        } else {
+          manifest = manifest+" (was http anyway)\n"+doc.servers[i].submissionurl+"\n";
+        }
+      } else {
+        manifest = manifest+"\n"+doc.servers[i].submissionurl+"\n";
+      }
     }
   }
   return {
