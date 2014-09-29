@@ -3,4 +3,7 @@ location /#{NAME}/public/ {
 	proxy_pass http://#{HOST}/public/;
 	#proxy_redirect http://#{HOST}/ https://$host/#{NAME}/;
 }
+location /#{NAME}/submission/ {
+	proxy_pass http://#{HOST}/submission/;
+}
 

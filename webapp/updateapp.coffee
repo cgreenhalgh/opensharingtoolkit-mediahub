@@ -70,6 +70,7 @@ addServer = (servers, appserver) ->
     servers[appserver.id] = 
       id: appserver.id
       submissionurl: submissionurl
+      uploadNoHttps: appserver.attributes.uploadNoHttps
 
 checkThings = (model, thingIds, items, files, servers) ->
     while thingIds.length > 0

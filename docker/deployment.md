@@ -63,6 +63,14 @@ Each `mediahub-NAME` subdirectory includes `password`, the auto-generated passwo
 
 You should update the public-facing proxy configuration after running a new mediahub instance - see below (`make nginx`).
 
+### Dealing with logs
+
+Should probably make it run `logrotate`, but in the mean time you could ssh into it and
+```
+logrotate -v /home/root/opensharingtoolkit-mediahub/docker/mediahub/logrotate
+```
+These should probably rotate more often and keep fewer versions, aswell I think. Defaults are weekly, with 52 and 10 rotations, respectively.
+
 ## Public web access
 
 The common proxy front-end is build, run and updated by
@@ -71,6 +79,31 @@ make nginx
 ```
 
 This will create proxy configs for each currently running mediahub container on the machine. These are configured with the current IP address of the container and assumes the internal firewall is sufficiently open for this to work.
+
+### Deading with weblogs
+
+The nginx container exposes the volume `/var/log`. To extract the logs do something to the effect of the below. Note that sig USR1 causes the nginx process to open fresh log files, so it isn't safe to do much with the old log files until after that. You could do something with logrotate but you won't be able to signal the real nginx process from within another container running logrotate.
+```
+DATE=`date -u +%F`
+sudo docker run -i --volumes-from=nginx --rm ubuntu mkdir /var/log/nginx/${DATE}
+sudo docker run -i --volumes-from=nginx --rm ubuntu mv /var/log/nginx/access.log /var/log/nginx/${DATE}/
+sudo docker run -i --volumes-from=nginx --rm ubuntu mv /var/log/nginx/error.log /var/log/nginx/${DATE}/
+sudo docker kill -s USR1 nginx
+sleep 1
+sudo docker run -i --volumes-from=nginx --rm ubuntu gzip /var/log/nginx/${DATE}/access.log
+sudo docker run -i --volumes-from=nginx --rm ubuntu gzip /var/log/nginx/${DATE}/error.log
+sudo docker run --volumes-from=nginx -v $(pwd):/backup --rm ubuntu tar cf /backup/${DATE}.logs.tar -C/var/log/nginx/${DATE} .
+```
+Optionally delete from container:
+```
+sudo docker run -i --volumes-from=nginx --rm ubuntu rm -rf /var/log/nginx/${DATE}
+```
+
+Or just generally poke around:
+```
+sudo docker run -it --volumes-from=nginx --rm ubuntu /bin/bash
+```
+
 
 ## SSL certificate
 

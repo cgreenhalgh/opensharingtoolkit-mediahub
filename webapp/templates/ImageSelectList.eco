@@ -1,5 +1,6 @@
 <%# Thing Select List common - cancel button %>
   <div class="columns large-12 small-12">
     <a href="#" class="button do-cancel">Cancel</a>
+    <a href="#" class="button do-upload">Upload</a>
   </div>
 

@@ -6,6 +6,7 @@ module.exports = class Server extends Thing
     title: ''
     description: ''
     type: 'server'
+    uploadNoHttps: false
     #submissionurl:
 
   idAttribute: '_id'

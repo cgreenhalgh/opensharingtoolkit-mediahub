@@ -59,6 +59,20 @@ addSrcRefs = (file) ->
           to: from+src.length
           src: fix_relative_url file.baseurl, (src.replace /[&]amp[;]/g, '&')
       ix = srcs.lastIndex
+    #console.log "check for link href in #{file.text}"
+    srcs = /<link[^>]+href="?([^"\s>]+)"?[^>]*>/g
+    ix = 0
+    while m = ( srcs.exec file.text ) 
+      src = m[1]
+      console.log "link href #{src}"
+      if src.length>0
+        from = file.text.indexOf src, ix
+        file.refs.push
+          type: 'html'
+          from: from
+          to: from+src.length
+          src: fix_relative_url file.baseurl, (src.replace /[&]amp[;]/g, '&')
+      ix = srcs.lastIndex
 
 check_json = (surl, baseurl) ->
   if files[surl]?

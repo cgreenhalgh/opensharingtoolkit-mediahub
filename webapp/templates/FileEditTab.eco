@@ -1,4 +1,7 @@
 <%# File add or edit tab, takes { data: File, add: true|false } as data (title, description, ...); parent is a content %>
+    <div class="save-alert hide">
+      <div data-alert class="alert-box warning">Edited Image is NOT saved yet</div>
+    </div>
     <label>File (note: replacing a file is immediate - no undo!)
       <input type="file" name="file"/>
     </label>
@@ -15,7 +18,7 @@
     <label>Image
     </label>
       <div class="image-editor hide row">
-        <div class="columns large-6 medium-8 small-12">
+	<div class="columns large-6 medium-8 small-12">
           <img class="image-editor-image"/>
         </div>
         <div class="columns large-3 medium-4 small-12">

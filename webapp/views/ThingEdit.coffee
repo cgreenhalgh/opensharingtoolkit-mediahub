@@ -121,7 +121,7 @@ module.exports = class ThingEditView extends Backbone.View
     #@remove()
     window.history.back()
 
-  selectImage: (ev, selector) =>
+  selectImage: (ev, selector, mimetype) =>
     console.log "selectImage #{selector}..."
     ev.preventDefault()
     @callback = window.nextMediahubCallback++
@@ -130,7 +130,7 @@ module.exports = class ThingEditView extends Backbone.View
       console.log "set image #{url}"
       $(selector, self.$el).attr 'src', url
 
-    window.open "filebrowse.html?type=image%2F&mediahubCallback=#{@callback}", '_blank', "width=#{0.8*screen.width}, height=#{0.7*screen.height}, menubar=no, location=no, status=no, toolbar=no"
+    window.open "filebrowse.html?type=#{encodeURIComponent(mimetype) ? 'image%2F'}&mediahubCallback=#{@callback}", '_blank', "width=#{0.8*screen.width}, height=#{0.7*screen.height}, menubar=no, location=no, status=no, toolbar=no"
 
 
   remove: () =>
