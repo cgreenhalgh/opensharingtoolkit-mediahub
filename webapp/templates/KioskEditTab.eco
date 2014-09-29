@@ -5,6 +5,9 @@
 <hr/>
 <h4>Advanced Settings</h4>
 <p>Note: you can safely leave these blank almost all the time</p>
+<label>Show "attract" animation on kiosk
+  <input type="checkbox" name="showAttract" <%= if @data.showAttract then 'checked' %> /> 
+</label>
 <label>External hosting URL (optional)
   <input type="text" name="externalurl" value="<%= @data.externalurl %>"  placeholder="http://..."/>
 </label>

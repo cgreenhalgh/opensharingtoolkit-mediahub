@@ -23,11 +23,13 @@ module.exports = class KioskEditView extends ListEditView
     atomfilename = $('input[name="atomfilename"]', @$el).val()
     externalurl = $('input[name="externalurl"]', @$el).val()
     authorname = $('input[name="authorname"]', @$el).val()
+    showAttract = $('input[name=showAttract]', @$el).prop 'checked'
     @model.set 
       campaigns: campaigns
       atomfilename: atomfilename
       externalurl: externalurl
       authorname: authorname
+      showAttract: showAttract
 
   render: () =>
     super()

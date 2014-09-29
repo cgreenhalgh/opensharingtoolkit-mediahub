@@ -1,6 +1,6 @@
     <entry>
       <id><%= @_id %></id>
-      <content><%= @description %></content>
+      <content type="html"><%= @description %></content>
       <title><%= @title %></title>
       <updated><%= if @lastModified? then new Date(@lastModified).toISOString() else new Date().toISOString() %></updated>
 <% if @imageurl? and @imageurl!='': %>

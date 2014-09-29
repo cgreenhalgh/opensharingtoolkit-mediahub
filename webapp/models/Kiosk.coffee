@@ -10,6 +10,7 @@ module.exports = class Kiosk extends Thing
     campaigns: []
     atomfilename: ''
     externalurl: ''
+    showAttract: false
 
   idAttribute: '_id'
 

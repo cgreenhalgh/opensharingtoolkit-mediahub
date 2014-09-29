@@ -5,9 +5,9 @@
 <label>Tags / comments (for editing ONLY)
   <textarea name="comment" rows="3"><%= @data.comment %></textarea>
 </label>
-<label class="<%= if @data.type != 'place' and @data.type != 'app' and @data.type != 'file' then (if not @data.description then 'hide' else 'error') %>">Description
-<%= if @data.type == 'app' or @data.type == 'file' then 'for use by kiosk' %>
-<%= if @data.type != 'place' and @data.type != 'app' and @data.type != 'file' then '(NOTE: is NOT used)' %>
+<label class="<%= if @data.type != 'place' and @data.type != 'app' and @data.type != 'file' and @data.type != 'kiosk' then (if not @data.description then 'hide' else 'error') %>">Description
+<%= if @data.type == 'app' or @data.type == 'file' or @data.type == 'kiosk' then 'for use by kiosk' %>
+<%= if @data.type != 'place' and @data.type != 'app' and @data.type != 'file' and @data.type != 'kiosk' then '(NOTE: is NOT used)' %>
   <textarea name="description" placeholder="description" ><%= @data.description %></textarea>
 </label>
 <div class="row">
