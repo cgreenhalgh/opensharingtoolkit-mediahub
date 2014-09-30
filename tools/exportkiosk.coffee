@@ -127,7 +127,7 @@ readJson kioskurl, (err,kiosk) ->
         if err
           utils.logError "Error exporting app #{appurl}: #{err}"
         else
-          thing.externalurl = "_design/app/_show/app/#{thing._id}.html"
+          thing.externalurl = "_design/app/_show/app/#{encodeURIComponent encodeURIComponent thing._id}.html"
           console.log "Exported app #{appurl} as #{thing.externalurl}"
         exportThings fn
     else

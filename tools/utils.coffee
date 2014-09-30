@@ -156,12 +156,10 @@ module.exports.guessMimetype = guessMimetype = (url, fn) ->
       return fn 'application/unknown'
     fn type
 
-module.exports.get_filename_for_component = get_filename_for_component = (h) ->
+get_path_for_component = (h) ->
   if h=='' 
     return '_'
-  #h = encodeURIComponent h
-  return h.replace("~","_")
-  # is that enough??
+  return encodeURIComponent h
 
 module.exports.get_safe_path = get_safe_path = (path) ->
   ps = if path? then path.split '/' else []
@@ -170,7 +168,8 @@ module.exports.get_safe_path = get_safe_path = (path) ->
     ps.shift()
   # make safe filenames
   ps = for p in ps
-    get_filename_for_component p
+    p = encodeURIComponent decodeURIComponent p 
+    get_path_for_component p
   path = ps.join '/'
   return path
 
@@ -197,6 +196,8 @@ module.exports.get_cache_path = get_cache_path = (url) ->
   ps = []
   if url.pathname?
     ps = url.pathname.split '/'
+  ps = for p in ps
+    encodeURIComponent decodeURIComponent p
   if url.hash or url.search
     if ps.length==0
       ps.push ''
@@ -212,20 +213,22 @@ module.exports.get_cache_path = get_cache_path = (url) ->
   hs = ["appcache"].concat hs,ps
   # make safe filenames
   hs = for h in hs
-    get_filename_for_component h
+    get_path_for_component h
   path = hs.join '/'
   return path
 
-# undo URL encoding of path elements
+# undo one level of URL encoding of path elements
 get_filesystem_path = (path) ->
   ps = path.split '/'
   ps = for p in ps
     decodeURIComponent p
   ps.join '/'
-
+  
 module.exports.cacheFile = cacheFile = (surl,fn) ->
   if cacheUrls[surl]?
     return fn null,cacheUrls[surl]
+
+  # fix url - split, decode (like web server), then encode once (for filename) and again (for url)
 
   path = surl
   if (path.indexOf couchurl)==0

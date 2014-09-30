@@ -30,6 +30,7 @@ location = require 'location'
 #config = window.mediahubconfig
 
 appid = null
+exported = 'false'
 dburl = null
 appconfig = null
 
@@ -177,6 +178,8 @@ checkThing = (data,collection,thingIds) ->
     console.log "error parsing thing: #{err.message}: #{data}"
 
 loadThing = (thingId,collection,thingIds) ->
+  if exported=='true'
+    thingId = encodeURIComponent thingId
   console.log "load thing #{thingId}"
   $.ajax dburl+"/"+encodeURIComponent(thingId),
     success: (data)->
@@ -253,6 +256,8 @@ App =
 
     # hack - leaflets map tile load doesn't get picked up here
     if exported == 'true'
+      appid = encodeURIComponent appid
+      console.log "exported: encoding appid -> #{appid}"
       $.ajaxSetup beforeSend: (xhr, options) ->
         # TODO cache redirect?
         if options.url? and options.url.indexOf(dburl)==0
