@@ -437,11 +437,13 @@ doCheckpointapp = (task) ->
         if (ids.indexOf item.id)<0
           ids.push item.id 
       # app: { files: { url: ... }, ... } 
-      for file in ( app.files ? [] ) when file.url and file.url.length>15
-        if file.url.substring(0,10)=='../../../../' and file.url.substr(-6)=='/bytes'
-          id = decodeURIComponent (file.url.substring 10,(file.url.length-6))
+      for file in ( app.files ? [] ) when file.url
+        if file.url.length>15 and file.url.substring(0,12)=='../../../../' and file.url.substr(-6)=='/bytes'
+          id = decodeURIComponent (file.url.substring 12,(file.url.length-6))
           if (ids.indexOf id)<0
             ids.push id 
+        else
+          log "ignore app file #{file.url}"
       # Don't copy: app: { servers: { id: ... }, ... }
       # remove any old files
       if !fs.existsSync path
