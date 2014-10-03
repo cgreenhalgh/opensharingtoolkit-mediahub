@@ -1,2 +1,2 @@
-<p>Subject: <%= @title %></p>
+<p><em><%= @title %></em> (<%= @_id %>)</p>
 

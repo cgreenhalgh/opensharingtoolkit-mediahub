@@ -1,8 +1,44 @@
 <%# TaskConfig in Thing List, takes Thing as data (title, description, ...) %>
 <h4 class="clearfix">
-  <%= if @path? and @path.length>0 then "#{@path}: " %>
-  <%= @taskType %>
-  <%= if @subject.title then @subject.title else @subjectId %>
+<% if @taskType=='exportapp': %>
+    Publish app 
+    <em><%= if @subject.title then @subject.title else @subjectId %></em>
+    to <code><%= @path %></code>
+<% else if @taskType=='exportkiosk': %>
+    Publish Kiosk 
+    <em><%= if @subject.title then @subject.title else @subjectId %></em>
+    to <code><%= @path %></code>
+<% else if @taskType=='tar': %>
+    Tar directory <code><%= @path %></code>
+<% else if @taskType=='rm': %>
+    Delete directory/file <code><%= @path %></code>
+<% else if @taskType=='backup': %>
+    Backup database
+    to <code><%= @path %></code>
+<% else if @taskType=='checkpoint': %>
+    Checkpoint database
+    to <code><%= @path %></code>
+<% else if @taskType=='import': %>
+    Import checkpoint 
+    via <code><%= @path %></code>
+<% else if @taskType=='buildserver': %>
+    Update Form Server
+    <em><%= if @subject.title then @subject.title else @subjectId %></em>
+<% else if @taskType=='exportserver': %>
+    Checkpoint Form Server
+    <em><%= if @subject.title then @subject.title else @subjectId %></em>
+    to <code><%= @path %></code>
+<% else if @taskType=='importserver': %>
+    Import Checkpoint to Form Server
+    <em><%= if @subject.title then @subject.title else @subjectId %></em>
+    via <code><%= @path %></code>
+<% else : %>
+   <%= @taskType %>
+   <em><%= if @subject.title then @subject.title else @subjectId %></em>
+   <% if @path? and @path.length>0: %>
+     in <code><%= @path %></code>
+   <% end %>
+<% end %>
   <a href="#" class="action-button do-delete-file right">Delete</a>
   <a href="#" class="action-button do-edit-file right">Edit</a>
   <!--<a href="#" class="action-button do-view right">View</a>-->

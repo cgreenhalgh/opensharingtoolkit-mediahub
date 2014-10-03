@@ -1,19 +1,72 @@
 <%# TaskConfig add or edit, takes { attributes..., add: true|false } ; parent is a row %>
 <div class="columns large-12">
-  <h2><%= if @add then 'Add' else 'Edit' %> Background Task</h2>
+  <h2><%= if @add then 'Create' else 'Update' %> Background Task</h2>
 </div>
 <form>
   <div class="columns large-12">
+
+    <label>Active
+      <input type="checkbox" name="enabled" value="enabled" <%= if @enabled then 'checked' else '' %>/>
+    </label>
+    <input type="submit" value="<%= if @add then 'Run' else 'Re-run' %>"/>
+    <input type="reset" value="Clear"/>
+    <input type="button" value="Cancel" class="do-cancel"/>
+
 <% if @taskType=='exportapp': %>
-    <h4>Publish app to webserver</h4>
+    <h4>Publish App to <code><%= @path %></code></h4>
+
+<% else if @taskType=='exportkiosk': %>
+    <h4>Publish Kiosk to <code><%= @path %></code></h4>
+
+<% else if @taskType=='tar': %>
+    <h4>Tar directory <code><%= @path %></code></h4>
+
+<% else if @taskType=='rm': %>
+    <h4>Delete directory/file <code><%= @path %></code></h4>
+
+<% else if @taskType=='backup': %>
+    <h4>Backup editor database to <code><%= @path %></code></h4>
+
+<% else if @taskType=='checkpoint': %>
+    <h4>Checkpoint editor database to <code><%= @path %></code></h4>
+    <p>Will update the checkpoint if it already exists.</p>
+
+<% else if @taskType=='import': %>
+    <h4>Import checkpoint to editor database via upload <code><%= @path %></code></h4>
+    <p><strong>Note: <a href="#reload">reload</a> this editor after importing to see any new/changed content</strong><p>
+
+<% else if @taskType=='buildserver': %>
+    <h4>Update Form Server <em><%= @subjectId %></em></h4>
+
+<% else if @taskType=='exportserver': %>
+    <h4>Checkpoint Form Server <em><%= @subjectId %></em> to <code><%= @path %></code></h4>
+
+<% else if @taskType=='importserver': %>
+    <h4>Import Checkpoint to Form Server <em><%= @subjectId %></em> via upload <code><%= @path %></code></h4>
+
+<% else : %>
+     <h4><%= @taskType %> in <code><%= @path %></code></h4>
+     <p>(Sorry, not sure what this is)</p>
+
+<% end %>
+
+    <% if @subjectId? and @subjectId.length>0 : %>
+      <div class="subject-holder"><%- if @subjectHtml? then @subjectHtml %><%= if not @subjectHtml? then "(#{@subjectId})" %></div>
+    <% end %>
+    <p><%= if @lastChanged? then "Task was last updated/requested #{new Date(@lastChanged).toUTCString()}" else "Task is new" %></p>
+    <div class="state-holder"><%- if @stateHtml? then @stateHtml %></div>
+
+    <hr/>
+    <h4>Task links and downloads</h4>
+
+<% if @taskType=='exportapp': %>
 <%# cf taskrunner.coffee %>
-<%   appurl = "#{window.mediahubconfig.publicurl}/#{@path}/_design/app/_show/app/#{@subjectId}.html" %>
+<%   appurl = "#{window.mediahubconfig.publicurl}/#{@path}/_design/app/_show/app/#{encodeURIComponent encodeURIComponent @subjectId}.html" %>
 <%   appredirecturl = "#{window.mediahubconfig.publicurl}/#{@path}/app.html" %>
 <%   tarfile = "#{window.mediahubconfig.publicurl}/#{@path}.tar.gz" %>
     <p>Will export app to <a target="_blank" href="<%= appurl %>"><%= appurl %><img src="../../icons/link-options.png" class="link-options"/></a>, with a redirect page at <a target="_blank" href="<%= appredirecturl %>"><%= appredirecturl %><img src="../../icons/link-options.png" class="link-options"/></a> (Tar file <a target="_blank" href="<%= tarfile %>"><%= tarfile %><img src="../../icons/link-options.png" class="link-options"/></a>)</p>
 
 <% else if @taskType=='exportkiosk': %>
-    <h4>Publish Kiosk config to webserver</h4>
 <%# cf taskrunner.coffee %>
 <%   atomurl = "#{window.mediahubconfig.publicurl}/#{@path}/#{ if @subject?.atomfilename then @subject.atomfilename else 'default.xml' }" %>
 <%   kioskurl = "#{window.mediahubconfig.publicurl}/#{@path}/index.html?f=#{ encodeURIComponent( if @subject?.atomfilename then @subject.atomfilename else 'default.xml' ) }" %>
@@ -21,48 +74,38 @@
     <p>Will export kiosk configuration to <a target="_blank" href="<%= atomurl %>"><%= atomurl %><img src="../../icons/link-options.png" class="link-options"/></a>, web kiosk view <a target="_blank" href="<%= kioskurl %>"><%= kioskurl %><img src="../../icons/link-options.png" class="link-options"/></a> (Zip file <a target="_blank" href="<%= zipfile %>"><%= zipfile %><img src="../../icons/link-options.png" class="link-options"/></a>)</p>
 
 <% else if @taskType=='tar': %>
-    <h4>Tar webserver directory</h4>
 <%# cf taskrunner.coffee %>
 <%   tarfile = "#{window.mediahubconfig.publicurl}/#{@path}.tar.gz" %>
     <p>Will create tarfile <a target="_blank" href="<%= tarfile %>"><%= tarfile %><img src="../../icons/link-options.png" class="link-options"/></a></p>
 
 <% else if @taskType=='rm': %>
-    <h4>Delete webserver directory/file</h4>
-<%# cf taskrunner.coffee %>
-    <p>Will delete file/directory <%= @path %></p>
+    <!-- nothing -->
 
 <% else if @taskType=='backup': %>
-    <h4>Backup main Couch database to webserver directory</h4>
 <%# cf taskrunner.coffee %>
 <%   file = "#{window.mediahubconfig.publicurl}/#{@path}/mediahub.couch" %>
 <%   tarfile = "#{window.mediahubconfig.publicurl}/#{@path}.tar.gz" %>
-    <p>Will create DB file <a target="_blank" href="<%= file %>"><%= file %><img src="../../icons/link-options.png" class="link-options"/></a> (Tar file <a target="_blank" href="<%= tarfile %>"><%= tarfile %><img src="../../icons/link-options.png" class="link-options"/></a>)</p>
+    <p>Will create DB file <a target="_blank" href="<%= file %>"><%= file %><img src="../../icons/link-options.png" class="link-options"/></a>, tar file <a target="_blank" href="<%= tarfile %>"><%= tarfile %><img src="../../icons/link-options.png" class="link-options"/></a></p>
 
 <% else if @taskType=='checkpoint': %>
-    <h4>Update checkpoint of editable content in webserver directory</h4>
 <%# cf taskrunner.coffee %>
 <%   file = "#{window.mediahubconfig.publicurl}/#{@path}/" %>
 <%   tarfile = "#{window.mediahubconfig.publicurl}/#{@path}.tar.gz" %>
-    <p>Will update checkpoint in directory <a target="_blank" href="<%= file %>"><%= file %><img src="../../icons/link-options.png" class="link-options"/></a> (Tar file <a target="_blank" href="<%= tarfile %>"><%= tarfile %><img src="../../icons/link-options.png" class="link-options"/></a>)</p>
+    <p>Will update checkpoint in directory <code><%= @path %></code>, tar file <a target="_blank" href="<%= tarfile %>"><%= tarfile %><img src="../../icons/link-options.png" class="link-options"/></a></p>
 
 <% else if @taskType=='import': %>
-    <h4>Import checkpoint of editable content</h4>
 <%# cf taskrunner.coffee %>
 <%   upload = "#{window.mediahubconfig.uploadurl}/#{encodeURIComponent @_id}" %>
 <%   file = "#{window.mediahubconfig.publicurl}/#{@path}/" %>
 <%   tarfile = "#{window.mediahubconfig.publicurl}/#{@path}.tar.gz" %>
-    <p>Will upload and import a checkpoint in directory <a target="_blank" href="<%= file %>"><%= file %><img src="../../icons/link-options.png" class="link-options"/></a> (Tar file <a target="_blank" href="<%= tarfile %>"><%= tarfile %><img src="../../icons/link-options.png" class="link-options"/></a>)</p>
     <p>Use upload form <a target="_blank" href="<%= upload %>"><%= upload %><img src="../../icons/link-options.png" class="link-options"/></a></p>
+    <p>Will upload and import a checkpoint via directory <code><%= @path %></code></p>
     <p><strong>Note: <a href="#reload">reload</a> this editor after importing to see any new/changed content</strong><p>
 
 <% else if @taskType=='buildserver': %>
-    <h4>(Re)Build App-specific Server</h4>
 
 <% submission = "#{window.mediahubconfig.submissionurl}/#{encodeURIComponent @subjectId}" %>
 <% serverId = @subjectId.replace /:/g, '-' %>
-    <p>Will create/maintain a database and upload server for form submission and other user uploads from associated apps.</p>
-    <p>Server <%= @subjectId %></p>
-    <p>Form submission <a target="_blank" href="<%= submission %>"><%= submission %><img src="../../icons/link-options.png" class="link-options"/></a></p> 
 <% if window.mediahubconfig.serversurl : %>
 <% serverurl = "#{window.mediahubconfig.serversurl}/#{encodeURIComponent serverId}" %>
 <% servermediahub = "#{serverurl}/mediahub/_design/server/html/server/index.html" %>
@@ -76,42 +119,27 @@
     <p>Server admin (dev mode): <a target="_blank" href="<%= servermediahub %>"><%= servermediahub %><img src="../../icons/link-options.png" class="link-options"/></a></p> 
 
 <% end %>
+    <p>Form submission URL: <a target="_blank" href="<%= submission %>"><%= submission %><img src="../../icons/link-options.png" class="link-options"/></a></p> 
 
 <% else if @taskType=='exportserver': %>
-    <h4>Export (Dump) Data from App-specific Server</h4>
-
-    <p>Server <%= @_id %></p>
 
 <%   file = "#{window.mediahubconfig.publicurl}/#{@path}/" %>
 <%   tarfile = "#{window.mediahubconfig.publicurl}/#{@path}.tar.gz" %>
-    <p>Will update data dump in directory <a target="_blank" href="<%= file %>"><%= file %><img src="../../icons/link-options.png" class="link-options"/></a> (Tar file <a target="_blank" href="<%= tarfile %>"><%= tarfile %><img src="../../icons/link-options.png" class="link-options"/></a>)</p>
+    <p>Will update data dump in directory  <code><%= @path %></code>, tar file <a target="_blank" href="<%= tarfile %>"><%= tarfile %><img src="../../icons/link-options.png" class="link-options"/></a></p>
 
 <% else if @taskType=='importserver': %>
-    <h4>Import (Restore) Data to App-specific Server</h4>
-
-    <p>Server <%= @_id %></p>
 
 <%   upload = "#{window.mediahubconfig.uploadurl}/#{encodeURIComponent @_id}" %>
 <%   file = "#{window.mediahubconfig.publicurl}/#{@path}/" %>
 <%   tarfile = "#{window.mediahubconfig.publicurl}/#{@path}.tar.gz" %>
-    <p>Will upload and import a data dump in directory <a target="_blank" href="<%= file %>"><%= file %><img src="../../icons/link-options.png" class="link-options"/></a> (Tar file <a target="_blank" href="<%= tarfile %>"><%= tarfile %><img src="../../icons/link-options.png" class="link-options"/></a>)</p>
     <p>Use upload form <a target="_blank" href="<%= upload %>"><%= upload %><img src="../../icons/link-options.png" class="link-options"/></a></p>
+    <p>Will upload and import a data dump via directory <code><%= @path %></code></p>
 
 <% else : %>
-     <h4><%= @taskType %></h4>
-     <p>(Whatever that is)</p>
+    <!-- nothing -->
+
 <% end %>
-    <% if @subjectId? and @subjectId.length>0 : %>
-      <div class="subject-holder"><%- if @subjectHtml? then @subjectHtml %><%= if not @subjectHtml? then "(#{@subjectId})" %></div>
-    <% end %>
-    <p><%= if @lastChanged? then "Task was last updated/requested #{new Date(@lastChanged).toUTCString()}" else "Task is new" %></p>
-    <div class="state-holder"><%- if @stateHtml? then @stateHtml %></div>
-    <label>Active
-      <input type="checkbox" name="enabled" value="enabled" <%= if @enabled then 'checked' else '' %>/>
-    </label>
-    <input type="submit" value="<%= if @add then 'Create' else 'Update' %>"/>
-    <input type="reset" value="Clear"/>
-    <input type="button" value="Cancel" class="do-cancel"/>
+
   </div>
 </form>
 

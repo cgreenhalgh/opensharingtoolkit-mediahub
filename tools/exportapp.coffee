@@ -285,15 +285,14 @@ cacheFile appurl, (err,path) ->
     utils.exit()
   console.log "cached #{appurl} as #{path}"
   # create top-level redirect(s)
-  relurl = appurl.substring (appurl.indexOf '/_design/')+1
-  redirect = eco.render templateAppRedirect, { url: relurl+'.html' }
+  redirect = eco.render templateAppRedirect, { url: path }
   try
     fs.writeFileSync 'app.html', redirect
     console.log "Wrote redirect to app.html"
   catch err
     utils.logError "error writing redirect for app to app.html: #{err.message}"
   if process.argv.length>4
-    publicurl = process.argv[3]+'/'+process.argv[4]+'/'+relurl+'.html'
+    publicurl = process.argv[3]+'/'+process.argv[4]+'/'+path
     # try google qrcode generator http://chart.apis.google.com/chart?cht=qr&chs=150x150&choe=UTF-8&chl=http%3A%2F%2F1.2.4
     publicqrurl = 'http://chart.apis.google.com/chart?cht=qr&chs=150x150&choe=UTF-8&chl='+encodeURIComponent(publicurl)
 
