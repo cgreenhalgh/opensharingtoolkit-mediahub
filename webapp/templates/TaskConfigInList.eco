@@ -4,6 +4,10 @@
     Publish app 
     <em><%= if @subject.title then @subject.title else @subjectId %></em>
     to <code><%= @path %></code>
+<% else if @taskType=='checkpointapp': %>
+    Checkpoint app 
+    <em><%= if @subject.title then @subject.title else @subjectId %></em>
+    to <code><%= @path %></code>
 <% else if @taskType=='exportkiosk': %>
     Publish Kiosk 
     <em><%= if @subject.title then @subject.title else @subjectId %></em>

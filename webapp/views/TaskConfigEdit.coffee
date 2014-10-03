@@ -38,7 +38,7 @@ module.exports = class TaskConfigEditView extends Backbone.View
       console.log "TaskConfigEdit - Edit or real add? add=#{@add}, things=#{@things}"
 
     # hack special case update pre-export
-    if @model.attributes.taskType=='exportapp' and @model.attributes.subjectId
+    if (@model.attributes.taskType=='exportapp' or @model.attributes.taskType=='checkpointapp') and @model.attributes.subjectId
       updateapp.updateApp @model.attributes.subjectId
     else if @model.attributes.taskType=='exportkiosk' and @model.attributes.subjectId
       updateapp.updateKiosk @model.attributes.subjectId

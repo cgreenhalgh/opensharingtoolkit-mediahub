@@ -8,12 +8,12 @@ parse_url = (require 'url').parse
 uuid = require 'node-uuid'
 
 if process.argv.length<3 or process.argv.length>5
-  console.log 'usage: coffee updatecache.coffee <DIR> [<COUCHDB-URL> [FILTERNAME]]'
+  console.log 'usage: coffee updatecache.coffee <DIR> [<COUCHDB-URL> [FILTERPARAM]]'
   process.exit -1
 
 outdir = process.argv[2]
 couchurl = if process.argv.length>3 then process.argv[3] else null
-filtername = if process.argv.length>4 then process.argv[4] else null
+filterparam = if process.argv.length>4 then process.argv[4] else null
 
 if !fs.existsSync(outdir)
   console.log "Error: output directory does not exist: #{outdir}"
@@ -36,13 +36,18 @@ if !fs.existsSync configpath
     console.log 'usage: coffee exportapp.coffee <DIR> <COUCHDB-URL>'
     process.exit -1
   console.log "Note: creating config file #{configpath}"
-  config = { couchurl: couchurl, checkpoints: [], filtername: filtername }
+  config = { couchurl: couchurl, checkpoints: [], filterparam: filterparam }
 else
   console.log "read config #{configpath}"
   try 
     data = fs.readFileSync configpath,{encoding:'utf8'}
     try 
       config = JSON.parse data
+      # backward compat
+      if config.filtername? and not config.filterparam?
+        config.filterparam = "filter="+encodeURIComponent(config.filtername)
+        console.log "Update config filtername #{config.filtername} to filterparam #{config.filterparam}"
+        delete config.filtername
     catch err
       console.log "Error: parsing config file #{configpath}: #{err.message}"
       process.exit -1
@@ -55,17 +60,17 @@ else
   else if not couchurl?
     couchurl = config.couchurl
     console.log "Note: using couchdb #{couchurl} from #{configpath}"
-  if filtername? and config.filtername!=filtername
-    console.log "Error: filtername in config file #{configpath} differs #{config.filtername} vs #{filtername}"
+  if filterparam? and config.filterparam!=filterparam
+    console.log "Error: filterparam in config file #{configpath} differs #{config.filterparam} vs #{filterparam}"
     process.exit -1
-  else if not filtername? and config.filtername?
-    filtername = config.filtername
-    console.log "Note: using filtername #{filtername} from #{configpath}"
+  else if not filterparam? and config.filterparam?
+    filterparam = config.filterparam
+    console.log "Note: using filterparam #{filterparam} from #{configpath}"
 
 if not config.uuid 
   config.uuid = uuid.v4()
 
-downloadFile = (surl,path,fn) ->
+downloadFile = (surl,path,fn,postbody) ->
 
   url = parse_url surl
   options = 
@@ -73,7 +78,8 @@ downloadFile = (surl,path,fn) ->
     port: url.port
     path: url.path
     auth: url.auth
-    method: 'GET'
+    method: if postbody? then 'POST' else 'GET'
+    headers: if postbody? then { 'content-type': 'application/json' } else {}
 
   tmppath = path+".download"
 
@@ -133,7 +139,7 @@ downloadFile = (surl,path,fn) ->
   req.on 'error',(e) ->
     console.log "Error getting file #{surl}: #{e}"
     fn e
-  req.end()
+  req.end(postbody, if postbody? then 'utf8')
 
 
 writeConfig = () ->
@@ -162,13 +168,20 @@ for cp in config.checkpoints
     console.log "Warning: could not read #{oldChangesPath} from checkpoint #{cp}: #{err.message}" 
 
 changespath = "/_changes?style=all_docs"
+postbody = null
 if checkpoint?
   changespath = changespath+"&since="+encodeURIComponent(checkpoint)
-if filtername?
-  changespath = changespath+"&filter="+encodeURIComponent(filtername)
-console.log "Get changes: #{changespath}"
+if filterparam?
+  ix = filterparam.indexOf '='
+  pname = filterparam.substring 0, ix
+  if pname == 'doc_ids'
+    postbody = "{ #{JSON.stringify pname}: #{decodeURIComponent filterparam.substring ix+1} }"
+    changespath = changespath+"&filter=_doc_ids"
+  else
+    changespath = changespath+"&"+filterparam
+console.log "Get changes: #{changespath} body #{postbody}"
 
-downloadFile couchurl+changespath,"#{outdir}/_changes.json", (err,path) ->
+handleChanges = (err,path) ->
   if err?
     process.exit -1
   try 
@@ -284,4 +297,6 @@ downloadFile couchurl+changespath,"#{outdir}/_changes.json", (err,path) ->
     config.checkpoint = last_seq
     config.checkpoints.push if checkpoint? then checkpoint else ''
     writeConfig()
+
+downloadFile couchurl+changespath,"#{outdir}/_changes.json", handleChanges, postbody
 

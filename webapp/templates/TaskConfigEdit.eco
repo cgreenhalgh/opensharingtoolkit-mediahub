@@ -15,6 +15,9 @@
 <% if @taskType=='exportapp': %>
     <h4>Publish App to <code><%= @path %></code></h4>
 
+<% else if @taskType=='checkpointapp': %>
+    <h4>Checkpoint App to <code><%= @path %></code></h4>
+
 <% else if @taskType=='exportkiosk': %>
     <h4>Publish Kiosk to <code><%= @path %></code></h4>
 
@@ -65,6 +68,10 @@
 <%   appredirecturl = "#{window.mediahubconfig.publicurl}/#{@path}/app.html" %>
 <%   tarfile = "#{window.mediahubconfig.publicurl}/#{@path}.tar.gz" %>
     <p>Will export app to <a target="_blank" href="<%= appurl %>"><%= appurl %><img src="../../icons/link-options.png" class="link-options"/></a>, with a redirect page at <a target="_blank" href="<%= appredirecturl %>"><%= appredirecturl %><img src="../../icons/link-options.png" class="link-options"/></a> (Tar file <a target="_blank" href="<%= tarfile %>"><%= tarfile %><img src="../../icons/link-options.png" class="link-options"/></a>)</p>
+
+<% else if @taskType=='checkpointapp': %>
+<%   tarfile = "#{window.mediahubconfig.publicurl}/#{@path}.tar.gz" %>
+    <p>Will checkpoint app to directory <code><%= @path %></code>, tar file <a target="_blank" href="<%= tarfile %>"><%= tarfile %><img src="../../icons/link-options.png" class="link-options"/></a>.</p>
 
 <% else if @taskType=='exportkiosk': %>
 <%# cf taskrunner.coffee %>

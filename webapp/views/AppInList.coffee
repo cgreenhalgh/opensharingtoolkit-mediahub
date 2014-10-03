@@ -19,6 +19,7 @@ module.exports = class AppInListView extends ThingInListView
     "click .do-save": "save"
     "click .do-testapp": "testapp"
     "click .do-export": "export"
+    "click .do-checkpoint": "checkpoint"
 
   testapp: (ev) =>
     ev.preventDefault()
@@ -26,8 +27,11 @@ module.exports = class AppInListView extends ThingInListView
     offline.testApp @model
 
   export: (ev) =>
+    @startTask ev, 'exportapp'
+
+  startTask: (ev, taskType) =>
     ev.preventDefault()
-    console.log "Export app #{@model.id}"
+    console.log "#{taskType} #{@model.id}"
     id = @model.id
     ix = id.indexOf ':'
     if ix>=0
@@ -36,9 +40,12 @@ module.exports = class AppInListView extends ThingInListView
     model = 
           _id:id 
           subjectId: @model.id
-          taskType: 'exportapp'
+          taskType: taskType
           enabled: true
     #TaskConfig.addingThings[id] = model
     # need path!
     addTaskConfig.add model     
+
+  checkpoint: (ev) =>
+    @startTask ev, 'checkpointapp'
 

@@ -276,6 +276,8 @@ schedule = () ->
     return taskError next,"Nginx confinguration directory not found (#{nginxconfdir})"
   if next.config.taskType=='exportapp'
     doExportapp next
+  else if next.config.taskType=='checkpointapp'
+    doCheckpointapp next
   else if next.config.taskType=='exportkiosk'
     doExportkiosk next
   else if next.config.taskType=='tar'
@@ -420,6 +422,44 @@ doExportapp = (task) ->
       (task) ->
         doTar task
 
+doCheckpointapp = (task) ->
+  appId = task.config.subjectId
+  if not appId?
+    return taskError task, "App to checkpoint was not specified ('subjectId')"
+  appurl = "#{dburl}/_design/app/_show/app/#{appId}"
+  if (path=(checkPath task, publicwebdir, true))?
+    db.get appId, (err,app) ->
+      if err
+        return taskError task,"Error get app #{appId}to checkpoint: #{err}"
+      ids = []
+      # app: { items: { id: ... }, ... }
+      for item in ( app.items ? [] ) when item.id
+        if (ids.indexOf item.id)<0
+          ids.push item.id 
+      # app: { files: { url: ... }, ... } 
+      for file in ( app.files ? [] ) when file.url and file.url.length>15
+        if file.url.substring(0,10)=='../../../../' and file.url.substr(-6)=='/bytes'
+          id = decodeURIComponent (file.url.substring 10,(file.url.length-6))
+          if (ids.indexOf id)<0
+            ids.push id 
+      # Don't copy: app: { servers: { id: ... }, ... }
+      # remove any old files
+      if !fs.existsSync path
+        log "rm: file/path does not exist: #{path}"
+      if (path.indexOf publicwebdir)!=0
+        return taskError task, "Could not split dir/path #{path}"
+      dir = path.substring publicwebdir.length+1
+      cwd = path.substring 0, publicwebdir.length
+      doSpawn task, "rm", ["-r", dir], cwd, false, (task) ->
+        try
+          fs.mkdirSync path,0o755
+        catch err
+          log "Could not re-create output dir #{path}: #{err.message}"
+        # Note: use of command line limits array to about 130k, or about 5000 items?
+        doSpawn task, "/usr/local/bin/coffee", ["#{__dirname}/updatecache.coffee", ".", dburl, "doc_ids=#{encodeURIComponent JSON.stringify ids}"], path, true,
+          (task) ->
+            doTar task
+
 doExportkiosk = (task) ->
   kioskId = task.config.subjectId
   if not kioskId
@@ -444,7 +484,7 @@ doBackup = (task) ->
 doCheckpoint = (task) ->
   if (path=(checkPath task, publicwebdir, true))?
     # NB typeContent filter
-    doSpawn task, "/usr/local/bin/coffee", ["#{__dirname}/updatecache.coffee", ".", dburl, "app/changesContent"], path, true,
+    doSpawn task, "/usr/local/bin/coffee", ["#{__dirname}/updatecache.coffee", ".", dburl, "filter=#{encodeURIComponent 'app/changesContent'}"], path, true,
       (task) ->
         doTar task
 
