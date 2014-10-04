@@ -4,7 +4,9 @@ RUN apt-get update
 
 RUN apt-get -y install nginx && \
   mkdir -p /etc/nginx/conf/ && \
-  sed -i '/^types {/ a \ text/cache-manifest appcache;' /etc/nginx/mime.types
+  sed -i '/^types {/ a \ text/cache-manifest appcache;' /etc/nginx/mime.types && \
+  echo "daemon off;" >> /etc/nginx/nginx.conf && \
+  ( echo "nginx, /usr/sbin/nginx" >> /var/cfengine/inputs/processes_run.csv )
 
 # can't run couchdb using standard for with cfengine as executable name is different, i.e. 
 RUN apt-get -y install couchdb && \
@@ -57,5 +59,5 @@ VOLUME ["/var/lib/couchdb","/var/log","/usr/share/nginx/html"]
 EXPOSE 80
 #/usr/sbin/syslogd
 #ENTRYPOINT ["/var/cfengine/bin/docker_processes_run.sh"]
-CMD ["/usr/sbin/nginx"]
+CMD []
 
