@@ -1,4 +1,4 @@
-FROM ubuntu
+FROM ubuntu:14.04.1
 MAINTAINER Chris Greenhalgh <chris.greenhalgh@nottingham.ac.uk>
 
 RUN apt-get update
