@@ -71,6 +71,43 @@ logrotate -v /home/root/opensharingtoolkit-mediahub/docker/mediahub/logrotate
 ```
 These should probably rotate more often and keep fewer versions, aswell I think. Defaults are weekly, with 52 and 10 rotations, respectively.
 
+### Update in place
+
+For the baked version you can't SSH now. So an upgrade requires a new image and container. You might want to stop the current container to be safe...
+```
+sudo docker stop NAME
+```
+Make a temporary container with the same filesystem volumes, both to keep them live and to give a chance to tidy up:
+```
+sudo docker run -it --name NAME-up --volumes-from NAME -v $(pwd):/backup mediahub /bin/bash
+(cd /var/log/nginx; tar zcf /backup/NAME-nginx-log.tgz *)
+rm /var/log/nginx/*
+(cd /usr/share/nginx/html; tar zcf /backup/NAME-html.tgz *)
+```
+Update the couchapp...
+```
+cd /home/root/opensharingtoolkit-mediahub
+couchdb -b
+sleep 10
+make couchapplocal
+wget -qO- --method=POST --header=Accept:application/json --header=Content-Type:application/json http://127.0.0.1:5984/mediahub/_ensure_full_commit 
+couchdb -d
+```
+Remove old container
+```
+sudo docker rm NAME
+```
+Make and run new one (don't rely on Makefile run!! - that won't pull in the existing volumes)
+```
+make NAME=NAME image
+sudo docker run -d --name NAME -h NAME --volumes-from NAME-up mediahub-NAME
+```
+Tidy up
+```
+sudo docker rm NAME-up
+```
+
+
 ## Public web access
 
 The common proxy front-end is build, run and updated by
