@@ -4,6 +4,7 @@
   <div>
     <a class="button do-ok disabled">OK</a><!--
     --><a class="button do-close">Cancel</a>
+    <div class="filter-widget-holder"></div>
   </div>
 
   <div class="thing-list row"></div>

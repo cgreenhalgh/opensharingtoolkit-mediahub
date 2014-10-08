@@ -1,5 +1,5 @@
 <%# Thing in Multiselect Thing List, takes Thing as data (title, description, ...) %>
-<h4 class="clearfix"><input type="checkbox" name="<%= @_id %>"/> <%= @typeName %>: <%= @title %>
+<h4 class="clearfix"><input type="checkbox" name="<%= @_id %>"/> <i><%= @typeName %></i> <%= @title %>
   <!-- <a href="#" class="action-button do-preview-thing right">Preview</a> -->
 </h4>
 <div class="comment"><%= @comment %></div>

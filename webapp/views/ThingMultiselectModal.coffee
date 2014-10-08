@@ -1,6 +1,8 @@
 # Thing multi-select Modal View
 templateThingMultiselectModal = require 'templates/ThingMultiselectModal'
 ThingInMultiselectView = require 'views/ThingInMultiselect'
+FilterWidgetView = require 'views/FilterWidget'
+filter = require 'filter'
 
 module.exports = class ThingMultiselectModalView extends Backbone.View
 
@@ -11,8 +13,10 @@ module.exports = class ThingMultiselectModalView extends Backbone.View
   attributes: { 'data-reveal':'' }
 
   initialize: ->
-    @listenTo @model, 'add', @addItem
-    @listenTo @model, 'remove', @removeItem
+    @fmodel = filter.newFilterCollection @model
+    @listenTo @fmodel, 'add', @addItem
+    @listenTo @fmodel, 'remove', @removeItem
+    @listenTo @fmodel, 'reset', @reset
 
   # syntax ok?? or (x...) -> 
   template: (d) =>
@@ -20,9 +24,19 @@ module.exports = class ThingMultiselectModalView extends Backbone.View
 
   render: =>
     @$el.html @template {}
+    if @filterView?
+      @filterView.remove()
+    @filterView = new FilterWidgetView model: filter.getModel()
+    $('.filter-widget-holder', @$el).replaceWith @filterView.el
     @views = []
-    @model.forEach @addItem
+    @fmodel.forEach @addItem
     @
+
+  reset: () =>
+    for view in @views
+      view.remove()
+    @views = []
+    @fmodel.forEach @addItem    
 
   inited: false
 
@@ -64,6 +78,7 @@ module.exports = class ThingMultiselectModalView extends Backbone.View
     console.log "ThingMultiselectModalView add #{thing.id}"
     view = new ThingInMultiselectView model: thing
     view.render()
+    # could switch to FilterCollection sorting...
     if thing.getSortValue?
       sortValue = String(thing.getSortValue())
     else
@@ -97,6 +112,9 @@ module.exports = class ThingMultiselectModalView extends Backbone.View
   remove: () =>
     for view in @views
       view.remove()
+    if @filterView?
+      @filterView.remove()
+    @fmodel.stopListening()
     super()
 
   show: (cb) =>

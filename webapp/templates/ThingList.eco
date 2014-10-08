@@ -1,6 +1,9 @@
 <%# Thing List common - add button %>
   <div class="columns large-12 small-12">
     <h2><%= @contentType.title %> List</h2>
-    <a href="#-add-thing" class="button do-add-thing">Add...</a>
+    <div>
+      <a href="#-add-thing" class="button do-add-thing">Add...</a>
+      <div class="filter-widget-holder"></div>
+    </div>
   </div>
-
+  <div class="list-holder"></div>

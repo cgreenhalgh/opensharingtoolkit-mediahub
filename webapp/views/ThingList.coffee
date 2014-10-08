@@ -1,5 +1,7 @@
 # ThingList View
 templateThingList = require 'templates/ThingList'
+FilterWidgetView = require 'views/FilterWidget'
+filter = require 'filter'
 
 module.exports = class ThingListView extends Backbone.View
 
@@ -8,8 +10,10 @@ module.exports = class ThingListView extends Backbone.View
 
   initialize: ->
     @views = []
-    @listenTo @model, 'add', @addItem
-    @listenTo @model, 'remove', @removeItem
+    @fmodel = filter.newFilterCollection @model
+    @listenTo @fmodel, 'add', @addItem
+    @listenTo @fmodel, 'remove', @removeItem
+    @listenTo @fmodel, 'reset', @reset
 
   template: (d) =>
     templateThingList d
@@ -17,14 +21,31 @@ module.exports = class ThingListView extends Backbone.View
   render: =>
     console.log "render ThingList, contentType=#{@model.model.contentType.id}"
     @$el.html @template contentType: @model.model.contentType.attributes
-    @model.forEach @addItem
+    if @filterView?
+      @filterView.remove()
+    @filterView = new FilterWidgetView model: filter.getModel()
+    $('.filter-widget-holder', @$el).replaceWith @filterView.el
+    @fmodel.forEach @addItem
     @
 
-  addItem: (thing) =>
-    console.log "ThingListView add #{thing.id}"
+  reset: () =>
+    for view in @views
+      view.remove()
+    @views = []
+    @fmodel.forEach @addItem    
+
+  addItem: (thing, coll, options) =>
+    index = @fmodel.indexOf thing
+    console.log "ThingListView add #{thing.id} options #{JSON.stringify options} index #{index}"
     view = @model.model.contentType.getThingView thing
-    # TODO add in order / filter
-    @$el.append view.$el
+    if index==0
+      $('.list-holder', @$el).prepend view.$el
+    else if index < $('.list-holder', @$el).children().length
+      $('.list-holder', @$el).children().eq(index-1).after view.$el
+    else
+      if index<0
+        console.log "add thing - not found in collection"
+      $('.list-holder', @$el).append view.$el
     @views.push view
     
   removeItem: (thing) =>
@@ -38,6 +59,9 @@ module.exports = class ThingListView extends Backbone.View
   remove: () =>
     for view in @views
       view.remove()
+    if @filterView?
+      @filterView.remove()
+    @fmodel.stopListening()
     super()
 
   events:

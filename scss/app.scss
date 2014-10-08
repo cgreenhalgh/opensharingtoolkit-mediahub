@@ -79,6 +79,7 @@ $outline-color: $primary-color; //scale-color($primary-color, $lightness: -66%);
    @extend .button;
    @extend .tiny;
    margin-bottom: 0;
+   padding: 0.5rem;
 };
 
 .image-select {
@@ -247,4 +248,21 @@ $outline-color: $primary-color; //scale-color($primary-color, $lightness: -66%);
   height: 16pt;
   padding-bottom: 0.2em;
 }
+
+.filter-widget {
+  display: inline-block;
+  > input {
+    display: inline-block;
+    width: 20em;
+    margin-right: 4px;
+  };
+  > a.button {
+    display: inline-block;
+    padding: 0.5rem;
+    > img {
+      width: 1em;
+      height: auto;
+    };
+  };
+};
 

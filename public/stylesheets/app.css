@@ -8105,28 +8105,29 @@ th.hide-for-touch {
 /* line 78, ../../scss/app.scss */
 .action-button {
   margin-bottom: 0;
+  padding: 0.5rem;
 }
 
-/* line 84, ../../scss/app.scss */
+/* line 85, ../../scss/app.scss */
 .image-select {
   border: 1px solid #008CBA;
   padding: 0.2em;
 }
 
-/* line 93, ../../scss/app.scss */
+/* line 94, ../../scss/app.scss */
 .image-select-title-holder {
   height: 1.1em;
   margin: 0.2em;
 }
 
-/* line 97, ../../scss/app.scss */
+/* line 98, ../../scss/app.scss */
 .image-select-title {
   position: relative;
   background-color: rgba(255, 255, 255, 0.5);
   z-index: 5;
 }
 
-/* line 103, ../../scss/app.scss */
+/* line 104, ../../scss/app.scss */
 .image-select-icon {
   display: inline-block;
   position: relative;
@@ -8134,11 +8135,11 @@ th.hide-for-touch {
   left: 5%;
   overflow: hidden;
 }
-/* line 112, ../../scss/app.scss */
+/* line 113, ../../scss/app.scss */
 .image-select-icon > .dummy {
   padding-top: 100%;
 }
-/* line 115, ../../scss/app.scss */
+/* line 116, ../../scss/app.scss */
 .image-select-icon > .image-select-image {
   width: 100%;
   position: absolute;
@@ -8149,7 +8150,7 @@ th.hide-for-touch {
   height: auto;
 }
 
-/* line 126, ../../scss/app.scss */
+/* line 127, ../../scss/app.scss */
 .drop-zone {
   border: 1px dashed #008CBA;
   text-align: center;
@@ -8157,37 +8158,37 @@ th.hide-for-touch {
   padding: 0.2em;
 }
 
-/* line 133, ../../scss/app.scss */
+/* line 134, ../../scss/app.scss */
 .over {
   background-color: #91e4ff;
 }
 
-/* line 137, ../../scss/app.scss */
+/* line 138, ../../scss/app.scss */
 .file-detail {
   border: 1px solid #008CBA;
   text-align: center;
   padding: 0.2em;
 }
 
-/* line 143, ../../scss/app.scss */
+/* line 144, ../../scss/app.scss */
 .map {
   border: 1px solid #008CBA;
   width: 400px;
   height: 400px;
 }
 
-/* line 149, ../../scss/app.scss */
+/* line 150, ../../scss/app.scss */
 .image-editor-outer {
   position: relative;
   width: 96%;
   left: 2%;
   overflow: hidden;
 }
-/* line 158, ../../scss/app.scss */
+/* line 159, ../../scss/app.scss */
 .image-editor-outer > .dummy {
   padding-top: 100%;
 }
-/* line 161, ../../scss/app.scss */
+/* line 162, ../../scss/app.scss */
 .image-editor-outer > .image-editor-inner {
   border: 1px solid #888;
   position: absolute;
@@ -8197,13 +8198,13 @@ th.hide-for-touch {
   right: 0;
   background-color: #ddd;
 }
-/* line 170, ../../scss/app.scss */
+/* line 171, ../../scss/app.scss */
 .image-editor-outer > .image-editor-inner > div {
   position: static;
   width: 100%;
   height: 100%;
 }
-/* line 175, ../../scss/app.scss */
+/* line 176, ../../scss/app.scss */
 .image-editor-outer > .image-editor-inner > div > img {
   display: block;
   vertical-align: middle;
@@ -8213,14 +8214,14 @@ th.hide-for-touch {
   margin: auto;
 }
 
-/* line 187, ../../scss/app.scss */
+/* line 188, ../../scss/app.scss */
 .image-editor-image {
   max-width: 98%;
   max-height: 600px;
   height: auto;
 }
 
-/* line 195, ../../scss/app.scss */
+/* line 196, ../../scss/app.scss */
 .working-modal {
   z-index: 200;
   background-color: rgba(255, 255, 255, 0.8);
@@ -8230,7 +8231,7 @@ th.hide-for-touch {
   right: 0;
   bottom: 0;
 }
-/* line 203, ../../scss/app.scss */
+/* line 204, ../../scss/app.scss */
 .working-modal > img {
   position: absolute;
   left: 48%;
@@ -8239,7 +8240,7 @@ th.hide-for-touch {
   height: auto;
 }
 
-/* line 212, ../../scss/app.scss */
+/* line 213, ../../scss/app.scss */
 .link-options {
   width: 0.65em;
   height: 0.65em;
@@ -8248,14 +8249,14 @@ th.hide-for-touch {
   vertical-align: text-top;
 }
 
-/* line 223, ../../scss/app.scss */
+/* line 224, ../../scss/app.scss */
 .link-qrcode {
   width: 40%;
   height: auto;
   padding: 10px;
 }
 
-/* line 229, ../../scss/app.scss */
+/* line 230, ../../scss/app.scss */
 .link-url {
   font-family: Monospace;
   font-size: 120%;
@@ -8268,7 +8269,7 @@ th.hide-for-touch {
   user-select: text;
 }
 
-/* line 242, ../../scss/app.scss */
+/* line 243, ../../scss/app.scss */
 .comment {
   text-wrap: none;
   white-space: nowrap;
@@ -8276,4 +8277,25 @@ th.hide-for-touch {
   overflow: hidden;
   height: 16pt;
   padding-bottom: 0.2em;
+}
+
+/* line 252, ../../scss/app.scss */
+.filter-widget {
+  display: inline-block;
+}
+/* line 254, ../../scss/app.scss */
+.filter-widget > input {
+  display: inline-block;
+  width: 20em;
+  margin-right: 4px;
+}
+/* line 259, ../../scss/app.scss */
+.filter-widget > a.button, .filter-widget > a.action-button {
+  display: inline-block;
+  padding: 0.5rem;
+}
+/* line 262, ../../scss/app.scss */
+.filter-widget > a.button > img, .filter-widget > a.action-button > img {
+  width: 1em;
+  height: auto;
 }
