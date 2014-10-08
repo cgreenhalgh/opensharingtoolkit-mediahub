@@ -1,10 +1,11 @@
 <%# ThingRef in Thing List, takes Thing as data (title, description, ...) %>
 <h4 class="clearfix">
   <input type="checkbox" name="<%= @_id %>"/>
-  <a href="#" class="button tiny do-add-below">Add below...</a><!--
-    --><a href="#" class="button tiny do-move-below disabled">Move below</a><!--
-    --><a href="#" class="button tiny do-remove-thingref">Remove</a>
+  <a href="#" class="action-button do-add-below">Add below...</a><!--
+    --><a href="#" class="action-button do-move-below disabled">Move below</a><!--
+    --><a href="#" class="action-button do-remove-thingref">Remove</a>
   <%= @typeName %>: <%= if @thing? and @thing.attributes.title? then @thing.attributes.title else @thingId %>
-  <a href="#" class="action-button do-preview-thing right <%= if not @thing? then 'disabled' %>">Preview</a>
+  <!-- <a href="#" class="action-button do-preview-thing right <%= if not @thing? then 'disabled' %>">Preview</a> -->
 </h4>
+<div class="comment"><%= @thing?.attributes.comment %></div>
 
