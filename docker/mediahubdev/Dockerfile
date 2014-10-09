@@ -38,6 +38,7 @@ ADD instance /home/root/opensharingtoolkit-mediahub/
 ADD htpasswd /etc/nginx/conf/
 
 EXPOSE 22
-CMD ["/usr/sbin/sshd"]
+CMD []
+RUN ( echo "/usr/sbin/sshd, /usr/sbin/sshd" >> /var/cfengine/inputs/processes_run.csv )
 ENTRYPOINT ["/var/cfengine/bin/docker_processes_run.sh"]
 
