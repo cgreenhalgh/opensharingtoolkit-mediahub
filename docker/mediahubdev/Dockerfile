@@ -3,9 +3,12 @@ FROM mediahub
 
 RUN apt-get update
 
+# need a password for ssh
+# need to allow root login
 RUN apt-get -y install openssh-server && \
   mkdir -p /var/run/sshd && \
-  ( echo "root:password" | chpasswd )  # need a password for ssh
+  ( echo "root:password" | chpasswd ) && \
+  sed -i 's/PermitRootLogin without-password/PermitRootLogin yes/' /etc/ssh/sshd_config
 
 RUN apt-get -y install git && \
   apt-get -y install ruby1.9.1 ruby1.9.1-dev && \
