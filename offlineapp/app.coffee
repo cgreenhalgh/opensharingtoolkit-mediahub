@@ -208,6 +208,8 @@ checkConfig = (app) ->
     if currentView and HomeView.prototype.isPrototypeOf currentView
       $('#app-title').html (app.title ? 'Home') 
     appmodel.set appconfig
+    $('#showUser').toggleClass 'hide', appconfig.showUser==false
+    formdb.getFormUploadState().set 'requiresUser', appconfig.showUser!=false
     $('#showUpload').toggleClass 'hide', not appconfig.serverId
     formdb.getFormUploadState().set 'serverId', (appconfig.serverId ? '')
     $('#showAbout').toggleClass 'hide', appconfig.showAbout!=true

@@ -1,5 +1,8 @@
 <%# App add or edit tab, takes { data: Thing, add: true|false } as data (title, description, ...); parent is a content %>
-    <!-- <input type="button" value="Prepare for download" class="do-update"/> -->
+<!-- <label>Track links out of app (uses redirect)
+  <input type="checkbox" name="trackLinks" <%= if @data.trackLinks then 'checked' %> />
+</label>
+<hr/> -->
     <label>Server (to handle any uploaded form data)
       <select name="server">
         <option value="" <%= if not @data.serverId then 'selected' %> >No server</option>
@@ -8,6 +11,9 @@
 <% end %>
       </select>
     </label>
+<label>Include 'User' section, and request user name for form upload
+  <input type="checkbox" name="showUser" <%= if @data.showUser!=false then 'checked' %> />
+</label>
 <hr/>
 <label>Include 'About' section
   <input type="checkbox" name="showAbout" <%= if @data.showAbout then 'checked' %> />
@@ -38,6 +44,9 @@
 <hr/>
 <label>Include 'Share' section with URL and QR Code
   <input type="checkbox" name="showShare" <%= if @data.showShare then 'checked' %> />
+</label>
+<label>Custom share URL (optional)
+  <input type="text" name="shareurl" value="<%= @data.shareurl %>" />
 </label>
 <hr/>
 <label>Include 'Location' section with GPS controls 

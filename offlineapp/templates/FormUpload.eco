@@ -1,7 +1,7 @@
 <div class="row top-item">
   <div class="columns large-12 small-12">
 
-<% if not @meta.userID: %>
+<% if @requiresUser and not @meta.userID: %>
     <div data-alert class="alert-box warning">
       You have not set a user nickname or email address for uploads. 
       <a href="#user">Set user...</a>

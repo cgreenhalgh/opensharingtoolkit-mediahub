@@ -208,11 +208,15 @@ uploadTask = () ->
     data.meta.deviceID = 'uuid:'+window.clientid # see client.js - uuid in cookie
     # custom extension
     data.meta.applicationID = applicationID
-    if user.getUserId()
+    if user.getUserId() and formUploadState.attributes.requiresUser
       data.meta.userID = user.getUserId()
     data.meta.version = instance.formdef?.version
-    data.meta.timeStart = new Date(instance.metadata.createdtime).toISOString()
-    data.meta.timeEnd = new Date(instance.metadata.savedtime).toISOString()
+    # can fail!
+    try
+      data.meta.timeStart = new Date(instance.metadata.createdtime).toISOString()
+      data.meta.timeEnd = new Date(instance.metadata.savedtime).toISOString()
+    catch err
+      console.log "error marshalling form times #{instance.metadata.createdtime} and #{instance.metadata.savedtime}: #{err.message}"
     # find server
     if not app?
       return uploadFailed "app not set"

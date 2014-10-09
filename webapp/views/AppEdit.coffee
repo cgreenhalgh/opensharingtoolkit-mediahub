@@ -10,13 +10,16 @@ module.exports = class AppEditView extends ListEditView
 
   formToModel: () =>
     super()
+    trackLinks = $('input[name=trackLinks]', @$el).prop 'checked'
     serverId = $('select[name=server]', @$el).val()
+    showUser = $('input[name=showUser]', @$el).prop 'checked'
     showAbout = $('input[name=showAbout]', @$el).prop 'checked'
     aboutText = $('textarea[name=aboutText]', @$el).val()
     version = $('input[name=version]', @$el).val()
     licenseShortName = $('select[name=licenseShortName]', @$el).val()
     licenseVersion = $('input[name=licenseVersion]', @$el).val()
     showShare = $('input[name=showShare]', @$el).prop 'checked'
+    shareurl = $('input[name=shareurl]', @$el).val()
     showLocation = $('input[name=showLocation]', @$el).prop 'checked'
     console.log "Selected server #{serverId}; showAbout=#{showAbout}"
     now = new Date().getTime()
@@ -24,13 +27,16 @@ module.exports = class AppEditView extends ListEditView
     lastupdatedtime = now
     faviconurl = $('.image-favicon', @$el).attr 'src'
     @model.set 
+      trackLinks: trackLinks
       serverId: serverId
       showAbout: showAbout
+      showUser: showUser
       aboutText: aboutText
       version: version
       licenseShortName: licenseShortName
       licenseVersion: licenseVersion
       showShare: showShare
+      shareurl: shareurl
       showLocation: showLocation
       createdtime: createdtime
       lastupdatedtime: lastupdatedtime

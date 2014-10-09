@@ -18,6 +18,9 @@ module.exports = class App extends Thing
     showShare: true
     showLocation: true
     #defaultPlaceId: ''
+    showUser: true
+    #shareurl: ''
+    trackLinks: false
 
   idAttribute: '_id'
 

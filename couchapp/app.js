@@ -32,9 +32,13 @@ function addIndex(name) {
     if (doc.faviconurl) {
       faviconurl = doc.faviconurl;
     }
+    var shareurl = "";
+    if (doc.shareurl) {
+      shareurl = doc.shareurl;
+    }
     return {
       headers: {"Content-type": "text/html"},
-      body: index.replace(/[$][{][@]id[}]/g, doc._id).replace(/[$][{][@]title[}]/g, doc.title).replace(/[$][{][@]faviconurl[}]/g, faviconurl)
+      body: index.replace(/[$][{][@]id[}]/g, doc._id).replace(/[$][{][@]title[}]/g, doc.title).replace(/[$][{][@]faviconurl[}]/g, faviconurl).replace(/[$][{][@]shareurl[}]/g, shareurl)
     }
   };
   ddoc.shows[name] = showIndex.toString().replace("${@index}", minescape(index.toString()));

@@ -291,11 +291,7 @@ cacheFile appurl, (err,path) ->
     console.log "Wrote redirect to app.html"
   catch err
     utils.logError "error writing redirect for app to app.html: #{err.message}"
-  if process.argv.length>4
-    publicurl = process.argv[3]+'/'+process.argv[4]+'/'+path
-    # try google qrcode generator http://chart.apis.google.com/chart?cht=qr&chs=150x150&choe=UTF-8&chl=http%3A%2F%2F1.2.4
-    publicqrurl = 'http://chart.apis.google.com/chart?cht=qr&chs=150x150&choe=UTF-8&chl='+encodeURIComponent(publicurl)
-
+  
   # html index
   readCacheTextFile appurl, (err,html) ->
     if err?
@@ -322,6 +318,16 @@ cacheFile appurl, (err,path) ->
       #console.log "Found manifest #{manifesturl}"    
     else
       utils.logError "Could not find manifest reference in #{appurl}"
+    eix = html.indexOf '<meta name="mediahub-shareurl" content="'
+    eix2 = html.indexOf '"', eix+'<meta name="mediahub-shareurl" content="'.length
+    if eix>=0 and eix2>eix+'<meta name="mediahub-shareurl" content="'.length
+      publicurl = html.substring eix+'<meta name="mediahub-shareurl" content="'.length,eix2
+    else if process.argv.length>4
+      publicurl = process.argv[3]+'/'+process.argv[4]+'/'+path
+    # try google qrcode generator http://chart.apis.google.com/chart?cht=qr&chs=150x150&choe=UTF-8&chl=http%3A%2F%2F1.2.4
+    if publicurl
+      publicqrurl = 'http://chart.apis.google.com/chart?cht=qr&chs=150x150&choe=UTF-8&chl='+encodeURIComponent(publicurl)
+
     # mark as exported using meta
     ix = html.indexOf '<head>'
     if ix<0

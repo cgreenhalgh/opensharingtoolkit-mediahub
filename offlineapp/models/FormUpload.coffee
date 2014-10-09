@@ -5,5 +5,5 @@ module.exports = class FormUpload extends Backbone.Model
     uploading: false
     uploadInstanceIds: []
     lastUploadState: ''
-
+    requiresUser: false
 
