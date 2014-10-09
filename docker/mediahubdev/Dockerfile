@@ -35,6 +35,6 @@ ADD instance /home/root/opensharingtoolkit-mediahub/
 ADD htpasswd /etc/nginx/conf/
 
 EXPOSE 22
-CMD ["/usr/sbin/sshd", "/usr/sbin/nginx"]
+CMD ["/usr/sbin/sshd"]
 ENTRYPOINT ["/var/cfengine/bin/docker_processes_run.sh"]
 
