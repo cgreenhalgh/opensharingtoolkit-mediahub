@@ -3,6 +3,7 @@ templateThingEdit = require 'templates/ThingEdit'
 templateThingEditTab = require 'templates/ThingEditTab'
 server = require 'server'
 allthings = require 'allthings'
+filter = require 'filter'
 
 # ckeditor image select callback handling
 window.mediahubCallbacks = {}
@@ -21,6 +22,13 @@ module.exports = class ThingEditView extends Backbone.View
   cancelled: false
 
   initialize: ->
+    if @add and not @model.attributes.comments
+      query = filter.getModel().attributes.query ? ''
+      hashtags = for ht in query.split ' ' when ht.indexOf('#')==0
+        ht
+      comment = hashtags.join ' '
+      console.log "Add thing query #{query} -> comment #{comment}"
+      @model.set comment: comment
     #@listenTo @model, 'change', @render
     #@render()
 

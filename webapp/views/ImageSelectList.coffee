@@ -10,12 +10,8 @@ module.exports = class ImageSelectListView extends ThingListView
   template: (d) =>
     templateImageSelectList d
 
-  addItem: (thing) =>
-    console.log "ImageSelectListView add #{thing.id}"
-    view = new ImageSelectView model: thing
-    # TODO add in order / filter
-    @$el.append view.$el
-    @views.push view
+  getNewView: (thing) =>
+    new ImageSelectView model: thing
     
   events:
     "click .do-cancel": "closeWindow"

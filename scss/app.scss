@@ -101,6 +101,12 @@ $outline-color: $primary-color; //scale-color($primary-color, $lightness: -66%);
   // Note: modal dialogs at 99
   z-index: 5;
 };
+.image-select-comment {
+  position: relative;
+  background-color: rgba(255,255,255,0.4);
+  // Note: modal dialogs at 99
+  z-index: 5;
+};
 .image-select-icon {
   // see http://ansciath.tumblr.com/post/7347495869/css-aspect-ratio
   display: inline-block;

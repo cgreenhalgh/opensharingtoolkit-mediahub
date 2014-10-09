@@ -1,6 +1,7 @@
 # HtmlEdit View
 templateHtmlEditTab = require 'templates/HtmlEditTab'
 ThingEditView = require 'views/ThingEdit'
+filter = require 'filter'
 
 module.exports = class HtmlEditView extends ThingEditView
 
@@ -13,10 +14,11 @@ module.exports = class HtmlEditView extends ThingEditView
       console.log "Set up CKEditor..."
       ckconfig = {}
       ckconfig.customConfig = '../../ckeditor_config_html.js'
-      ckconfig.filebrowserBrowseUrl = 'filebrowse.html'
-      ckconfig.filebrowserImageBrowseUrl = 'filebrowse.html?type=image%2F'
-      ckconfig.filebrowserAudioBrowseMpegUrl = 'filebrowse.html?type=audio%2Fmpeg'
-      ckconfig.filebrowserAudioBrowseOggUrl = 'filebrowse.html?type=audio%2Fogg'
+      query = '&q='+encodeURIComponent(filter.getModel().attributes.query)
+      ckconfig.filebrowserBrowseUrl = 'filebrowse.html'+query
+      ckconfig.filebrowserImageBrowseUrl = 'filebrowse.html?type=image%2F'+query
+      ckconfig.filebrowserAudioBrowseMpegUrl = 'filebrowse.html?type=audio%2Fmpeg'+query
+      ckconfig.filebrowserAudioBrowseOggUrl = 'filebrowse.html?type=audio%2Fogg'+query
       #editor = CKEDITOR.instances['htmlfragment']
       #if editor 
       #  editor.destroy(true)

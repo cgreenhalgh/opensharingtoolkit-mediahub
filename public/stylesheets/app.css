@@ -8128,6 +8128,13 @@ th.hide-for-touch {
 }
 
 /* line 104, ../../scss/app.scss */
+.image-select-comment {
+  position: relative;
+  background-color: rgba(255, 255, 255, 0.4);
+  z-index: 5;
+}
+
+/* line 110, ../../scss/app.scss */
 .image-select-icon {
   display: inline-block;
   position: relative;
@@ -8135,11 +8142,11 @@ th.hide-for-touch {
   left: 5%;
   overflow: hidden;
 }
-/* line 113, ../../scss/app.scss */
+/* line 119, ../../scss/app.scss */
 .image-select-icon > .dummy {
   padding-top: 100%;
 }
-/* line 116, ../../scss/app.scss */
+/* line 122, ../../scss/app.scss */
 .image-select-icon > .image-select-image {
   width: 100%;
   position: absolute;
@@ -8150,7 +8157,7 @@ th.hide-for-touch {
   height: auto;
 }
 
-/* line 127, ../../scss/app.scss */
+/* line 133, ../../scss/app.scss */
 .drop-zone {
   border: 1px dashed #008CBA;
   text-align: center;
@@ -8158,37 +8165,37 @@ th.hide-for-touch {
   padding: 0.2em;
 }
 
-/* line 134, ../../scss/app.scss */
+/* line 140, ../../scss/app.scss */
 .over {
   background-color: #91e4ff;
 }
 
-/* line 138, ../../scss/app.scss */
+/* line 144, ../../scss/app.scss */
 .file-detail {
   border: 1px solid #008CBA;
   text-align: center;
   padding: 0.2em;
 }
 
-/* line 144, ../../scss/app.scss */
+/* line 150, ../../scss/app.scss */
 .map {
   border: 1px solid #008CBA;
   width: 400px;
   height: 400px;
 }
 
-/* line 150, ../../scss/app.scss */
+/* line 156, ../../scss/app.scss */
 .image-editor-outer {
   position: relative;
   width: 96%;
   left: 2%;
   overflow: hidden;
 }
-/* line 159, ../../scss/app.scss */
+/* line 165, ../../scss/app.scss */
 .image-editor-outer > .dummy {
   padding-top: 100%;
 }
-/* line 162, ../../scss/app.scss */
+/* line 168, ../../scss/app.scss */
 .image-editor-outer > .image-editor-inner {
   border: 1px solid #888;
   position: absolute;
@@ -8198,13 +8205,13 @@ th.hide-for-touch {
   right: 0;
   background-color: #ddd;
 }
-/* line 171, ../../scss/app.scss */
+/* line 177, ../../scss/app.scss */
 .image-editor-outer > .image-editor-inner > div {
   position: static;
   width: 100%;
   height: 100%;
 }
-/* line 176, ../../scss/app.scss */
+/* line 182, ../../scss/app.scss */
 .image-editor-outer > .image-editor-inner > div > img {
   display: block;
   vertical-align: middle;
@@ -8214,14 +8221,14 @@ th.hide-for-touch {
   margin: auto;
 }
 
-/* line 188, ../../scss/app.scss */
+/* line 194, ../../scss/app.scss */
 .image-editor-image {
   max-width: 98%;
   max-height: 600px;
   height: auto;
 }
 
-/* line 196, ../../scss/app.scss */
+/* line 202, ../../scss/app.scss */
 .working-modal {
   z-index: 200;
   background-color: rgba(255, 255, 255, 0.8);
@@ -8231,7 +8238,7 @@ th.hide-for-touch {
   right: 0;
   bottom: 0;
 }
-/* line 204, ../../scss/app.scss */
+/* line 210, ../../scss/app.scss */
 .working-modal > img {
   position: absolute;
   left: 48%;
@@ -8240,7 +8247,7 @@ th.hide-for-touch {
   height: auto;
 }
 
-/* line 213, ../../scss/app.scss */
+/* line 219, ../../scss/app.scss */
 .link-options {
   width: 0.65em;
   height: 0.65em;
@@ -8249,14 +8256,14 @@ th.hide-for-touch {
   vertical-align: text-top;
 }
 
-/* line 224, ../../scss/app.scss */
+/* line 230, ../../scss/app.scss */
 .link-qrcode {
   width: 40%;
   height: auto;
   padding: 10px;
 }
 
-/* line 230, ../../scss/app.scss */
+/* line 236, ../../scss/app.scss */
 .link-url {
   font-family: Monospace;
   font-size: 120%;
@@ -8269,7 +8276,7 @@ th.hide-for-touch {
   user-select: text;
 }
 
-/* line 243, ../../scss/app.scss */
+/* line 249, ../../scss/app.scss */
 .comment {
   text-wrap: none;
   white-space: nowrap;
@@ -8279,22 +8286,22 @@ th.hide-for-touch {
   padding-bottom: 0.2em;
 }
 
-/* line 252, ../../scss/app.scss */
+/* line 258, ../../scss/app.scss */
 .filter-widget {
   display: inline-block;
 }
-/* line 254, ../../scss/app.scss */
+/* line 260, ../../scss/app.scss */
 .filter-widget > input {
   display: inline-block;
   width: 20em;
   margin-right: 4px;
 }
-/* line 259, ../../scss/app.scss */
+/* line 265, ../../scss/app.scss */
 .filter-widget > a.button, .filter-widget > a.action-button {
   display: inline-block;
   padding: 0.5rem;
 }
-/* line 262, ../../scss/app.scss */
+/* line 268, ../../scss/app.scss */
 .filter-widget > a.button > img, .filter-widget > a.action-button > img {
   width: 1em;
   height: auto;

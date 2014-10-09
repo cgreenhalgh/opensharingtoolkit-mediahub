@@ -1,4 +1,4 @@
 <%# Thing in Thing List, takes Thing as data (title, description, ...) %>
 <a href="#" class="do-select-file"><!-- do-preview-file -->
-<h4 class="clearfix"><%= @title %>
-</h4>
+<h4 class="clearfix"><%= @title %></h4>
+<div class="comment"><%= @comment %></div>

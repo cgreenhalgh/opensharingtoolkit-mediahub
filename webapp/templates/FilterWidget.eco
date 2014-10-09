@@ -1,3 +1,3 @@
 <%# FilterWidget @query %>
-<input type="text" name="query" value="<%= @query %>" onfocus="this.value = this.value;" size="16"/><a href="#" class="do-filter button"><img src="../../icons/search-black.png" />
+<input type="text" name="query" value="<%= @query %>" onfocus="this.value = this.value;" size="16"/><a href="#" class="do-filter button"><img src="../../icons/search-black.png" /></a><a href="#" class="do-clear-filter button"><img src="../../icons/delete-black.png" /></a>
 

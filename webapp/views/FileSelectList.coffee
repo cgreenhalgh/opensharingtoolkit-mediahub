@@ -10,13 +10,9 @@ module.exports = class FileSelectListView extends ThingListView
   template: (d) =>
     templateFileSelectList d
 
-  addItem: (thing) =>
-    console.log "FileSelectListView add #{thing.id}"
-    view = new FileSelectView model: thing
-    # TODO add in order / filter
-    @$el.append view.$el
-    @views.push view
-    
+  getNewView: (thing) =>
+    new FileSelectView model: thing
+   
   events:
     "click .do-cancel": "closeWindow"
     "click .do-upload": "upload"

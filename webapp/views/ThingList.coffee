@@ -34,10 +34,13 @@ module.exports = class ThingListView extends Backbone.View
     @views = []
     @fmodel.forEach @addItem    
 
+  getNewView: (thing) =>
+    view = @model.model.contentType.getThingView thing
+
   addItem: (thing, coll, options) =>
     index = @fmodel.indexOf thing
     console.log "ThingListView add #{thing.id} options #{JSON.stringify options} index #{index}"
-    view = @model.model.contentType.getThingView thing
+    view = @getNewView thing
     if index==0
       $('.list-holder', @$el).prepend view.$el
     else if index < $('.list-holder', @$el).children().length

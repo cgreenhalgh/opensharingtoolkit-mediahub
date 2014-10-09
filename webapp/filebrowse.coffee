@@ -9,13 +9,16 @@ server = require 'server'
 db = require 'mydb'
 
 require 'plugins/File'
-
+filter = require 'filter'
 
 App = 
   init: ->
     console.log "filebrowse App starting..."
     params = getParams()
-    typePrefix = params.type ?= ''
+    typePrefix = params.type ? ''
+    query = params.q ? ''
+    if query
+      filter.getModel().set query: query
 
     Backbone.sync =  BackbonePouch.sync
       db: db

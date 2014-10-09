@@ -63,6 +63,8 @@ Click `Choose File` and select an image files to upload (ideally choose a PNG or
 
 You can now open the `Overview` tab and check that the title has been set to the uploaded file name. You can change this, or add a description if you wish (but they are not necessary in this case).
 
+(New as of 2014-10-10) You can also add a comment; this is only visible in the editor, but is useful to remember what the file is for or from. It is a good idea to make up a hashtags (`#NAME`) for each project that you are working on and include this in the comments - this will make it much easier to find related materials later on.
+
 Click `Add` to add the new file; the view will switch back to the `File List` view, and the uploaded will be visible. You can `Edit` or `Delete` the file from this view. Note that there is no undo!
 
 ### 2. Create a simple HTML page

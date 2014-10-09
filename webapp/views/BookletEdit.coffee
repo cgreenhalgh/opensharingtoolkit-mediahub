@@ -26,10 +26,11 @@ module.exports = class BookletEditView extends ThingEditView
       console.log "Set up CKEditor 'htmlcontent'..."
       ckconfig = {}
       ckconfig.customConfig = '../../ckeditor_config_booklet.js'
-      ckconfig.filebrowserBrowseUrl = 'filebrowse.html'
-      ckconfig.filebrowserImageBrowseUrl = 'filebrowse.html?type=image%2F'
-      ckconfig.filebrowserAudioBrowseMpegUrl = 'filebrowse.html?type=audio%2Fmpeg'
-      ckconfig.filebrowserAudioBrowseOggUrl = 'filebrowse.html?type=audio%2Fogg'
+      query = '&q='+encodeURIComponent(filter.getModel().attributes.query)
+      ckconfig.filebrowserBrowseUrl = 'filebrowse.html'+query
+      ckconfig.filebrowserImageBrowseUrl = 'filebrowse.html?type=image%2F'+query
+      ckconfig.filebrowserAudioBrowseMpegUrl = 'filebrowse.html?type=audio%2Fmpeg'+query
+      ckconfig.filebrowserAudioBrowseOggUrl = 'filebrowse.html?type=audio%2Fogg'+query
       #ckconfig.extraPlugins = 'widget,mediahubcolumn'
       CKEDITOR.replace 'htmlcontent', ckconfig
     setTimeout replace,0
