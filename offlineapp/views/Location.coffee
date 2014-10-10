@@ -29,6 +29,7 @@ module.exports = class UserView extends Backbone.View
       highAccuracy: $('input[name=highAccuracy]', @$el).prop 'checked'
       requestRecent: $('input[name=requestRecent]', @$el).prop 'checked'
       showOnMap: $('input[name=showOnMap]', @$el).prop 'checked'
+      debug: $('input[name=debug]', @$el).prop 'checked'
 
   refresh: (ev) =>
     location.refresh()

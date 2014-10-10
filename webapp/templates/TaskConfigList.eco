@@ -1,9 +1,12 @@
 <%# TaskConfig List %>
   <div class="columns large-12 small-12">
     <h2>Background Task List</h2>
+    <div>
     <!-- <a href="#" class="button do-add-task-tar">Tar...</a> -->
     <a href="#" class="button do-add-task-backup">Backup...</a>
     <a href="#" class="button do-add-task-checkpoint">Checkpoint...</a>
     <a href="#" class="button do-add-task-import">Import...</a>
+    <div class="filter-widget-holder"></div>
+    </div>
   </div>
-
+  <div class="list-holder"></div>

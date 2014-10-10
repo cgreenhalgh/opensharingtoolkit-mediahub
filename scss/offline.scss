@@ -328,3 +328,16 @@ $outline-color: #000;
   background-color: #fff;
 }
 
+.location-debug {
+  background-color: #ddd;
+  padding: 4px;
+  > p {
+    font-family: monospace;
+    font-size: 10pt;
+    text-align: left;
+    line-height: 115%;
+    padding: 4px;
+    margin: 0;
+    word-break: break-all;
+  };
+};

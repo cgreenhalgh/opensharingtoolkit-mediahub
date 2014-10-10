@@ -20,12 +20,14 @@
   </div>
   <div class="columns large-12 small-12">
     <hr/>
-    <h4>Debug information</h4>
-    <p>searching: <%= @searching %></p>
-    <p>lastFix: <%= JSON.stringify @lastFix %></p>
-    <p>lastFixTime: <%= @lastFixTime %></p>
-    <p>old: <%= @old %></p>
-    <p>lastResult: <%= @lastResult %></p>
+    <label><input type="checkbox" name="debug" <%= if @debug then 'checked' %> />Show low-local location information (for debugging or curiosity...)
+    </label>
+    <div class="<%= if not @debug then 'hide' %> location-debug"><p>searching: <%= @searching %></p>
+      <p>lastFix: <%= JSON.stringify @lastFix %></p>
+      <p>lastFixTime: <%= @lastFixTime %></p>
+      <p>old?: <%= @old %></p>
+      <p>lastResult: <%= @lastResult %></p>
+    </div>
   </div>
 </div>
 

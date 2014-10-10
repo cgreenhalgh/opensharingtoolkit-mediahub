@@ -8399,3 +8399,19 @@ th.hide-for-touch {
   border-color: #000;
   background-color: #fff;
 }
+
+/* line 331, ../../scss/offline.scss */
+.location-debug {
+  background-color: #ddd;
+  padding: 4px;
+}
+/* line 334, ../../scss/offline.scss */
+.location-debug > p {
+  font-family: monospace;
+  font-size: 10pt;
+  text-align: left;
+  line-height: 115%;
+  padding: 4px;
+  margin: 0;
+  word-break: break-all;
+}
