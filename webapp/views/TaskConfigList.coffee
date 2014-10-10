@@ -8,6 +8,8 @@ module.exports = class TaskConfigList extends ThingListView
   template: (d) =>
     templateTaskConfigList d
 
+  isFilter: () -> false
+
   events:
     "click .do-add-task-tar": "addTaskTar"
     "click .do-add-task-rm": "addTaskRm"

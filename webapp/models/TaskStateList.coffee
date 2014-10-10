@@ -18,7 +18,7 @@ module.exports = class TaskStateList extends Backbone.Collection
         filter: 'app/changesTaskstate'
 
   parse: (result) ->
-    console.log "parse #{JSON.stringify result}"
+    #console.log "parse #{JSON.stringify result}"
     _.pluck result.rows, 'doc'
 
   fetch: (fetchOptions) =>

@@ -10,10 +10,15 @@ module.exports = class ThingListView extends Backbone.View
 
   initialize: ->
     @views = []
-    @fmodel = filter.newFilterCollection @model
+    @fmodel = if @isFilter() 
+        filter.newFilterCollection @model
+      else
+        @model
     @listenTo @fmodel, 'add', @addItem
     @listenTo @fmodel, 'remove', @removeItem
     @listenTo @fmodel, 'reset', @reset
+
+  isFilter: () -> true
 
   template: (d) =>
     templateThingList d
@@ -23,8 +28,9 @@ module.exports = class ThingListView extends Backbone.View
     @$el.html @template contentType: @model.model.contentType.attributes
     if @filterView?
       @filterView.remove()
-    @filterView = new FilterWidgetView model: filter.getModel()
-    $('.filter-widget-holder', @$el).replaceWith @filterView.el
+    if @isFilter()
+      @filterView = new FilterWidgetView model: filter.getModel()
+      $('.filter-widget-holder', @$el).replaceWith @filterView.el
     @fmodel.forEach @addItem
     @
 

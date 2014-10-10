@@ -19,7 +19,7 @@ module.exports = class ThingList extends Backbone.Collection
         filter: 'app/typeThing'
 
   parse: (result) ->
-    console.log "parse #{JSON.stringify result}"
+    #console.log "parse #{JSON.stringify result}"
     _.pluck result.rows, 'doc'
  
 
