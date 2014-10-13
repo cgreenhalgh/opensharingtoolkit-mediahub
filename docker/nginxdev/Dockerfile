@@ -6,7 +6,8 @@ RUN apt-get -y install nginx && \
   mkdir -p /etc/nginx/conf/ && \
   sed -i '/^types {/ a \ text/cache-manifest appcache;' /etc/nginx/mime.types
 
-RUN echo "\ndaemon off;" >> /etc/nginx/nginx.conf 
+RUN echo "\ndaemon off;" >> /etc/nginx/nginx.conf
+RUN ( echo "nginx, /usr/sbin/nginx" >> /var/cfengine/inputs/processes_run.csv )
 
 # PHP for kiosk server-side
 RUN apt-get -y install php5-cli php5-fpm && \
@@ -23,5 +24,5 @@ VOLUME /var/log
 VOLUME /usr/share/nginx/html
 
 ENTRYPOINT ["/var/cfengine/bin/docker_processes_run.sh"]
-CMD ["/usr/sbin/nginx"]
+CMD []
 

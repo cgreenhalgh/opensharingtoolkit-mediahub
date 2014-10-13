@@ -18,16 +18,20 @@ module.exports = class ThingListView extends Backbone.View
     @model.forEach @addItem
     @
 
-  addItem: (thing) =>
+  addItem: (thing, coll, options) =>
     console.log "ThingListView add #{thing.id}"
     for view,i in @views when view.model.id == thing.id
       return console.log "skip addItem for known #{thing.id}"
     view = new ThingInListView model: thing
-    # TODO add in order / filter
-    @$el.append view.$el
-    @views.push view
+    ix = coll.indexOf thing
+    if ix>=0 and ix<@$el.children().length and ix<@views.length
+      @$el.children().eq(ix).before view.el
+      @views.splice ix,0,view
+    else
+      @$el.append view.el
+      @views.push view
     
-  removeItem: (thing) =>
+  removeItem: (thing, coll, options) =>
     console.log "ThingListView remove #{thing.id}"
     for view, i in @views when view.model.id == thing.id
       console.log "remove view" 

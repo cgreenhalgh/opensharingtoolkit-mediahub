@@ -2,6 +2,9 @@
 
 NAME?=default
 
+default:
+	# ...
+
 cfengine/image.timestamp: cfengine/Dockerfile 
 	sudo docker build -t cfengine cfengine
 	touch cfengine/image.timestamp

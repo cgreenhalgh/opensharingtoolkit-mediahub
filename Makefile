@@ -1,6 +1,12 @@
 # bower update
 COUCHDB=http://admin:admin@127.0.0.1:5984/mediahub
 
+default:
+	# css - compile scss -> css
+	# compile - compile coffeescript -> javascript
+	# couchapplocal - upload files to COUCHDB
+	# ...
+
 bower_update:
 	cd bower update
 
