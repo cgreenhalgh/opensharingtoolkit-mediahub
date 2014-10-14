@@ -9,6 +9,7 @@ eco = require 'eco'
 _ = require 'underscore'
 
 templateAppRedirect = fs.readFileSync __dirname+"/templates/appredirect.html.eco", "utf-8"
+redirectPhp = fs.readFileSync __dirname+"/templates/redirect.php", "utf-8"
 
 if process.argv.length!=4 && process.argv.length!=5 
   utils.logError 'usage: coffee exportapp.coffee <APP-URL> <PUBLIC-URL> [<PUBLIC-PATH>]', 2
@@ -291,6 +292,12 @@ cacheFile appurl, (err,path) ->
     console.log "Wrote redirect to app.html"
   catch err
     utils.logError "error writing redirect for app to app.html: #{err.message}"
+  try
+    # 0o755
+    fs.writeFileSync 're.php', redirectPhp, mode: 0x1ed
+    console.log "Wrote re.php"
+  catch err
+    utils.logError "error writing re.php: #{err.message}"
   
   # html index
   readCacheTextFile appurl, (err,html) ->

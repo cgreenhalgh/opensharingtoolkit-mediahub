@@ -1,10 +1,18 @@
 # utils
-console.log "hello utils"
+#console.log "hello utils"
 https = require 'https'
 http = require 'http'
 fs = require 'fs'
 parse_url = (require 'url').parse
 spawn = (require 'child_process').spawn
+
+log1 = (msg) -> 
+  # default
+  console.log msg
+
+# allow taskrunner override
+module.exports.log = log1
+log = (msg) -> module.exports.log msg
 
 couchurl = null
 
@@ -34,24 +42,24 @@ module.exports.checkMimetype = checkMimetype = (surl, fn) ->
     path: url.path
     auth: url.auth
     method: 'HEAD'
-  console.log "head #{url.host} #{url.port} #{url.path} #{url.auth}"	
+  log "head #{url.host} #{url.port} #{url.path} #{url.auth}"	
   pmodule = if protocol=='https' then https else http   
   req = pmodule.request options,(res) ->
     if res.statusCode != 200
-      console.log "Error checking file #{surl}, response #{res.statusCode}"
+      log "Error checking file #{surl}, response #{res.statusCode}"
       return fn res.statusCode
     type = res.headers['content-type']
     res.on 'data',(data)->
       # ignore
     res.on 'end',()->
-      console.log "mimetype for #{surl} = #{type}"
+      log "mimetype for #{surl} = #{type}"
       ix = type?.indexOf ';'
       if ix>=0
         type = type.substring 0,ix
       fn null, type
 
   req.on 'error',(e) ->
-    console.log "Error checking file #{surl}: #{e}"
+    log "Error checking file #{surl}: #{e}"
     fn e
   req.end()
 
@@ -64,11 +72,11 @@ module.exports.readJson = readJson = (surl,fn) ->
     path: url.path
     auth: url.auth
     method: 'GET'
-  console.log "get #{url.host} #{url.port} #{url.path} #{url.auth}"	
+  log "get #{url.host} #{url.port} #{url.path} #{url.auth}"	
   pmodule = if protocol=='https' then https else http   
   req = pmodule.request options,(res) ->
     if res.statusCode != 200
-      console.log "Error getting file #{surl}, response #{res.statusCode}"
+      log "Error getting file #{surl}, response #{res.statusCode}"
       return fn res.statusCode
     type = res.headers['content-type']
     body = []
@@ -80,12 +88,12 @@ module.exports.readJson = readJson = (surl,fn) ->
         body = body.concat()
         json = JSON.parse body
       catch err
-        console.log "Error parsing file #{surl}: #{err.message}: #{body}"
+        log "Error parsing file #{surl}: #{err.message}: #{body}"
         fn err
       fn null, json 
 
   req.on 'error',(e) ->
-    console.log "Error getting file #{surl}: #{e}"
+    log "Error getting file #{surl}: #{e}"
     fn e
   req.end()
 
@@ -101,11 +109,11 @@ module.exports.doHttp = doHttp = (surl,method,body,fn) ->
     headers: 
       'content-type': 'application/json'
 
-  console.log "#{method} #{url.host} #{url.port} #{url.path} #{url.auth}"	
+  log "#{method} #{url.host} #{url.port} #{url.path} #{url.auth}"	
   pmodule = if protocol=='https' then https else http   
   req = pmodule.request options,(res) ->
     if res.statusCode != 200 && res.statusCode != 201
-      console.log "Error on #{method} #{surl}, response #{res.statusCode}"
+      log "Error on #{method} #{surl}, response #{res.statusCode}"
       return fn res.statusCode
     type = res.headers['content-type']
     body = []
@@ -117,12 +125,12 @@ module.exports.doHttp = doHttp = (surl,method,body,fn) ->
         body = body.concat()
         json = JSON.parse body
       catch err
-        console.log "Error parsing #{method} #{surl}: #{err.message}: #{body}"
+        log "Error parsing #{method} #{surl}: #{err.message}: #{body}"
         fn err
       fn null, json 
 
   req.on 'error',(e) ->
-    console.log "Error on #{method} #{surl}: #{e}"
+    log "Error on #{method} #{surl}: #{e}"
     fn e
   req.end(body, 'utf8')
 
@@ -149,10 +157,10 @@ module.exports.guessMimetype = guessMimetype = (url, fn) ->
   type =  mimetypeFromExtension url
   if type
     return fn type
-  console.log "unknown mimetype for #{url} - try head"
+  log "unknown mimetype for #{url} - try head"
   checkMimetype url, (err,type) ->
     if err?
-      console.log "Unknown mimetype for #{url}"
+      log "Unknown mimetype for #{url}"
       return fn 'application/unknown'
     fn type
 
@@ -253,18 +261,18 @@ module.exports.cacheFile = cacheFile = (surl,fn) ->
   ps = dir.split '/'
   d = ''
   if ps.length>1 or ps[0].length>0
-    console.log "mkdirs #{dir}"
+    log "mkdirs #{dir}"
     for i in [0..(ps.length-1)]
       d = d + (if i>0 then '/' else '') + decodeURIComponent( ps[i] )
       if !fs.existsSync(d)
-        console.log "mkdir #{d}" 
+        log "mkdir #{d}" 
         fs.mkdirSync d
 
-  console.log "get #{url.host} #{url.port} #{url.path} #{url.auth}"	
+  log "get #{url.host} #{url.port} #{url.path} #{url.auth}"	
   pmodule = if protocol=='https' then https else http   
   req = pmodule.request options,(res) ->
     if res.statusCode != 200
-      console.log "Error getting file #{surl}, response #{res.statusCode}"
+      log "Error getting file #{surl}, response #{res.statusCode}"
       return fn res.statusCode
     # on success remove old file if present and link/rename new file
     lastmod = res.headers['last-modified']
@@ -289,15 +297,15 @@ module.exports.cacheFile = cacheFile = (surl,fn) ->
       mimeextension = 'pdf'
     if mimeextension and mimeextension!=fileextension
       path = path+'.'+mimeextension
-      console.log "adding extension #{mimeextension} to #{path}"
+      log "adding extension #{mimeextension} to #{path}"
     else if not fileextension
-      console.log "no extension found for #{path} / #{type}"
+      log "no extension found for #{path} / #{type}"
 
     tmppath = get_filesystem_path (dir + (if dir!='' then '/' else '') + '.cb_download')
     try 
       fd = fs.openSync(tmppath, 'w')
     catch e
-      console.log "Could not create tmpfile #{tmppath}: #{e}"
+      log "Could not create tmpfile #{tmppath}: #{e}"
       return fn e      
         
     count = 0;
@@ -305,12 +313,12 @@ module.exports.cacheFile = cacheFile = (surl,fn) ->
     res.on 'data',(data) ->
       if count < 0
         return
-      #console.log "got #{data.length} bytes for #{file.url}"
+      #log "got #{data.length} bytes for #{file.url}"
       try 
         fs.writeSync(fd, data, 0, data.length)
         count += data.length
       catch e
-        console.log "Error writing data chunk to #{tmppath}: #{e}"
+        log "Error writing data chunk to #{tmppath}: #{e}"
         count = -1
 
     res.on 'end',() ->
@@ -318,14 +326,14 @@ module.exports.cacheFile = cacheFile = (surl,fn) ->
       if count < 0
         return fn 'error reading data'
       if count < length 
-        console.log "Warning: read #{count}/#{length} bytes for #{surl} - discarding"
+        log "Warning: read #{count}/#{length} bytes for #{surl} - discarding"
         try
           fs.unlinkSync tmppath
         catch e
           ; # ignore
         return fn ("read #{count}/#{length}")
 
-      console.log "OK: read #{count} bytes"
+      log "OK: read #{count} bytes"
       filepath = get_filesystem_path path
       try
         # remove old old file if present
@@ -336,14 +344,14 @@ module.exports.cacheFile = cacheFile = (surl,fn) ->
         fs.renameSync tmppath,filepath
         # done!
       catch e
-        console.log "Error renaming new cache file #{tmppath} to #{filepath}: #{e}"
+        log "Error renaming new cache file #{tmppath} to #{filepath}: #{e}"
         return fn 'error renaming new cache file'
-      console.log "Downloaded #{surl} -> #{filepath} aka #{path} (#{length} bytes, #{type})"
+      log "Downloaded #{surl} -> #{filepath} aka #{path} (#{length} bytes, #{type})"
       cachePaths[surl] = filepath
       cacheUrls[surl] = path
       fn null, path
   req.on 'error',(e) ->
-    console.log "Error getting file #{surl}: #{e}"
+    log "Error getting file #{surl}: #{e}"
     fn e
   req.end()
 
@@ -353,7 +361,7 @@ module.exports.readCacheTextFile = readCacheTextFile = (surl,fn) ->
     try 
       fn null, fs.readFileSync path,{encoding:'utf8'}
     catch err
-      console.log "error reading #{path}: #{err}"
+      log "error reading #{path}: #{err}"
       fn err
   else 
     cacheFile surl, (err,path) ->
@@ -362,26 +370,26 @@ module.exports.readCacheTextFile = readCacheTextFile = (surl,fn) ->
       try 
         fn null, fs.readFileSync path,{encoding:'utf8'}
       catch err
-        console.log "error reading #{path}: #{err}"
+        log "error reading #{path}: #{err}"
         fn err
  
 module.exports.exec = (cmd, args, continuation) ->
-  console.log "exec: #{cmd} #{JSON.stringify args} in #{process.cwd()}"
+  log "exec: #{cmd} #{JSON.stringify args} in #{process.cwd()}"
   try
     child = spawn cmd, args, 
       stdio: 'inherit'
       env: process.env
       cwd: process.cwd()
   catch err
-    console.log "exec: error spawning #{cmd}: #{err.message}"
+    log "exec: error spawning #{cmd}: #{err.message}"
     return continuation err
 
   child.on 'error', (err) ->
-    console.log "child process reported error #{err}"
+    log "child process reported error #{err}"
     return continuation err
 
   child.on 'close', (code) ->
-    console.log "child process exited with code #{code}"
+    log "child process exited with code #{code}"
     if code==0
       continuation null
     else
@@ -391,25 +399,25 @@ errors = []
 exitCode = 1
 
 module.exports.logError = (msg, code) ->
-  console.log "ERROR: #{msg}"
+  log "ERROR: #{msg}"
   errors.push msg
   if code!=0
     exitCode = code
 
 module.exports.exit = () ->
-  console.log "Exit after #{errors.length} errors"
+  log "Exit after #{errors.length} errors"
   for error in errors
-    console.log "- #{error}"
+    log "- #{error}"
   if errors.length==0
     process.exit 0
   if exitCode!=0
-    console.log "exit with code #{exitCode}"
+    log "exit with code #{exitCode}"
     process.exit exitCode
-  console.log "exit with default code 1"
+  log "exit with default code 1"
   process.exit 1
 
 module.exports.copyDirSync = copyDirSync = (fromdir, todir) ->
-  console.log "copy dir #{fromdir} -> #{todir}"
+  log "copy dir #{fromdir} -> #{todir}"
   fromdir = fs.realpathSync fromdir
   todir = fs.realpathSync todir
   if !(fs.existsSync fromdir)
@@ -423,12 +431,12 @@ module.exports.copyDirSync = copyDirSync = (fromdir, todir) ->
     stats = fs.statSync fromfile
     if stats.isDirectory()
       if !(fs.existsSync tofile)
-        console.log "Create dir #{tofile}"
+        log "Create dir #{tofile}"
         fs.mkdirSync tofile,0o755
       copyDirSync fromfile,tofile
     else if stats.isFile()
       if !(fs.existsSync tofile)
-        console.log "Create file #{tofile}"
+        log "Create file #{tofile}"
         data = fs.readFileSync fromfile,{encoding:null}
         fs.writeFileSync tofile,data,{encoding:null,mode:(stats.mode|0o444)}
       else 
@@ -436,13 +444,13 @@ module.exports.copyDirSync = copyDirSync = (fromdir, todir) ->
         try
           tostats = fs.statSync tofile
           if stats.mtime.getTime() > tostats.mtime.getTime()
-            console.log "Update changed file #{tofile}"
+            log "Update changed file #{tofile}"
             data = fs.readFileSync fromfile,{encoding:null}
             fs.writeFileSync tofile,data,{encoding:null,mode:(stats.mode|0o444)}
         catch err
-          console.log "Error doing stat on #{tofile}: #{err.message}"
+          log "Error doing stat on #{tofile}: #{err.message}"
     else
       if !(fs.existsSync tofile)
-        console.log "Ignore non-file/dir #{fromfile}"
+        log "Ignore non-file/dir #{fromfile}"
 
 

@@ -145,7 +145,10 @@ makeThing = (data, collection, thingIds) ->
         console.log "Loaded missing thing #{thing.id}"
         try
           if currentView.page?
-            window.router.bookletPage thing.id, currentView.page, currentView.anchor
+            cpage = currentView.page
+            canchor = currentView.anchor
+            window.router.thing thing.id        
+            window.router.bookletPage thing.id, cpage, canchor
           else
             window.router.thing thing.id        
         catch err
@@ -255,6 +258,25 @@ App =
     dburl = window.location.href
     if dburl.indexOf('/_design/')>=0
       dburl = dburl.substring 0,dburl.indexOf('/_design/')
+
+    # links out
+    if exported == 'true'
+      # redirector - see exportapp
+      reurl = dburl+'/re.php?url='
+      console.log "using external link redirect #{reurl}"
+      $(document).on 'click', 'a', (ev) ->
+        url = $(ev.currentTarget).attr 'href'
+        if (appmodel.get 'trackLinks')
+          if (url.indexOf ':')>=0 or (url.indexOf '//')==0
+            url2 = reurl+encodeURIComponent(url)
+            console.log "track link out to #{url} -> #{url2}"
+            target = $(ev.currentTarget).attr 'target'
+            ev.preventDefault()
+            window.open url2, (target ? '_self')
+          else
+            console.log "no track local(?) link #{url}"
+        else
+          console.log "not tracking - link #{url}"
 
     # hack - leaflets map tile load doesn't get picked up here
     if exported == 'true'

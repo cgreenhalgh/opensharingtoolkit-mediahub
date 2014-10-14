@@ -14,6 +14,7 @@ log = (msg) ->
   console.log JSON.stringify ["log", msg]
 
 log "Node version #{JSON.stringify process.version}"
+utils.log = log
 
 templateMediahubServerConf = fs.readFileSync __dirname+"/templates/mediahub-server.conf.eco", "utf-8"
 

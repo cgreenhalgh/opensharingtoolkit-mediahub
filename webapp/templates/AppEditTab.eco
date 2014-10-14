@@ -1,8 +1,8 @@
 <%# App add or edit tab, takes { data: Thing, add: true|false } as data (title, description, ...); parent is a content %>
-<!-- <label>Track links out of app (uses redirect)
+<label>Track links out of app (uses redirect) (uses <code>re.php?url=...</code>)
   <input type="checkbox" name="trackLinks" <%= if @data.trackLinks then 'checked' %> />
 </label>
-<hr/> -->
+<hr/>
     <label>Server (to handle any uploaded form data)
       <select name="server">
         <option value="" <%= if not @data.serverId then 'selected' %> >No server</option>
