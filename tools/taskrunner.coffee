@@ -255,9 +255,11 @@ schedule = () ->
     return
 
   if next.config.taskType=='import'
-    if not next.uploadFile? or next.uploadTime < next.config.lastChanged
+    if next.targetState.state != "waiting" or not next.uploadFile? or not next.targetState.waitingSince? or next.uploadTime < next.targetState.waitingSince
       setTimeout schedule, 0
       next.targetState.lastUpdate = new Date().getTime()
+      if next.targetState.state!="waiting" or not next.targetState.waitingSince?
+        next.targetState.waitingSince = next.targetState.lastUpdate
       next.targetState.state = "waiting"
       next.targetState.message = "Waiting for upload"
       sendState next
