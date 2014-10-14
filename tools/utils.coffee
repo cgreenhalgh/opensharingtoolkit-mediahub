@@ -232,6 +232,59 @@ get_filesystem_path = (path) ->
     decodeURIComponent p
   ps.join '/'
   
+module.exports.filesEqual = filesEqual = (path1, path2) ->
+  if !fs.existsSync path1
+    log "compare #{path1} #{path2} - file 1 does not exist"
+    return false
+  stats1 = null
+  try
+     stats1 = fs.statSync path1
+  catch err
+    log "compare #{path1} #{path2} - cannot state file 1: #{err.message}"
+    return false
+  if !stats1.isFile()
+    log "compare #{path1} #{path2} - file 1 is not a file"
+    return false
+  if !fs.existsSync path2
+    log "compare #{path1} #{path2} - file 2 does not exist"
+    return false
+  stats2 = null
+  try
+    stats2 = fs.statSync path2
+  catch err
+    log "compare #{path1} #{path2} - cannot state file 2: #{err.message}"
+    return false
+  if !stats2.isFile()
+    log "compare #{path1} #{path2} - file 2 is not a file"
+    return false
+  if stats1.size!=stats2.size
+    log "compare #{path1} #{path2} - lengths differ #{stats1.size} vs #{stats2.size}"
+    return false
+  # TODO: compare in blocks
+  buf1 = null
+  try
+    buf1 = fs.readFileSync path1
+  catch err
+    log "compare #{path1} #{path2} - cannot read file 1: #{err.message}"
+    return false
+  buf2 = null
+  try
+    buf2 = fs.readFileSync path2
+  catch err
+    log "compare #{path1} #{path2} - cannot read file 2: #{err.message}"
+    return false
+  if buf1.length!=buf2.length
+    log "compare #{path1} #{path2} - buffer lengths differ #{buf1.length} vs #{buf2.length}"
+    return false
+  for i in [0..(buf1.length-1)]
+    if buf1[i]!=buf2[i]
+      log "compare #{path1} #{path2} - differ at byte #{i}/#{buf1.length}"
+      return false
+  log "compare #{path1} #{path2} - files are identical"
+  return true
+
+ 
+   
 module.exports.cacheFile = cacheFile = (surl,fn) ->
   if cacheUrls[surl]?
     return fn null,cacheUrls[surl]
@@ -251,7 +304,7 @@ module.exports.cacheFile = cacheFile = (surl,fn) ->
     port: url.port
     path: url.path
     auth: url.auth
-    method: 'GET'
+    method: 'HEAD'
   dir = path
   ix = dir.lastIndexOf '/'
   if ix>=0
@@ -268,11 +321,11 @@ module.exports.cacheFile = cacheFile = (surl,fn) ->
         log "mkdir #{d}" 
         fs.mkdirSync d
 
-  log "get #{url.host} #{url.port} #{url.path} #{url.auth}"	
+  log "head #{url.host} #{url.port} #{url.path} #{url.auth}"	
   pmodule = if protocol=='https' then https else http   
   req = pmodule.request options,(res) ->
     if res.statusCode != 200
-      log "Error getting file #{surl}, response #{res.statusCode}"
+      log "Error getting headers for file #{surl}, response #{res.statusCode}"
       return fn res.statusCode
     # on success remove old file if present and link/rename new file
     lastmod = res.headers['last-modified']
@@ -301,57 +354,118 @@ module.exports.cacheFile = cacheFile = (surl,fn) ->
     else if not fileextension
       log "no extension found for #{path} / #{type}"
 
-    tmppath = get_filesystem_path (dir + (if dir!='' then '/' else '') + '.cb_download')
-    try 
-      fd = fs.openSync(tmppath, 'w')
-    catch e
-      log "Could not create tmpfile #{tmppath}: #{e}"
-      return fn e      
-        
-    count = 0;
-
     res.on 'data',(data) ->
-      if count < 0
-        return
-      #log "got #{data.length} bytes for #{file.url}"
-      try 
-        fs.writeSync(fd, data, 0, data.length)
-        count += data.length
-      catch e
-        log "Error writing data chunk to #{tmppath}: #{e}"
-        count = -1
-
+      ;
     res.on 'end',() ->
-      fs.closeSync(fd)
-      if count < 0
-        return fn 'error reading data'
-      if count < length 
-        log "Warning: read #{count}/#{length} bytes for #{surl} - discarding"
-        try
-          fs.unlinkSync tmppath
-        catch e
-          ; # ignore
-        return fn ("read #{count}/#{length}")
-
-      log "OK: read #{count} bytes"
+      # check file -> return or GET
       filepath = get_filesystem_path path
-      try
-        # remove old old file if present
-        fs.unlinkSync filepath
-      catch e
-        ;# ignore
-      try
-        fs.renameSync tmppath,filepath
-        # done!
-      catch e
-        log "Error renaming new cache file #{tmppath} to #{filepath}: #{e}"
-        return fn 'error renaming new cache file'
-      log "Downloaded #{surl} -> #{filepath} aka #{path} (#{length} bytes, #{type})"
-      cachePaths[surl] = filepath
-      cacheUrls[surl] = path
-      fn null, path
+
+      lastmodtime = if lastmod?
+          try
+            new Date(lastmod).getTime()
+          catch err
+            log "unable to parse last modified date #{lastmod}: #{err.message}"
+            null
+        else null
+      if lastmodtime? and fs.existsSync filepath
+        try
+          stats = fs.statSync filepath
+          if stats.isFile() and stats.ctime.getTime() > lastmodtime
+            log "using existing copy of #{surl} - created #{stats.ctime} vs last mod #{lastmod}"
+            cachePaths[surl] = filepath
+            cacheUrls[surl] = path
+            fn null, path
+          else
+            log "local file #{filepath} isFile #{stats.isFile()}, created #{stats.ctime} vs last mod #{lastmod}for #{surl} -> download"
+
+        catch err
+          log "unable to stat #{filepath}: #{err.message}"
+      else if not lastmodtime?
+        log "no last mod for #{surl} -> download"
+      else
+        log "no local file #{filepath} for #{surl} -> download"
+     
+      # GET
+      options = 
+        hostname: url.hostname
+        port: url.port
+        path: url.path
+        auth: url.auth
+        method: 'GET'
+
+      log "get #{url.host} #{url.port} #{url.path} #{url.auth}"	
+      greq = pmodule.request options,(res) ->
+        if res.statusCode != 200
+          log "Error getting file #{surl}, response #{res.statusCode}"
+          return fn res.statusCode
+
+        tmppath = get_filesystem_path (dir + (if dir!='' then '/' else '') + '.cb_download')
+        try 
+          fd = fs.openSync(tmppath, 'w')
+        catch e
+          log "Could not create tmpfile #{tmppath}: #{e}"
+          return fn e      
+        
+        count = 0;
+
+        res.on 'data',(data) ->
+          if count < 0
+            return
+          #log "got #{data.length} bytes for #{file.url}"
+          try 
+            fs.writeSync(fd, data, 0, data.length)
+            count += data.length
+          catch e
+            log "Error writing data chunk to #{tmppath}: #{e}"
+            count = -1
+    
+        res.on 'end',() ->
+          fs.closeSync(fd)
+          if count < 0
+            return fn 'error reading data'
+          if count < length 
+            log "Warning: read #{count}/#{length} bytes for #{surl} - discarding"
+            try
+              fs.unlinkSync tmppath
+            catch e
+              ; # ignore
+            return fn ("read #{count}/#{length}")
+    
+          log "OK: read #{count} bytes"
+          if filesEqual filepath,tmppath
+            log "Unchanged #{surl} -> #{filepath} aka #{path} (#{length} bytes, #{type})"
+            try
+              # remove old tmp file
+              fs.unlinkSync tmppath
+            catch e
+              ;# ignore
+            cachePaths[surl] = filepath
+            cacheUrls[surl] = path
+            return fn null, path
+            
+          try
+            # remove old old file if present
+            fs.unlinkSync filepath
+          catch e
+            ;# ignore
+          try
+            fs.renameSync tmppath,filepath
+            # done!
+          catch e
+            log "Error renaming new cache file #{tmppath} to #{filepath}: #{e}"
+            return fn 'error renaming new cache file'
+          log "Downloaded #{surl} -> #{filepath} aka #{path} (#{length} bytes, #{type})"
+          cachePaths[surl] = filepath
+          cacheUrls[surl] = path
+          fn null, path
+
+      greq.on 'error',(e) ->
+        log "Error getting file #{surl}: #{e}"
+        fn e
+      greq.end()
+
   req.on 'error',(e) ->
-    log "Error getting file #{surl}: #{e}"
+    log "Error getting headers for file #{surl}: #{e}"
     fn e
   req.end()
 
