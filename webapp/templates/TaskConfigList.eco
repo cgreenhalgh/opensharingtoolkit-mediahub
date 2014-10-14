@@ -3,9 +3,9 @@
     <h2>Background Task List</h2>
     <div>
     <!-- <a href="#" class="button do-add-task-tar">Tar...</a> -->
-    <a href="#" class="button do-add-task-backup">Backup...</a>
-    <a href="#" class="button do-add-task-checkpoint">Checkpoint...</a>
-    <a href="#" class="button do-add-task-import">Import...</a>
+    <a href="#" class="button do-add-task-backup">Add Backup task...</a>
+    <a href="#" class="button do-add-task-checkpoint">Add Export task...</a>
+    <a href="#" class="button do-add-task-import">Add import task...</a>
     <div class="filter-widget-holder"></div>
     </div>
   </div>

@@ -127,9 +127,11 @@ module.exports = class TaskConfigEditView extends Backbone.View
 
   formToModel: () =>
     enabled = $('input[name=enabled]').prop 'checked'
+    cleanBeforeTask = $('input[name=cleanBeforeTask]').prop 'checked'
     time = new Date().getTime()
     @model.set 
       enabled: enabled
+      cleanBeforeTask: cleanBeforeTask
       lastChanged: time
       configpublicurl: window.mediahubconfig.publicurl
     if @add

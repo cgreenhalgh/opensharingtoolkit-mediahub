@@ -515,4 +515,36 @@ module.exports.copyDirSync = copyDirSync = (fromdir, todir) ->
       if !(fs.existsSync tofile)
         log "Ignore non-file/dir #{fromfile}"
 
+module.exports.rmSync = rmSync = (fromdir) ->
+  fromdir = fs.realpathSync fromdir
+  if !(fs.existsSync fromdir)
+    return log "rmdir #{fromdir} does not exist"
+  stats = fs.statSync fromdir
+  if not stats.isDirectory()
+    try
+      return fs.unlinkSync fromdir
+    catch err
+      return log "error unlinking #{fromdir}: #{err.message}"
+  log "rm dir #{fromdir}"
+  files = fs.readdirSync fromdir
+  for file in files
+    fromfile = fromdir+"/"+file
+    rmSync fromfile
+  try
+    fs.rmdirSync fromdir
+  catch err
+    log "error rmdir #{fromdir}: #{err.message}"
+
+module.exports.cleanSync = (fromdir) ->
+  fromdir = fs.realpathSync fromdir
+  if !(fs.existsSync fromdir)
+    return log "clean #{fromdir} does not exist"
+  stats = fs.statSync fromdir
+  if not stats.isDirectory()
+    return log "clean non-directory #{fromdir}"
+  log "clean #{fromdir}"
+  files = fs.readdirSync fromdir
+  for file in files
+    fromfile = fromdir+"/"+file
+    rmSync fromfile
 

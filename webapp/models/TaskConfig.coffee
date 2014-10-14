@@ -10,6 +10,7 @@ module.exports = class TaskConfig extends Thing
     taskType: ''
     enabled: true
     lastChanged: null
+    cleanBeforeTask: false
 
   idAttribute: '_id'
 

@@ -5,7 +5,7 @@
     <em><%= if @subject.title then @subject.title else @subjectId %></em>
     to <code><%= @path %></code>
 <% else if @taskType=='checkpointapp': %>
-    Checkpoint app 
+    Export app 
     <em><%= if @subject.title then @subject.title else @subjectId %></em>
     to <code><%= @path %></code>
 <% else if @taskType=='exportkiosk': %>
@@ -20,20 +20,20 @@
     Backup database
     to <code><%= @path %></code>
 <% else if @taskType=='checkpoint': %>
-    Checkpoint database
+    Export database
     to <code><%= @path %></code>
 <% else if @taskType=='import': %>
-    Import checkpoint 
+    Import app or database 
     via <code><%= @path %></code>
 <% else if @taskType=='buildserver': %>
     Update Form Server
     <em><%= if @subject.title then @subject.title else @subjectId %></em>
 <% else if @taskType=='exportserver': %>
-    Checkpoint Form Server
+    Export Form Server
     <em><%= if @subject.title then @subject.title else @subjectId %></em>
     to <code><%= @path %></code>
 <% else if @taskType=='importserver': %>
-    Import Checkpoint to Form Server
+    Import to Form Server
     <em><%= if @subject.title then @subject.title else @subjectId %></em>
     via <code><%= @path %></code>
 <% else : %>

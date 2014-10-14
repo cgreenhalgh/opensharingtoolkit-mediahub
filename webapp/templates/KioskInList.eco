@@ -4,6 +4,6 @@
   <a href="#" class="action-button do-edit-file right">Edit</a>
   <a href="#" class="action-button do-copy-file right">Copy</a>
   <!-- <a href="#" class="action-button do-view-file right">View</a> -->
-  <a href="#" class="action-button do-export right">Export...</a>
+  <a href="#" class="action-button do-export right">Publish...</a>
 </h4>
 <div class="comment"><%= @comment %></div>

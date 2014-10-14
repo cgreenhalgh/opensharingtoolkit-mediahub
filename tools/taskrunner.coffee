@@ -419,6 +419,8 @@ doExportapp = (task) ->
     return taskError task, "Publicurl for export was not specified ('configpublicurl')"
   appurl = "#{dburl}/_design/app/_show/app/#{appId}"
   if (path=(checkPath task, publicwebdir, true))?
+    if task.config.cleanBeforeTask
+      utils.cleanSync path
     doSpawn task, "/usr/local/bin/coffee", ["#{__dirname}/exportapp.coffee",appurl,publicurl,task.config.path], path, true,
       (task) ->
         doTar task
@@ -429,6 +431,8 @@ doCheckpointapp = (task) ->
     return taskError task, "App to checkpoint was not specified ('subjectId')"
   appurl = "#{dburl}/_design/app/_show/app/#{appId}"
   if (path=(checkPath task, publicwebdir, true))?
+    if task.config.cleanBeforeTask
+      utils.cleanSync path
     db.get appId, (err,app) ->
       if err
         return taskError task,"Error get app #{appId}to checkpoint: #{err}"
@@ -473,6 +477,8 @@ doExportkiosk = (task) ->
   #publicurl = publicurl+"/"+task.config.path
   kioskurl = "#{dburl}/#{kioskId}"
   if (path=(checkPath task, publicwebdir, true))?
+    if task.config.cleanBeforeTask
+      utils.cleanSync path
     doSpawn task, "/usr/local/bin/coffee", ["#{__dirname}/exportkiosk.coffee",kioskurl,publicurl,task.config.path], path, true,
       (task) ->
         doZip task
@@ -486,6 +492,8 @@ doBackup = (task) ->
 
 doCheckpoint = (task) ->
   if (path=(checkPath task, publicwebdir, true))?
+    if task.config.cleanBeforeTask
+      utils.cleanSync path
     # NB typeContent filter
     doSpawn task, "/usr/local/bin/coffee", ["#{__dirname}/updatecache.coffee", ".", dburl, "filter=#{encodeURIComponent 'app/changesContent'}"], path, true,
       (task) ->
@@ -509,6 +517,11 @@ doZip = (task) ->
     if ix>=0
       file = file.substring ix+1
     zip = "../#{file}.zip"
+    if fs.existsSync path+"/"+zip
+      try
+        fs.unlinkSync path+"/"+zip
+      catch err
+        log "warning: could not delete existing zip file #{path+'/'+zip}: #{err.message}"
     doSpawn task, "zip", ["-r", zip, '.'], path, false
 
 doRm = (task) ->
