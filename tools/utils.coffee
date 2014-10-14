@@ -232,6 +232,57 @@ get_filesystem_path = (path) ->
     decodeURIComponent p
   ps.join '/'
   
+module.exports.filesEqual = filesEqual = (path1, path2) ->
+  if !fs.existsSync path1
+    log "compare #{path1} #{path2} - file 1 does not exist"
+    return false
+  stats1 = null
+  try
+     stats1 = fs.statSync path1
+  catch err
+    log "compare #{path1} #{path2} - cannot state file 1: #{err.message}"
+    return false
+  if !stats1.isFile()
+    log "compare #{path1} #{path2} - file 1 is not a file"
+    return false
+  if !fs.existsSync path2
+    log "compare #{path1} #{path2} - file 2 does not exist"
+    return false
+  stats2 = null
+  try
+    stats2 = fs.statSync path2
+  catch err
+    log "compare #{path1} #{path2} - cannot state file 2: #{err.message}"
+    return false
+  if !stats2.isFile()
+    log "compare #{path1} #{path2} - file 2 is not a file"
+    return false
+  if stats1.size!=stats2.size
+    log "compare #{path1} #{path2} - lengths differ #{stats1.size} vs #{stats2.size}"
+    return false
+  # TODO: compare in blocks
+  buf1 = null
+  try
+    buf1 = fs.readFileSync path1
+  catch err
+    log "compare #{path1} #{path2} - cannot read file 1: #{err.message}"
+    return false
+  buf2 = null
+  try
+    buf2 = fs.readFileSync path2
+  catch err
+    log "compare #{path1} #{path2} - cannot read file 2: #{err.message}"
+    return false
+  if buf1.length!=buf2.length
+    log "compare #{path1} #{path2} - buffer lengths differ #{buf1.length} vs #{buf2.length}"
+    return false
+  for i in [0..(buf1.length-1)]
+    if buf1[i]!=buf2[i]
+      log "compare #{path1} #{path2} - differ at byte #{i}/#{buf1.length}"
+      return false
+  log "compare #{path1} #{path2} - files are identical"
+  return true
+
 module.exports.cacheFile = cacheFile = (surl,fn) ->
   if cacheUrls[surl]?
     return fn null,cacheUrls[surl]
@@ -335,6 +386,17 @@ module.exports.cacheFile = cacheFile = (surl,fn) ->
 
       log "OK: read #{count} bytes"
       filepath = get_filesystem_path path
+      if filesEqual filepath,tmppath
+        log "Unchanged #{surl} -> #{filepath} aka #{path} (#{length} bytes, #{type})"
+        try
+          # remove old tmp file
+          fs.unlinkSync tmppath
+        catch e
+          ;# ignore
+        cachePaths[surl] = filepath
+        cacheUrls[surl] = path
+        return fn null, path
+            
       try
         # remove old old file if present
         fs.unlinkSync filepath

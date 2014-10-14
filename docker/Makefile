@@ -17,7 +17,7 @@ mediahub/image.timestamp: cfengine/image.timestamp mediahub/Dockerfile mediahub/
 	sudo docker build -t mediahub mediahub
 	touch mediahub/image.timestamp
 
-nginxdev/image.timestamp: nginxdev/Dockerfile 
+nginxdev/image.timestamp: nginxdev/Dockerfile nginxdev/nginx-default.conf
 	sudo docker build -t nginxdev nginxdev
 	touch nginxdev/image.timestamp
 
