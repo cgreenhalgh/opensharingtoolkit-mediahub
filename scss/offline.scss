@@ -321,11 +321,16 @@ $outline-color: #000;
   border-color: #ccc;
   background-color: #ccc;
   cursor: pointer;
+  &:hover,
+  &:focus { background-color: #eee; };
+  @include single-transition(background-color);
 }
  
 .tag-option-selected {
   border-color: #000;
   background-color: #fff;
+  &:hover,
+  &:focus { background-color: #eee; };
 }
 
 .location-debug {

@@ -88,6 +88,8 @@ module.exports.showTagDialog = (model) ->
 
 $('#tagModalHolder').on 'click', '.tag-option', (ev) ->
   console.log "tagModal click..."
+  ev.preventDefault()
+  ev.stopPropagation()
   cs = $(ev.currentTarget).attr 'class'
   tn = /tag-option-[0-9]*/.exec cs
   if not tn
