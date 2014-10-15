@@ -298,8 +298,8 @@ module.exports.startUpload = (includeTags) ->
 
 module.exports.releaseFormInstances = (instances) ->
   for instance in instances.models
-    if instanceCache[instance._id]
-      delete instanceCache[instance._id]
+    if instanceCache[instance.id]
+      delete instanceCache[instance.id]
     else
-      console.log "Error: did not find instance #{instance._id} in instance cache (release)"
+      console.log "Error: did not find instance #{instance.id} in instance cache (release)"
 
