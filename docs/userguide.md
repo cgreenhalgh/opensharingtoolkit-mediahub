@@ -230,6 +230,8 @@ Click `Server` to see a list of current upload servers (the `Server List`). Clic
 
 In the `Overview` tab give the data server a title e.g. `test server`.
 
+In the `Server` tab you have the option to "Allow submission over unencrypted HTTP"; check this option unless your form contains sensitive information - it will then work on more devices/servers. If the option is unchecked then you may need to explicitly persuade your device to accept the server SSL certificate before you will be able to upload forms.
+
 Click `Add` to create the `Server` and return to the `Server List`.
 
 ### 2. Create (or Update) a Server
