@@ -101,11 +101,11 @@ On the entry for your app, click `Test offline`. The browser will now open a tes
 
 Go back to the mediahub editor view (keep pressing back in the browser, or re-enter the authoring URL). If you are not at the `App List` view then click on `Mediahub` in the title bar and click `App` from the `Content Types` view.
 
-On the entry for your app click `Export...`. In the dialog enter a directory name for your published app on the web server; a short name without spaces is probably safest, e.g. "tutorialapp".
+On the entry for your app click `Publish...`. In the dialog enter a directory name for your published app on the web server; a short name without spaces is probably safest, e.g. "tutorialapp".
 
-A view for this export task appears, initially titled `Add Background Task`, and sub-titled `Publish app to webserver`. Click `Create` and the view will change to `Edit Background Task`. Shortly a `Task Status` section should appear, which gives you progress information about publishing the app. Hopefully this will change to "Task complete" within 10 seconds or so (longer for a more complex app).
+A view for this publishing task appears, initially titled `Add Background Task`, and sub-titled `Publish app to webserver`. Click `Run` and the view will change to `Edit Background Task`. Shortly a `Task Status` section should appear, which gives you progress information about publishing the app. Hopefully this will change to "Task complete" within 10 seconds or so (longer for a more complex app).
 
-This view has two links near the top: the longer one ending "...html" is the app itself; try opening this in another window, or on another device. THe other link is an archive file which you can download and unpack on another web server to make your web app available there.
+This view has two links near the bottom: the longer one ending "...html" is the app itself; try opening this in another window, or on another device. THe other link is an archive file which you can download and unpack on another web server to make your web app available there.
 
 Well done, you have created and published your first HTML5 web app using the mediahub.
 
@@ -125,11 +125,11 @@ Swith to the `Kiosk` tab and fill in the `Author` section; the others can be lef
 
 Click `Add` to create the definition for the `Kiosk` and return to the `Kiosk List` view.
 
-In the `Kiosk List`, on your new `Kiosk` entry, click `Export...`. In the dialog enter a directory name for your published kiosk on the web server. This must be different for every kiosk and app, and a short name without spaces is probably safest, e.g. "tutorialkiosk".
+In the `Kiosk List`, on your new `Kiosk` entry, click `Publish...`. In the dialog enter a directory name for your published kiosk on the web server. This must be different for every kiosk and app, and a short name without spaces is probably safest, e.g. "tutorialkiosk".
 
-A view for this export task appears, initially titled `Add Background Task`, and sub-titled `Publish kiosk to webserver`. Click `Create` and the view will change to `Edit Background Task`. Shortly a `Task Status` section should appear, which gives you progress information about publishing the kiosk. Hopefully this will change to "Task complete" within 10 seconds or so (longer for a kiosk with more files and/or more complex apps).
+A view for this publishing task appears, initially titled `Add Background Task`, and sub-titled `Publish kiosk to webserver`. Click `Run` and the view will change to `Edit Background Task`. Shortly a `Task Status` section should appear, which gives you progress information about publishing the kiosk. Hopefully this will change to "Task complete" within 10 seconds or so (longer for a kiosk with more files and/or more complex apps).
 
-This view has three links near the top: the "web kiosk view" link is the published kiosk user interface on the mediahub web server; try opening this in another window, or on another device. You should see a browser view with an item for your app, which if you click it has options to `Get on this device`, i.e. download it on that device, or `Send over the Internet`, i.e. get a URL and QRCode that can be entered into another phone or tablet to download it.
+This view has three links near the bottom: the "web kiosk view" link is the published kiosk user interface on the mediahub web server; try opening this in another window, or on another device. You should see a browser view with an item for your app, which if you click it has options to `Get on this device`, i.e. download it on that device, or `Send over the Internet`, i.e. get a URL and QRCode that can be entered into another phone or tablet to download it.
 
 The other link is an archive file which you can download and unpack on another web server or on a dedicated kiosk device to make those downloads available there.
 
@@ -180,7 +180,17 @@ The intention is to add a range of more specialised list views in the future, e.
 
 ### App
 
-An `App` is basically a list of content items - like a `List` - but packaged up as an HTML5 web app, and set up to use the app cache so that it can be downloaded. Set an item's `title` and `icon` to specialise it appearance in the app.
+An `App` is basically a list of content items - like a `List` - but packaged up as an HTML5 web app, and set up to use the app cache so that it can be downloaded. Set an item's `title` and `icon` to specialise it appearance in the app. 
+
+There are quite a number of additional options available to customise common elements of an app, including:
+
+- whether to track links out of the app (i.e. when the user clicks them, via a redirect on the server)
+- what (if any) form server to use (for user uploads)
+- whether to include a "User" section which prompts for the user's name on form uploads
+- whether to include an "About" section, optionally including version and copyright information
+- whether to include a "Share" section, with a URL and QR code for the app
+- whether to include a "Location" section and widget for showing user location on maps
+- optional app icon (for browser)
 
 ### Kiosk
 
@@ -197,6 +207,14 @@ Once a `Background Task` has been created it can be found in the `Background Tas
 Note that if you delete a `Background Task` then the mediahub will also try to the delete the corresponding published content! So normally you won't delete them...
 
 Most `Background Task`s have one associated directory on the web server, and each directory can be associated with only one `Background Task`: if you try to create a second task with the same directory then you will get a warning and be presented with the existing `Background Task` for that directory.
+
+Many background tasks are created from the corresponding `App` or `Kiosk` list (publish, export). There are also more general background tasks that can be created from the `Background task` list:
+
+- Backup, which will make a copy of the complete editor database (but note that there is no easy way to restore this kind of backup - this is a server admin/set-up job)
+- Export, which will export all of the editable content (but not the background tasks); this can be imported into other editors
+- Import, which will allow an app export or editor export to be uploaded and imported.
+
+Note that exports contain the a snapshot of the app or editor, but the import process does NOT overwrite any changes made after the export (including deleting things!). So the export/import process can be used to copy apps/etc to another editor, or restore them if the editor files are lost (e.g. the server disk fails), but cannot currently be used to go back to an old version in the same editor.
 
 ## Server Quick(ish)start
 
@@ -218,7 +236,7 @@ Click `Add` to create the `Server` and return to the `Server List`.
 
 If you are not at the `Server List` view then click on `Mediahub` in the title bar and click `Server` from the `Content Types` view.
 
-On the entry for your new server, click `Build...`. The `Add Background Task` form will appear, sub-titled `(Re)Build App-specific Server`. Click `Create` (or `Update` if the task already exists) to ask your mediahub server to make or update that particular upload server. The `Task status` should change to green (`Task complete`) after a few seconds if the data server has been created.
+On the entry for your new server, click `Build...`. The `Add Background Task` form will appear, sub-titled `Update Form Server`. Click `Run` (or `Re-run` if the task already exists) to ask your mediahub server to make or update that particular upload server. The `Task status` should change to green (`Task complete`) after a few seconds if the data server has been created.
 
 Try clicking the `Server admin using your mediahub username/password` link; this should open the admin/management view of that data server, which looks a little like the mediahub but has the title `Server` and a list of options, initially only `Filter formdata` (which we'll come back to later). You can save this web page (e.g. in your bookmarks) so that you can return to it more easily.
 
@@ -270,9 +288,9 @@ Check `Ready to upload?`, and click `Save`. The information you entered is now s
 
 ### 6. Adding the Form to the Server
 
-Go back to the Mediahub, to the `Server List` and click `Build...` for your server (alternatively you can go to the `Background Task List` and click the `buildserver` entry for your server.
+Go back to the Mediahub, to the `Server List` and click `Build...` for your server (alternatively you can go to the `Background Task List` and click the `Update Form Server` entry for your server.
 
-Click `Update` to make sure that your server is up to date; in particular this will copy information about the app which is using your server including the information about the form in it. 
+Click `Re-Run` to make sure that your server is up to date; in particular this will copy information about the app which is using your server including the information about the form in it. 
 
 Note: this will only work AFTER the app has been tested offline or exported! (which we did above)
 
@@ -292,7 +310,7 @@ Click `Start upload`. The app should now upload your completed feedback informat
 
 ### 8. Viewing Uploaded Data
 
-Go back to the Mediahub, to the `Server List` and click `Build...` for your server (alternatively you can go to the `Background Task List` and click the `buildserver` entry for your server.
+Go back to the Mediahub, to the `Server List` and click `Build...` for your server (alternatively you can go to the `Background Task List` and click the `Update Form Server` entry for your server.
 
 Click the `Server admin using your mediahub username/password` link to open the admin/management view of that data server.
 
