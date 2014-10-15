@@ -1,6 +1,7 @@
 # BookletEdit View
 templateBookletEditTab = require 'templates/BookletEditTab'
 ThingEditView = require 'views/ThingEdit'
+filter = require 'filter'
 
 module.exports = class BookletEditView extends ThingEditView
 
