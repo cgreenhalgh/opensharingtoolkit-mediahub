@@ -1,7 +1,7 @@
 <div class="row top-item">
   <div class="columns large-12 small-12">
 <% if @cardinality=='*': %>
-    <input type="button" name="form-newinstance" class="form-newinstance" value="Start new form instance"/>
+<!--    <input type="button" name="form-newinstance" class="form-newinstance" value="Start new form instance"/> -->
 <% end %>
   </div>
 </div>

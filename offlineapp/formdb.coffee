@@ -98,7 +98,7 @@ module.exports.getNewFormInstance = (form) ->
       console.log "Error saving new FormInstance #{id}: (validation)"
   catch err
     console.log "Error saving new FormInstance #{id}: (exception) #{err.message}"
-  instanceCache[instance._id] = instance
+  instanceCache[instance.id] = instance
   instance
 
 instanceCache = {}
@@ -121,7 +121,7 @@ module.exports.getInstancesForForm = (form, cb) ->
          instance.sync = BackbonePouch.sync
            db: db
          instances.add instance 
-         instanceCache[instance._id] = instance
+         instanceCache[instance.id] = instance
        cb null, instances
   catch err
     console.log "Error doing getInstancesForForm: #{err.message} at #{err.stack}"
@@ -254,6 +254,7 @@ uploadTask = () ->
           # instance cache?
           model = instanceCache[instanceId]
           if not model?
+            console.log "ERROR: form instance #{instanceId} not in cache"
             model = new FormInstance instance
             model.sync =  BackbonePouch.sync
               db: db
@@ -266,6 +267,12 @@ uploadTask = () ->
               console.log "saved submitted ok"
             error: (model,res,options) ->
               console.log "Save submitted error #{res}"
+              model.fetch {
+                success: () ->
+                  console.log "fetch after failed save submitted ok"
+                error: (model,res,options) ->
+                  console.log "fetch after failed save submitted error #{res}"
+              }
             }
             console.log "Save submitted error (validation)"
           setTimeout uploadTask, 0

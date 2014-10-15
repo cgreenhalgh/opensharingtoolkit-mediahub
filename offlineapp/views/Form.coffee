@@ -17,8 +17,12 @@ module.exports = class FormView extends ThingView
       #@render()
       if @instances.length>0
         # last should be newest
-        @setInstance @instances.at @instances.length-1
-      else if @model.attributes.cardinality!='*'
+        instance = @instances.at @instances.length-1
+        if @model.attributes.cardinality=='*' && instance.attributes.metadata.finalized
+          @newInstance()
+        else
+          @setInstance instance
+      else 
         @newInstance()
     super()
 
@@ -35,10 +39,12 @@ module.exports = class FormView extends ThingView
   setInstance: (instance) => 
     console.log "Form #{@model.id} setInstance #{instance.id}"
     if @instanceView
-      @stopListening @instanceView
+      @stopListening @instanceView.model
       @instanceView.remove()
     @instanceView = new FormInstanceView model: instance
     @listenTo instance, 'destroy', @instanceDestroyed
+    if @model.attributes.cardinality=='*'
+      @listenTo instance, 'change:metadata', @instanceMetadataChanged
     $('.form-instance-holder', @$el).append @instanceView.el
     if not instance.attributes.metadata?.saved or not instance.attributes.metadata?.finalized or @instanceView.changed
       $('.form-newinstance', @$el).prop 'disabled', true
@@ -57,6 +63,12 @@ module.exports = class FormView extends ThingView
   instanceDestroyed: () =>
     console.log "instanceDestroyed"
     @instanceView = null
+
+  instanceMetadataChanged: (model, metadata) =>
+    console.log "instanceChanged, finalized=#{metadata?.finalized}"
+    if @model.attributes.cardinality=='*' && metadata.finalized
+      console.log "*-ary form instance finalized -> new instance"
+      @newInstance()
 
   remove: () =>
     if @instanceView

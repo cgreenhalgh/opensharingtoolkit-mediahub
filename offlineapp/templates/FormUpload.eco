@@ -3,24 +3,24 @@
 
 <% if @requiresUser and not @meta.userID: %>
     <div data-alert class="alert-box warning">
-      You have not set a user nickname or email address for uploads. 
+      You have not set a user nickname or email address. 
       <a href="#user">Set user...</a>
       <a href="#" class="close">&times;</a>
     </div>
 <% end %>
 
-    <p><%= @uploadInstanceIds.length %> form instances need uploading.</p>
+    <p><%= @uploadInstanceIds.length %> thing<%= if @uploadInstanceIds.length!=1 then 's' %> are waiting to be sent (e.g. feedback).</p>
 <% if @uploading: %>
-    <p>Upload in progress</p>
+    <p>Sending...</p>
     <% if @lastUploadState: %>
       <p>So far: <%= @lastUploadState %></p> 
     <% end %>
 <% else: %>
   <% if @lastUploadState: %>
-    <p>Last upload attempt: <%= @lastUploadState %></p> 
+    <p>Last send attempt: <%= @lastUploadState %></p> 
   <% end %>
-  <p><input type="checkbox" name="upload-tags"/>Upload item tags such as 'like'</p>
-  <p><input type="button" name="do-upload" value="Start upload"/></p>
+  <p><input type="checkbox" name="upload-tags"/>Sent my 'like's</p>
+  <p><input type="button" name="do-upload" value="Send now"/></p>
 <% end %>
   </div>
 </div>

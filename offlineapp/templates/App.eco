@@ -9,7 +9,7 @@
         <li id="showShare" class="hide"><a href="#share">Share</a></li>
         <li id="showLocation" class="hide"><a href="#location">Location</a></li>
         <li id="showUser" class="hide"><a href="#user">User</a></li>
-        <li id="showUpload" class="hide"><a href="#upload">Manage</a></li>
+        <li id="showUpload" class="hide"><a href="#upload">Send</a></li>
       </ul>
     </aside>
 

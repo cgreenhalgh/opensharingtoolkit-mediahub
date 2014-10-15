@@ -6,7 +6,7 @@ formdb = require 'formdb'
 
 module.exports = class FormUploadView extends Backbone.View
 
-  title: 'Upload'
+  title: 'Send'
 
   tagName: 'div'
 

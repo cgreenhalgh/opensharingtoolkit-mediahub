@@ -8,7 +8,8 @@ module.exports = class FormInstanceView extends Backbone.View
 
   initialize: ->
     #@listenTo @model, 'change', @render
-    @changed = @model.attributes.draftdata? or not @model.attributes.metadata.saved
+    @listenTo @model, 'change:metadata', (() => @setChanged(@changed))
+    @changed = @model.attributes.draftdata? 
     @render()
 
   template: (d) =>
@@ -31,6 +32,8 @@ module.exports = class FormInstanceView extends Backbone.View
 
   events: () ->
       "click input[name=_save]": "doSave"
+      "click input[name=_save_finalized]": "doSaveFinalized"
+      "click input[name=_send]": "doSend"
       "click input[name=_reset]": "doReset"
       "click input[name=_delete]": "doDelete"
       "change input": "onChange"
@@ -46,17 +49,21 @@ module.exports = class FormInstanceView extends Backbone.View
       @setChanged true
 
   setChanged: (changed) =>
+    console.log "setChanged #{changed} metadata #{JSON.stringify @model.attributes.metadata}"
     @changed = changed
-    $('input[name=_save]', @$el).prop 'disabled', !changed
+    $('input[name=_save]', @$el).prop 'disabled', !(changed or (@model.attributes.metadata.finalized and @model.attributes.metadata.submitted!=true))
+    $('input[name=_save_finalized]', @$el).prop 'disabled', !(changed or (@model.attributes.metadata.saved and !@model.attributes.metadata.finalized))
+    $('input[name=_send]', @$el).prop 'disabled', !(changed or (@model.attributes.metadata.saved and @model.attributes.metadata.submitted!=true))
     $('input[name=_reset]', @$el).prop 'disabled', !changed
+    $('input[name=_delete]', @$el).prop 'disabled', !(changed or @model.attributes.metadata.saved)
     if changed
       # form add new
       console.log "disable instance add on changed"
       $('.form-newinstance').prop 'disabled', true
 
-  formToData: () =>
+  formToData: (forceFinalized) =>
     data = {}
-    data._finalized = $('input[name=_finalized]', @$el).prop 'checked'
+    data._finalized = forceFinalized ? ($('input[name=_finalized]', @$el).prop 'checked') 
     
     for surveyitem in (@model.attributes.formdef?.survey ? [])
       if surveyitem.name and surveyitem.type
@@ -68,11 +75,20 @@ module.exports = class FormInstanceView extends Backbone.View
             null
     data
 
+  doSaveFinalized: (ev) =>
+    @doSaveInternal(ev, true, false)
+
   doSave: (ev) =>
+    @doSaveInternal(ev, false, false)
+
+  doSend: (ev) =>
+    @doSaveInternal(ev, true, true)
+
+  doSaveInternal: (ev, forceFinalized, send) =>
     ev.preventDefault()
     now = new Date().getTime()
-    data = @formToData()
-    console.log "doSave #{@model.id} data = #{JSON.stringify data}"
+    data = @formToData(forceFinalized)
+    console.log "doSave forceFinalized=#{forceFinalized} #{@model.id} data = #{JSON.stringify data}"
     metadata = JSON.parse(JSON.stringify @model.attributes.metadata)
     # TODO old metadata versions
     metadata.saved = true
@@ -84,7 +100,8 @@ module.exports = class FormInstanceView extends Backbone.View
         draftdata: null
         formdata: data
         metadata: metadata  
-    @saveToDb()
+    # no tags?!
+    @saveToDb (()-> if send then formdb.startUpload false)
     if metadata.finalized
       formdb.addFinalizedForm @model
     @changed = false
@@ -94,13 +111,14 @@ module.exports = class FormInstanceView extends Backbone.View
       console.log "enable instance add on save finalized"
       $('.form-newinstance').prop 'disabled', false
 
-
-  saveToDb: () =>
+  saveToDb: (onSuccess) =>
     console.log 'saveToDb:'
     console.log @model
     if false == @model.save null, {
         success: () ->
           console.log "saved ok"
+          if onSuccess?
+            onSuccess()
         error: (model,res,options) ->
           console.log "Save error #{res}"
       }

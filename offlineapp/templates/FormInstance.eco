@@ -17,8 +17,10 @@
 <% end %>
 
   <div class="columns large-12 small-12">
-    <label>Ready for upload?<input type="checkbox" name="_finalized" <%= if (if @draftdata?._finalized? then @draftdata._finalized else @metadata.finalized) then 'checked' %>/></label>
-    <input type="button" name="_save" value="Save"/>
+    <label>Ready to send?<input type="checkbox" name="_finalized" <%= if (if @draftdata?._finalized? then @draftdata._finalized else @metadata.finalized) then 'checked' %> disabled /></label>
+    <input type="button" name="_send" value="Send Now"/>
+    <input type="button" name="_save_finalized" value="Send Later"/>
+    <input type="button" name="_save" value="Save for Later"/>
     <input type="button" name="_reset" value="Discard unsaved changes"/>
     <input type="button" name="_delete" value="Delete"/>
   </div>
