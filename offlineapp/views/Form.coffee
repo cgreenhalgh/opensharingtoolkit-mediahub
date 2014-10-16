@@ -3,6 +3,7 @@ templateForm = require 'templates/Form'
 formdb = require 'formdb'
 working = require 'working'
 FormInstanceView = require 'views/FormInstance'
+FormUploadStatusView = require 'views/FormUploadStatus'
 ThingView = require 'views/Thing'
 
 module.exports = class FormView extends ThingView
@@ -31,7 +32,10 @@ module.exports = class FormView extends ThingView
 
   render: () =>
     console.log "render Form"
-    super()
+    @$el.html @template @model.attributes
+    if not @uploadStatus?
+      @uploadStatus = new FormUploadStatusView model: formdb.getFormUploadState()
+    $('.form-upload-status-holder', @$el).replaceWith @uploadStatus.el
 
   events: () ->
       "click .form-newinstance": "newInstance"
@@ -75,6 +79,8 @@ module.exports = class FormView extends ThingView
       @instanceView.remove()    
     if @instances
       formdb.releaseFormInstances @instances
+    if @uploadStatus?
+      @uploadStatus.remove()    
     super()
 
   back: =>

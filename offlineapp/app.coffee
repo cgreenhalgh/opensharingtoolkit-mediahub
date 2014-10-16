@@ -1,5 +1,6 @@
 # offline app - for App
 
+require 'version'
 appcache = require 'appcache'
 templateApp = require 'templates/App'
 HomeView = require 'views/Home'
@@ -259,13 +260,28 @@ App =
     if dburl.indexOf('/_design/')>=0
       dburl = dburl.substring 0,dburl.indexOf('/_design/')
 
-    # links out
-    if exported == 'true'
-      # redirector - see exportapp
-      reurl = dburl+'/re.php?url='
-      console.log "using external link redirect #{reurl}"
-      $(document).on 'click', 'a', (ev) ->
-        url = $(ev.currentTarget).attr 'href'
+    $(document).on 'click', 'a', (ev) ->
+      url = $(ev.currentTarget).attr 'href'
+      if ev.isDefaultPrevented()
+        console.log "Ignore click (default prevented) for url #{url}"
+        return
+      if $(ev.currentTarget).hasClass 'prevent-default'
+        console.log "Ignore click (.prevent-default) for url #{url}"
+        ev.preventDefault()
+        return
+      if not url?
+        console.log "Ignore click on undefined url (target url #{$(ev.target).attr 'href'})"
+        ev.preventDefault()
+        return
+      if url.charAt(0)=='#'
+        console.log "Local url #{url}"
+        router.navigate url, trigger:true
+        return
+      # links out
+      if exported == 'true'
+        # redirector - see exportapp
+        reurl = dburl+'/re.php?url='
+        console.log "using external link redirect #{reurl}"
         if (appmodel.get 'trackLinks')
           if (url.indexOf ':')>=0 or (url.indexOf '//')==0
             url2 = reurl+encodeURIComponent(url)

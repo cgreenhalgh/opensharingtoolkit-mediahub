@@ -39,7 +39,17 @@ module.exports.db = db
 module.exports.setApp = (a) ->
   app = a
 
-formUploadState = new FormUpload id: 'formupload:singleton'
+formUploadState = new FormUpload 
+  id: 'formupload:singleton'
+  sendTags: ((window.localStorage?.getItem 'wototoSendTags') == 'true')
+
+formUploadState.on 'change:sendTags', (model,value) ->
+  try
+    window.localStorage.setItem 'wototoSendTags', (if value then 'true' else 'false')
+    console.log "sendTags changed to #{value}"
+  catch err
+    console.log "Error saving sendTags '#{value}' to localStorage: #{err.message}"
+
 init = () ->
   console.log "Get finalized forms to upload"
   try

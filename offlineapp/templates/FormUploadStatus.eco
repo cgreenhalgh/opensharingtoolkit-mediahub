@@ -1,0 +1,40 @@
+<%# FormUploadStatus view - in a (for now); data is FormUpload %>
+<div class="columns large-12 small-12 gap-before">
+<% if @requiresUser and not @meta.userID: %>
+    <div data-alert class="alert-box warning">
+      You have not set a user nickname or email address. 
+      <a href="#user" class="action-button" >Set user...</a>
+      <a href="#" class="close">&times;</a>
+    </div>
+<% end %>
+
+
+<% if @uploading: %>
+  <div data-alert class="alert-box">
+    <img src="../../icons/uploading.png" class="upload-status-icon"/>
+    Sending now... <%= @uploadInstanceIds.length %> thing<%= if @uploadInstanceIds.length!=1 then 's are' else ' is' %> being sent
+  </div>
+<% else if @uploadInstanceIds?.length==0 and @lastUploadState=='success': %>
+  <div data-alert class="alert-box success">
+    <img src="../../icons/upload-success.png" class="upload-status-icon"/>
+    Everything has been sent
+  </div>
+<% else if @uploadInstanceIds?.length==0 : %>
+  <div data-alert class="alert-box success">
+    <img src="../../icons/upload.png" class="upload-status-icon upload-idle"/>
+    There is nothing to send
+  </div>
+<% else if @lastUploadState=='error': %>
+  <div data-alert class="alert-box alert clearfix">
+    <img src="../../icons/upload-error.png" class="upload-status-icon"/>
+    <a href="#" class="action-button do-send right" >Send now</a>
+    There was a problem sending. <%= @uploadInstanceIds.length %> thing<%= if @uploadInstanceIds.length!=1 then 's are' else ' is' %> waiting to be sent. Please try sending when you have an Internet connection.
+  </div>
+<% else: %>
+  <div data-alert class="alert-box warning clearfix">
+    <img src="../../icons/upload.png" class="upload-status-icon"/>
+    <a href="#" class="action-button do-send right" >Send now</a>
+    <%= @uploadInstanceIds.length %> thing<%= if @uploadInstanceIds.length!=1 then 's are' else ' is' %> waiting to be sent. Please try sending when you have an Internet connection.
+  </div>
+<% end %>
+</div>

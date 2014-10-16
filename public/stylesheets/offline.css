@@ -8333,16 +8333,29 @@ th.hide-for-touch {
 }
 
 /* line 270, ../../scss/offline.scss */
+.upload-status-icon {
+  width: 1.5em;
+  height: 1.5em;
+  padding: 2px;
+  vertical-align: middle;
+}
+
+/* line 277, ../../scss/offline.scss */
 .upload-idle {
   opacity: 0.3;
 }
 
-/* line 274, ../../scss/offline.scss */
+/* line 281, ../../scss/offline.scss */
 .top-item {
   margin-top: 1.25rem;
 }
 
-/* line 278, ../../scss/offline.scss */
+/* line 285, ../../scss/offline.scss */
+.gap-before {
+  margin-top: 1rem;
+}
+
+/* line 289, ../../scss/offline.scss */
 .link-qrcode {
   width: 70%;
   max-width: 500px;
@@ -8350,7 +8363,7 @@ th.hide-for-touch {
   padding: 10px;
 }
 
-/* line 285, ../../scss/offline.scss */
+/* line 296, ../../scss/offline.scss */
 .link-url {
   font-family: Monospace;
   font-size: 120%;
@@ -8363,19 +8376,19 @@ th.hide-for-touch {
   user-select: text;
 }
 
-/* line 298, ../../scss/offline.scss */
+/* line 309, ../../scss/offline.scss */
 .location-icon {
   width: 1em;
   height: 1em;
   padding: 2px;
 }
 
-/* line 304, ../../scss/offline.scss */
+/* line 315, ../../scss/offline.scss */
 .location-old {
   opacity: 0.3;
 }
 
-/* line 308, ../../scss/offline.scss */
+/* line 319, ../../scss/offline.scss */
 .topbar-widget {
   float: right;
   padding-left: 0.5em;
@@ -8385,7 +8398,7 @@ th.hide-for-touch {
   cursor: pointer;
 }
 
-/* line 318, ../../scss/offline.scss */
+/* line 329, ../../scss/offline.scss */
 .tag-option {
   margin: 0.4em;
   border: solid 2px;
@@ -8394,27 +8407,27 @@ th.hide-for-touch {
   cursor: pointer;
   transition: background-color 300ms ease-out;
 }
-/* line 324, ../../scss/offline.scss */
+/* line 335, ../../scss/offline.scss */
 .tag-option:hover, .tag-option:focus {
   background-color: #eee;
 }
 
-/* line 329, ../../scss/offline.scss */
+/* line 340, ../../scss/offline.scss */
 .tag-option-selected {
   border-color: #000;
   background-color: #fff;
 }
-/* line 332, ../../scss/offline.scss */
+/* line 343, ../../scss/offline.scss */
 .tag-option-selected:hover, .tag-option-selected:focus {
   background-color: #eee;
 }
 
-/* line 336, ../../scss/offline.scss */
+/* line 347, ../../scss/offline.scss */
 .location-debug {
   background-color: #ddd;
   padding: 4px;
 }
-/* line 339, ../../scss/offline.scss */
+/* line 350, ../../scss/offline.scss */
 .location-debug > p {
   font-family: monospace;
   font-size: 10pt;
@@ -8423,4 +8436,44 @@ th.hide-for-touch {
   padding: 4px;
   margin: 0;
   word-break: break-all;
+}
+
+/* line 361, ../../scss/offline.scss */
+.action-button {
+  border-style: solid;
+  border-width: 0px;
+  cursor: pointer;
+  font-family: "Helvetica Neue", "Helvetica", Helvetica, Arial, sans-serif;
+  font-weight: normal;
+  line-height: normal;
+  margin: 0 0 1.25rem;
+  position: relative;
+  text-decoration: none;
+  text-align: center;
+  -webkit-appearance: none;
+  -webkit-border-radius: 0;
+  display: inline-block;
+  padding-top: 1rem;
+  padding-right: 2rem;
+  padding-bottom: 1.0625rem;
+  padding-left: 2rem;
+  font-size: 1rem;
+  background-color: #bbb;
+  border-color: #969696;
+  color: #333;
+  padding-top: 0.625rem;
+  padding-right: 1.25rem;
+  padding-bottom: 0.6875rem;
+  padding-left: 1.25rem;
+  font-size: 0.6875rem;
+  margin-bottom: 0;
+  padding: 0.5rem;
+}
+/* line 133, ../vendor/foundation/scss/foundation/components/_buttons.scss */
+.action-button:hover, .action-button:focus {
+  background-color: #969696;
+}
+/* line 139, ../vendor/foundation/scss/foundation/components/_buttons.scss */
+.action-button:hover, .action-button:focus {
+  color: #333;
 }

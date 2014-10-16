@@ -18,7 +18,7 @@ module.exports = class FormUploadView extends Backbone.View
     templateFormUpload d
 
   render: =>
-    #console.log "render FormUploadView #{JSON.stringify @model.attributes}"
+    console.log "render FormUploadView #{JSON.stringify @model.attributes}"
     username = (require 'user').getUserId()
     @$el.html @template _.extend { meta: { userID: username } }, @model.attributes
     @
@@ -28,6 +28,13 @@ module.exports = class FormUploadView extends Backbone.View
 
   events:
     "click input[name=do-upload]": "doUpload"
+    "change input[name=upload-tags]": "changeTags"
+
+  changeTags: (ev) =>
+    sendTags = $('input[name=upload-tags]', @$el).prop 'checked'
+    console.log "sendTags = #{sendTags}"
+    @model.set sendTags: sendTags
+    true
 
   doUpload: (ev) =>
     console.log "doUpload"

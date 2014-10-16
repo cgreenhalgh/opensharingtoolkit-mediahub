@@ -9,7 +9,8 @@ module.exports = class FormInstanceView extends Backbone.View
   initialize: ->
     #@listenTo @model, 'change', @render
     @listenTo @model, 'change:metadata', (() => @setChanged(@changed))
-    @changed = @model.attributes.draftdata? 
+    @changed = @model.attributes.draftdata?
+    @removed = false 
     @render()
 
   template: (d) =>
@@ -23,6 +24,7 @@ module.exports = class FormInstanceView extends Backbone.View
     @
 
   remove: () =>
+    @removed = true
     data = @formToData()
     console.log "remove FormInstanceView for #{@model.id} changed = #{@changed}, data = #{data}"
     if @changed 
@@ -45,6 +47,7 @@ module.exports = class FormInstanceView extends Backbone.View
       "change select": "onChange"
 
   onChange: (ev) =>
+    #console.log "onChange #{ev.target}"
     if not @changed
       @setChanged true
 
@@ -84,6 +87,11 @@ module.exports = class FormInstanceView extends Backbone.View
   doSend: (ev) =>
     @doSaveInternal(ev, true, true)
 
+  doSendInternal: () =>
+    sendTags = formdb.getFormUploadState().attributes?.sendTags
+    console.log "doSendInternal sendTags=#{sendTags}"
+    formdb.startUpload sendTags
+
   doSaveInternal: (ev, forceFinalized, send) =>
     ev.preventDefault()
     now = new Date().getTime()
@@ -96,20 +104,21 @@ module.exports = class FormInstanceView extends Backbone.View
     metadata.finalized = data._finalized
     metadata.submitted = false
     delete data._finalized
+    @changed = false
     @model.set 
         draftdata: null
         formdata: data
         metadata: metadata  
     # no tags?!
-    @saveToDb (()-> if send then formdb.startUpload false)
+    @saveToDb (if send then @doSendInternal)
     if metadata.finalized
       formdb.addFinalizedForm @model
-    @changed = false
-    @render()
-    if @model.attributes.metadata.finalized
-      # form add new
-      console.log "enable instance add on save finalized"
-      $('.form-newinstance').prop 'disabled', false
+    if !@removed
+      @render()
+      if @model.attributes.metadata.finalized
+        # form add new
+        console.log "enable instance add on save finalized"
+        $('.form-newinstance').prop 'disabled', false
 
   saveToDb: (onSuccess) =>
     console.log 'saveToDb:'

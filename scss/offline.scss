@@ -267,12 +267,23 @@ $outline-color: #000;
   padding: 2px;
 };
 
+.upload-status-icon {
+  width: 1.5em;
+  height: 1.5em;
+  padding: 2px;
+  vertical-align: middle;
+};
+
 .upload-idle {
   opacity: 0.3;    
 };
 
 .top-item {
   margin-top: 1.25rem;
+}
+
+.gap-before {
+  margin-top: 1rem;
 }
 
 .link-qrcode {
@@ -346,3 +357,12 @@ $outline-color: #000;
     word-break: break-all;
   };
 };
+
+.action-button {
+   @include button($bg:$thing-color);
+   @include button-size($padding:$button-tny);
+   margin-bottom: 0;
+   padding: 0.5rem;
+};
+
+
