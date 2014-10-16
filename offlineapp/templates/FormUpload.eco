@@ -19,7 +19,7 @@
   <% if @lastUploadState: %>
     <p>Last send attempt: <%= @lastUploadState %></p> 
   <% end %>
-  <p><input type="checkbox" name="upload-tags" <%= if @sendTags then 'checked' %> />Sent my 'like's</p>
+  <p><input type="checkbox" name="upload-tags" <%= if @sendTags then 'checked' %> />Send my 'like's</p>
   <p><input type="button" name="do-upload" value="Send now"/></p>
 <% end %>
   </div>
