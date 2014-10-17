@@ -140,6 +140,10 @@ class Router extends Backbone.Router
 makeThing = (data, collection, thingIds) ->
   try
     thing = new Backbone.Model data
+    if data.thingIds?
+      console.log "create new thing collection for #{thing.id}"
+      thing.things = new Backbone.Collection()
+      loadThings data,thing.things
     if thing.id
       items[thing.id] = thing
       if currentView? and currentView.isMissing and currentView.model.id == thing.id
@@ -161,10 +165,6 @@ makeThing = (data, collection, thingIds) ->
         if (collection.at ix).id == tid
           ix++
       collection.add thing, at:ix
-    if data.thingIds?
-      console.log "create new thing collection for #{thing.id}"
-      thing.things = new Backbone.Collection()
-      loadThings data,thing.things
   catch err
     console.log "error making thing: #{err.message}: #{data}\n#{err.stack}"
 
