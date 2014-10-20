@@ -33,7 +33,7 @@ Shown on new `Unlock` tab.
     - code=... type=manual (v1)
     - code=... type=qr
     - code=... type=aestheticode
-    - url=... - either fragment `#code/...` (for webapp) or full url, perhaps with custom scheme (for installed app)
+    - url=... (v1.1) - either fragment `#code/...` (for webapp) or full url, perhaps with custom scheme (for installed app)
     - btmac=... - bluetooth mac address
     - btname=... - bluetooth device name
     - wifimac=... - wifi mac address
@@ -67,6 +67,9 @@ Also on new (but different) `Unlock` tab of `App`.
 - showUnlockBy (v1) - array of unlock methods to show (auto and url aren't requestable)
     - request, manual (v1), qr, aestheticode, bt, wifi, location, time
 
+- unlockInBackground - array of unlock methods to run in background
+    - bt, wifi, location, time
+
 - unlockManualImageurl - example/prompt image
 
 - unlockQrImageurl - example/prompt image
@@ -98,11 +101,13 @@ Also on new (but different) `Unlock` tab of `App`.
 
 Offline client will presume that things are locked/hidden, until it finds out to the contrary (i.e. `unlockTime` and `viewed` default to null). 
 
-Singleton local database item (cf tags) will record unlock time and first view time for each item, i.e. `{ unlockTime: { id: time, ...}, viewed: { id: true, ...} }`.
+Local database item per application (cf tags) will record unlock time and first view time for each item, i.e. `{ id: { unlockTime: time, viewed: true }, ... }`.
 
 Proxy `unlockTime` and `viewed` as properties of each thing. 
 
 Option in upload view to send unlock state to server.
 
 Unlock URL could be custom scheme, which if installed as real app could open the app. Or it could be a unique fragment ID, e.g. `#code/...`.
+
+Could use [ubihelper](https://github.com/cgreenhalgh/ubihelper) to provide Bluetooth, CellID and Wifi scanning. Might also serve as platform for image recognition or linking to other apps (e.g. code readers) via intents.
 
