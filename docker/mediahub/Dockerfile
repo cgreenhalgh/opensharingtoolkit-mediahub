@@ -30,8 +30,8 @@ RUN  mkdir -p /home/root && \
   cd /home/root && \
   ( wget -qO- https://github.com/cgreenhalgh/opensharingtoolkit-kiosk/archive/1.0.0.tar.gz | tar xzf - ) && \
   mv opensharingtoolkit-kiosk-1.0.0 opensharingtoolkit-kiosk && \
-  ( wget -qO- https://github.com/cgreenhalgh/opensharingtoolkit-mediahub/archive/1.0.0-rc5.tar.gz | tar xzf - ) && \
-  mv opensharingtoolkit-mediahub-1.0.0-rc5 opensharingtoolkit-mediahub && \
+  ( wget -qO- https://github.com/cgreenhalgh/opensharingtoolkit-mediahub/archive/1.0.0.tar.gz | tar xzf - ) && \
+  mv opensharingtoolkit-mediahub-1.0.0 opensharingtoolkit-mediahub && \
   cd /home/root/opensharingtoolkit-kiosk/cache_builder && \
   npm install && \
   cd /home/root/opensharingtoolkit-mediahub && \
