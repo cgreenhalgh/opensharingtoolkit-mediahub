@@ -1,5 +1,13 @@
 # Installation Guide
 
+There are quite a number of ways in which the wototo service can be deployed. At some point it may be available on a subscription basis (i.e. Software as a Service, SaaS). In the mean time you will need to set up and maintain your own personal wototo service, either on a desktop or laptop computer, or on a server. 
+
+You should be able to run Wototo on a moderate specification desktop or laptop computer running a reasonably recent version of Linux, Windows or MacOS X. If you run Wototo on a desktop or laptop computer then you will probably not be able to use the Forms functionality, and if you want publish material generally then you will also need space on a web server that supports static files and PHP.
+
+To run wototo on a server you will need an Internet-accessible Unix (Linux) server with shell access and root/admin permission; typically this will be a virtual machine (VM) or virtual private server (VPS). On a server Wototo can run alongside other services, but you will need to set up your existing web server (assuming you are running one) to forward requests to Wototo.
+
+
+
 ## Personal / test instance
 
 ### Creating

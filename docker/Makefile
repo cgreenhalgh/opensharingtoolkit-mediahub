@@ -138,3 +138,28 @@ nginxdev/container.timestamp: nginxdev/image.timestamp
 
 nginxdev: nginxdev/container.timestamp 
 
+.PHONY: mediahubdev
+
+mediahubdev/image.timestamp: mediahubdev/Dockerfile mediahubdev/nginx-mediahub mediahubdev/instance mediahubdev/htpasswd mediahub/image.timestamp
+	sudo docker build -t mediahubdev mediahubdev
+	touch mediahubdev/image.timestamp
+
+mediahubdev/container.timestamp: mediahubdev/image.timestamp
+	sudo docker run --name mediahubdev -h mediahubdev -d mediahubdev
+	touch mediahubdev/container.timestamp
+
+mediahubdev: mediahubdev/container.timestamp
+
+.PHONY: mediahubauto
+
+mediahubauto/setupscripts/copyfiles: mediahubauto/setupscripts/copyfiles.c
+	gcc -o mediahubauto/setupscripts/copyfiles mediahubauto/setupscripts/copyfiles.c
+
+mediahubauto/image.timestamp: mediahubauto/Dockerfile mediahubauto/nginx-mediahubauto mediahub/image.timestamp mediahubauto/setuphtml/index.html mediahubauto/setuphtml/setup.php mediahubauto/setupscripts/copyfiles.sh mediahubauto/setupscripts/copyfiles
+	sudo docker build -t mediahubauto mediahubauto
+	touch mediahubauto/image.timestamp
+
+mediahubauto: mediahubauto/image.timestamp
+	echo sudo docker run -d mediahubauto
+
+
