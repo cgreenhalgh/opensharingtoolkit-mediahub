@@ -1,7 +1,7 @@
-FROM ubuntu:14.04.1
+FROM ubuntu:14.04
 MAINTAINER Chris Greenhalgh <chris.greenhalgh@nottingham.ac.uk>
 
-RUN apt-get update
+RUN apt-get update && apt-get -y dist-upgrade
 RUN apt-get -y install nginx
 
 EXPOSE 443

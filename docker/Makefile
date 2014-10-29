@@ -155,7 +155,7 @@ mediahubdev: mediahubdev/container.timestamp
 mediahubauto/setupscripts/copyfiles: mediahubauto/setupscripts/copyfiles.c
 	gcc -o mediahubauto/setupscripts/copyfiles mediahubauto/setupscripts/copyfiles.c
 
-mediahubauto/image.timestamp: mediahubauto/Dockerfile mediahubauto/nginx-mediahubauto mediahub/image.timestamp mediahubauto/setuphtml/index.html mediahubauto/setuphtml/setup.php mediahubauto/setupscripts/copyfiles.sh mediahubauto/setupscripts/copyfiles
+mediahubauto/image.timestamp: mediahubauto/Dockerfile mediahubauto/nginx-mediahubauto mediahub/image.timestamp mediahubauto/setuphtml/index.html mediahubauto/setuphtml/setup.php mediahubauto/setupscripts/copyfiles
 	sudo docker build -t mediahubauto mediahubauto
 	touch mediahubauto/image.timestamp
 

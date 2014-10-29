@@ -1,7 +1,7 @@
-FROM ubuntu:14.04.1
+FROM ubuntu:14.04
 MAINTAINER Eystein Måløy Stenberg <eytein.stenberg@gmail.com>
 
-RUN apt-get update && apt-get -y install wget lsb-release unzip
+RUN apt-get update && apt-get -y dist-upgrade && apt-get -y install wget lsb-release unzip
 
 # install latest CFEngine
 RUN ( wget -qO- http://cfengine.com/pub/gpg.key | apt-key add - ) && \
