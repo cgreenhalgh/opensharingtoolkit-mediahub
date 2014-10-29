@@ -34,7 +34,7 @@ The authoring interface also allows backups of the authoring database to be crea
 
 The authoring interface is accessed using a web browser through the path `mediahub/_design/app/html/editor/index.html`. It is normally password-protected.
 
-The main view shows a list of the `Content Types` supported by that mediahub. You can return to this list at any point by clicking `Mediahub` in the title bar. 
+The main view shows a list of the `Content Types` supported by that mediahub. You can return to this list at any point by clicking `Wototo` in the title bar. 
 
 The "top-level" content types that can be directly published are currently:
 
@@ -55,7 +55,7 @@ The list also includes `Background Task`: these are the mediahub admin tasks suc
 
 ### 1. Upload an image
 
-If you are not at the `Content Types` list then click on `Mediahub` in the title bar.
+If you are not at the `Content Types` list then click on `Wototo` in the title bar.
 
 Click `File` to see a list of current files (the `File List`). Initially this will be empty with just an `Add...` button at the top. Click `Add...` and the `Add File` form will appear. This has two tabs: `Overview` (which is common to all content types) and `File`; open the `File` tab.
 
@@ -69,7 +69,7 @@ Click `Add` to add the new file; the view will switch back to the `File List` vi
 
 ### 2. Create a simple HTML page
 
-If you are not at the `Content Types` list then click on `Mediahub` in the title bar.
+If you are not at the `Content Types` list then click on `Wototo` in the title bar.
 
 Click `HTML Fragments` to see a list of current HTML "fragments", i.e. simple blocks of text/images (the `HTML Fragment List`). Like the `File List` this will initially be empty with just an `Add...` button at the top. Click `Add...` and the `Add HTML Fragment` form will appear. Again, this has two tabs: `Overview` and `HTML Fragment`.
 
@@ -81,7 +81,7 @@ Click `Add` to create the new `HTML Fragment` and return to the `HTML Fragment L
 
 ### 3. Create a web app
 
-If you are not at the `Content Types` list then click on `Mediahub` in the title bar.
+If you are not at the `Content Types` list then click on `Wototo` in the title bar.
 
 Click `App` to see a list of current web apps (`App List`). Click `Add...` and the `Add App` form will appear. This has three tabs: `Overview`, `List` and `App`. 
 
@@ -93,13 +93,13 @@ Click `Add` to create the definition for the `App` and return to the `App List` 
 
 ### 4. Test a web app
 
-If you are not at the `App List` view then click on `Mediahub` in the title bar and click `App` from the `Content Types` view.
+If you are not at the `App List` view then click on `Wototo` in the title bar and click `App` from the `Content Types` view.
 
 On the entry for your app, click `Test offline`. The browser will now open a testing view of the web app in the web browser. The top-level view of the app will have a list containing one item: the `HTML Fragment`, with whatever name you gave it. If you click on this list item you should see the HTML content, including your image. Click the browser's back button to go back, or click the title in the title bar to return to the top-level list.
 
 ### 5. Publish a web app
 
-Go back to the mediahub editor view (keep pressing back in the browser, or re-enter the authoring URL). If you are not at the `App List` view then click on `Mediahub` in the title bar and click `App` from the `Content Types` view.
+Go back to the mediahub editor view (keep pressing back in the browser, or re-enter the authoring URL). If you are not at the `App List` view then click on `Wototo` in the title bar and click `App` from the `Content Types` view.
 
 On the entry for your app click `Publish...`. In the dialog enter a directory name for your published app on the web server; a short name without spaces is probably safest, e.g. "tutorialapp".
 
@@ -113,7 +113,7 @@ Well done, you have created and published your first HTML5 web app using the med
 
 If you want to also create a kiosk view for downloading this app (and perhaps other files and apps)...
 
-If you are not at the `Content Types` list then click on `Mediahub` in the title bar.
+If you are not at the `Content Types` list then click on `Wototo` in the title bar.
 
 Click `Kiosk` to see a list of current kiosks (the `Kiosk List`). Click `Add...` and the `Add Kiosk` form will appear. This has three tabs: `Overview`, `List` and `Kiosk`.
 
@@ -224,7 +224,7 @@ This brief tutorial takes you through creating a first upload server (within you
 
 ### 1. Define a Server
 
-In your mediahub, if you are not at the `Content Types` list then click on `Mediahub` in the title bar.
+In your mediahub, if you are not at the `Content Types` list then click on `Wototo` in the title bar.
 
 Click `Server` to see a list of current upload servers (the `Server List`). Click `Add...` and the `Add Server` form will appear. This has two tabs: `Overview` and `Server`.
 
@@ -236,7 +236,7 @@ Click `Add` to create the `Server` and return to the `Server List`.
 
 ### 2. Create (or Update) a Server
 
-If you are not at the `Server List` view then click on `Mediahub` in the title bar and click `Server` from the `Content Types` view.
+If you are not at the `Server List` view then click on `Wototo` in the title bar and click `Server` from the `Content Types` view.
 
 On the entry for your new server, click `Build...`. The `Add Background Task` form will appear, sub-titled `Update Form Server`. Click `Run` (or `Re-run` if the task already exists) to ask your mediahub server to make or update that particular upload server. The `Task status` should change to green (`Task complete`) after a few seconds if the data server has been created.
 
@@ -244,7 +244,7 @@ Try clicking the `Server admin using your mediahub username/password` link; this
 
 ### 3. Create a Form
 
-In your mediahub, if you are not at the `Content Types` list then click on `Mediahub` in the title bar.
+In your mediahub, if you are not at the `Content Types` list then click on `Wototo` in the title bar.
 
 Click `Form` to go to the (initially empty) `Form List`.
 
@@ -266,7 +266,7 @@ Now click `Save` to create the form.
 
 ### 4. Add the Form to an App
 
-If you are not at the `App List` view then click on `Mediahub` in the title bar and click `App` from the `Content Types` view.
+If you are not at the `App List` view then click on `Wototo` in the title bar and click `App` from the `Content Types` view.
 
 On the entry for the app you already created, click `Edit`.
 

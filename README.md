@@ -21,6 +21,8 @@ Assuming you have access to a running instance...
 
 For a general user guide, starting with web apps, see [docs/userguide.md](docs/userguide.md).
 
+For a user guide specific to creating kiosk content (e.g. for use with the offline kiosk app) see [docs/kioskuserguide.md](docs/kioskuserguide.md).
+
 ## Offline Kiosk
 
 The Offline kiosk (for distributing files and web apps) is available from the [Google Play](https://play.google.com/store/apps/details?id=org.opensharingtoolkit.chooser) (source on [github](https://github.com/cgreenhalgh/opensharingtoolkit-kiosk).
