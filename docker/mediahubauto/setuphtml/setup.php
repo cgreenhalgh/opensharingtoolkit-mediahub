@@ -22,11 +22,11 @@ if (!$username || !$password) {
   exit();
 }
 $tmpdir = sys_get_temp_dir();
-echo "tmpdir=".$tmpdir;
+/*echo "tmpdir=".$tmpdir;*/
 /* create /home/root/opensharingtoolkit-mediahub/instance */
-echo "whoami? ".exec('whoami');
+/*echo "whoami? ".exec('whoami');*/
 $fnameinstance = tempnam($tmpdir,"instance");
-echo "create /home/root/opensharingtoolkit-mediahub/instance (".$instance.")";
+/*echo "create /home/root/opensharingtoolkit-mediahub/instance (".$instance.")";*/
 if (file_put_contents($fnameinstance, $instance)===FALSE) {
   returnError(500, "Server error", "Could not create instance file");
   exit();
@@ -35,20 +35,20 @@ if (file_put_contents($fnameinstance, $instance)===FALSE) {
 $cryptpassword = crypt($password, base64_encode($password));
 $entry = $username.":".$cryptpassword;
 $fnamehtpasswd = tempnam($tmpdir,"htpasswd");
-echo "create /etc/nginx/conf/htpasswd (".$entry.")";
+/*echo "create /etc/nginx/conf/htpasswd (".$entry.")";*/
 if (file_put_contents($fnamehtpasswd, $entry)===FALSE) {
   returnError(500, "Server error", "Could not create htpasswd file");
   exit();
 }
 /* create/replace /etc/nginx/sites-available/default */
-echo "read /home/root/opensharingtoolkit-mediahub/docker/mediahub/nginx-mediahub.template";
+/*echo "read /home/root/opensharingtoolkit-mediahub/docker/mediahub/nginx-mediahub.template";*/
 $template = file_get_contents("/home/root/opensharingtoolkit-mediahub/docker/mediahub/nginx-mediahub.template");
 if ($template===FALSE) {
   returnError(500, "Server error", "Could not read nginx template file");
   exit();
 }
 $config = str_replace("#{NAME}", $instance, $template);
-echo "write /etc/nginx/sites-available/default (".$config.")";
+/*echo "write /etc/nginx/sites-available/default (".$config.")";*/
 $fnamedefault = tempnam($tmpdir,"default");
 if (file_put_contents($fnamedefault, $config)===FALSE) {
   returnError(500, "Server error", "Could not create nginx config file");
@@ -57,11 +57,11 @@ if (file_put_contents($fnamedefault, $config)===FALSE) {
 /* copy... */
 /* signal nginx: nginx -s reload */
 $cmd = "/home/root/setupscripts/copyfiles ".$fnameinstance." ".$fnamehtpasswd." ".$fnamedefault;
-echo "exec /home/root/setupscripts/copyfiles";
+/*echo "exec /home/root/setupscripts/copyfiles";*/
 $exitcode = -1;
 $output = array();
 $out = exec($cmd, $output, $exitcode);
-echo "setup.sh returned ".$exitcode.": ".$out;
+/*echo "setup.sh returned ".$exitcode.": ".$out;*/
 if ($exitcode!==0) {
   returnError(500, "Server error", "Could not copy new files");
   exit();
