@@ -30,13 +30,15 @@ docker run -d -p :80:80 cgreenhalgh/mediahubauto:latest
 
 - If on windows or Mac and you want to access the mediahub from other machines on the network then you will need to make the port accessible, e.g. on Windows open `Oracle VM VirtualBox`, find the entry on the left for `boot2docker-vm`, select it and click `Settings`, select `Network`, on the `Adapter 1` tab click `Port Forwarding`, click `Insert new rule` (diamond/plus icon), and enter `Host Port` `80` and `Guest Port` `80`; click `OK`, `OK`.
 
-- Open a browser and enter the URL of the new instance. Note: don't use `localhost` or `127.0.0.1` - find the actual IP address of your machine (or the docker host vm), e.g. on windows open a `Command Prompt` and type `ipconfig`, find the first `Ethernet adapter...` entry if using Ethernet (`Wifi adapter...` or equivalent if using Wifi) and look at the row `IPv4 Address...` - copy this address (four numbers with dots in between) into the web browser. 
+- Open a browser and enter the URL of the new instance. Note: don't use `localhost` or `127.0.0.1` - find the actual IP address of your machine (or the docker host vm). Open a terminal (on Windows a `Command Prompt`) and type `boot2docker ip`; copy this address (four numbers with dots in between) into the web browser. 
 
-- you should now see a fork prompting for an instance name, username and password. These are the admin account for the new server; enter your chosen values and hit configure. You should see a confirmation page with a Get started link; follow this...
+- you should see a form prompting for an instance name, username and password. (If you get a `502 Bad Gateway` error then try stopping and re-starting the docker container, or restarting your machine and restarting docker as below.) These will be the admin account for the new server; enter your chosen values and hit configure (don't use credentials that you use elsewhere!). You should see a confirmation page with a Get started link; follow this...
 
-- you see a simple web page with a title (OpenSharingToolkit Mediahub) and a link `Editor` - click this for the authoring and publishing view. The username and password are the ones you set in the previous step. Note that the server uses basic authentication over HTTP; you will need to set it up behind a HTTPS reverse proxy if you want this to be secure!
+- you should see a simple web page with a title (OpenSharingToolkit Mediahub) and a link `Editor` - click this for the authoring and publishing view. The username and password are the ones you set in the previous step. 
 
 - Now try the tutorial in the [general (app first) user guide](userguide.md) or the [kiosk user guide](kioskuserguide.md).
+
+Note that the server uses basic authentication over HTTP; you will need to set it up behind a HTTPS reverse proxy if you want this to be secure!
 
 ### Checking / restarting
 
@@ -44,7 +46,7 @@ Note that if you restart your computer or boot2docker, depending on how you do i
 
 - If on Windows or Mac check that boot2docker is running, and if not start it (as above).
 
-- Check if it is still running (as above, if on windows or Mac do this in the boot2docker window; on Linux do it in a `term` window - on Linux you will need to be root us add `sudo` to the beginning of the line):
+- Check if you server is still running in docker (as above, if on windows or Mac do this in the boot2docker window; on Linux do it in a `term` window - on Linux you will need to be root us add `sudo` to the beginning of the line):
 ```
 docker ps | grep mediahub
 ```
@@ -60,9 +62,5 @@ docker ps -a | grep mediahub
 docker start CONTAINERID
 ```
 - with a bit of luck that will restart the mediahub instance, and you can access it from your browser as before.
-
-### Boot2Docker Windows issues
-
-As of 2014-09-10 following the [docker installation for windows](http://docs.docker.com/installation/windows/) instructions didn't work for me - clicking on the `boot2docker start` link just opened an editor. This may be because I am using a University computer. If you have similar issues then check out the [windows installer issues list](https://github.com/boot2docker/windows-installer/issues). In my case I had to open the control panel, search for `environment` and open the `Edit environment variables for your account` option, add a `New...` user variable `Variable name:` `PATH` and `Variable value:` `%PATH%;C:\Program Files (x86)\Git\`. I also had to `change the file type associated with a file extension` (again in the control panel) for the file extension `.sh` to the program (`Change program...`, `Browse...`) `C:\Program Files (x86)\Git\bin\bash.exe`.
 
 
