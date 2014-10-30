@@ -12,29 +12,31 @@ To run wototo on a server you will need an Internet-accessible Unix (Linux) serv
 
 ### Creating
 
-You can create a single personal or test instance of the mediahub using the pre-built docker image `cgreenhalgh/mediahub-test`.
+You can create a single personal or test instance of the mediahub using the pre-built docker image `cgreenhalgh/mediahubauto`.
 
 - install docker as per the [docker installation](http://docs.docker.com/installation/) for your operating system. (If you are using windows and having trouble see notes below.)
 
 - if on windows or Mac start boot2docker as per the installation guide, e.g. on Windows click `boot2docker start`. (If you are using Linux then docker will run directly on your machine.)
 
-- download the docker image `cgreenhalgh/mediahub-test:latest` (if on windows or Mac do this in the boot2docker window; on Linux do it in a `term` window - on Linux you will need to be root us add `sudo` to the beginning of the line):
+- download the docker image `cgreenhalgh/mediahubauto:latest` (if on windows or Mac do this in the boot2docker window; on Linux do it in a `term` window - on Linux you will need to be root us add `sudo` to the beginning of the line):
 ```
-docker pull cgreenhalgh/mediahub-test:latest
+docker pull cgreenhalgh/mediahubauto:latest
 ```
 
 - start a new mediahub instance from that image (and by default make it accessible via port 80 on the docker host):
 ```
-docker run -d -p :80:80 cgreenhalgh/mediahub-test:latest
+docker run -d -p :80:80 cgreenhalgh/mediahubauto:latest
 ```
 
 - If on windows or Mac and you want to access the mediahub from other machines on the network then you will need to make the port accessible, e.g. on Windows open `Oracle VM VirtualBox`, find the entry on the left for `boot2docker-vm`, select it and click `Settings`, select `Network`, on the `Adapter 1` tab click `Port Forwarding`, click `Insert new rule` (diamond/plus icon), and enter `Host Port` `80` and `Guest Port` `80`; click `OK`, `OK`.
 
 - Open a browser and enter the URL of the new instance. Note: don't use `localhost` or `127.0.0.1` - find the actual IP address of your machine (or the docker host vm), e.g. on windows open a `Command Prompt` and type `ipconfig`, find the first `Ethernet adapter...` entry if using Ethernet (`Wifi adapter...` or equivalent if using Wifi) and look at the row `IPv4 Address...` - copy this address (four numbers with dots in between) into the web browser. 
 
-- with a bit of luck you'll now see a simple web page with a title (OpenSharingToolkit Mediahub) and a link `Editor` - click this for the authoring and publishing view. The username and password are `test` and `test` - this isn't intended for use on a publicly accessible machine!
+- you should now see a fork prompting for an instance name, username and password. These are the admin account for the new server; enter your chosen values and hit configure. You should see a confirmation page with a Get started link; follow this...
 
-- Now try the tutorial in the [user guide](userguide.md)
+- you see a simple web page with a title (OpenSharingToolkit Mediahub) and a link `Editor` - click this for the authoring and publishing view. The username and password are the ones you set in the previous step. Note that the server uses basic authentication over HTTP; you will need to set it up behind a HTTPS reverse proxy if you want this to be secure!
+
+- Now try the tutorial in the [general (app first) user guide](userguide.md) or the [kiosk user guide](kioskuserguide.md).
 
 ### Checking / restarting
 

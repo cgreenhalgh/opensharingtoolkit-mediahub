@@ -39,44 +39,66 @@ Add a link to a file to make available for download (e.g. a PDF file)...
 
 If you are not at the `Content Types` list then click on `Wototo` in the title bar.
 
-Click `File` to see a list of current files (`File List`). Click `Add...` and switch to the `File` tab. 
+Click `File` to see a list of current files (`File List`). Click `Add...` to open the `Add File` view, and switch to the `File` tab. 
 
 Paste the public URL into the `External URL` text box; if you aren't sure what file to use then try `http://www.cs.nott.ac.uk/~cmg/GooglePlay/InformationHub/mobile%20flyer%20layout.pdf`.
 
 Switch to the `Overview` tab, and enter a title (e.g. `Test file`) and a description that will appear in the kiosk view (e.g. `An interesting document that you can download`). Optionally add tags/comments to help identify this file in the editor.
 
-Click `Add`; the view will switch back to the `File List` view.
+Scroll down to the section `Image for use by kiosk` and click `Browse server...`. Select the image you uploaded in step 1.
+
+Scroll back to the top and click `Add`; the view will switch back to the `File List` view.
 
 ### 3. Create a download kiosk
 
 If you are not at the `Content Types` list then click on `Wototo` in the title bar.
 
-Click `Kiosk` to see a list of current kiosks (the `Kiosk List`). Click `Add...` and the `Add Kiosk` form will appear. This has three tabs: `Overview`, `List` and `Kiosk`.
+Click `Kiosk` to see a list of current kiosks (the `Kiosk List`, initially empty). Click `Add...` and the `Add Kiosk` form will appear. This has three tabs: `Overview`, `List` and `Kiosk`.
 
-In the `Overview` tab give the kiosk a title e.g. `test kiosk`.
+In the `Overview` tab give the kiosk a title e.g. `test kiosk`. Put some text in the description - this will be made available as help information in the kiosk interface. For example `This is what the tutorial made me do - please don't blame me for it`.
 
-In the `List` tab click `Add below...` and select your download `File` from the list.
+In the `List` tab click `Add below...` and select your download `File` from the list (ignore the image file(s)).
 
 Swith to the `Kiosk` tab and fill in the `Author` section.
 
-If you are going to distribute content from another web server (e.g. if you are running Wototo on a desktop of laptop computer) then enter the URL that you are going to serve the kiosk content from in the `External hosting URL` text box. This should be the URL of a directory on the web server where you will place the published kiosk files (with NO trailing `/`).
+If you are going to distribute content from another web server (e.g. if you are running Wototo on a desktop of laptop computer) then enter the URL that you are going to serve the kiosk content from in the `External hosting URL` text box. This should be the URL of a new directory on the web server where you will place the published kiosk files (with NO trailing `/`).
 
 Click `Add` to create the definition for the `Kiosk` and return to the `Kiosk List` view.
 
+### 4. Publish the kiosk content
+
 In the `Kiosk List`, on your new `Kiosk` entry, click `Publish...`. In the dialog enter a directory name for your published kiosk on the web server. This must be different for every kiosk and app, and a short name without spaces is probably safest, e.g. "tutorialkiosk".
 
-A view for this publishing task appears, initially titled `Add Background Task`, and sub-titled `Publish kiosk to webserver`. Click `Run` and the view will change to `Edit Background Task`. Shortly a `Task Status` section should appear, which gives you progress information about publishing the kiosk. Hopefully this will change to "Task complete" within 10 seconds or so (longer for a kiosk with more files and/or more complex apps).
+A view for this publishing task appears, initially titled `Create Background Task`, and sub-titled `Publish kiosk to ...`. Click `Run` and the view will change to `Update Background Task`. Shortly a `Task status` section should appear, which gives you progress information about publishing the kiosk. Hopefully this will change to "Task complete" within 10 seconds or so (longer for a kiosk with more files and/or more complex apps).
 
-This view has three links near the bottom: the "web kiosk view" link is the published kiosk user interface on the mediahub web server; try opening this in another window, or on another device. You should see a browser view with an item for your app, which if you click it has options to `Get on this device`, i.e. download it on that device, or `Send over the Internet`, i.e. get a URL and QRCode that can be entered into another phone or tablet to download it.
+This view has three links near the bottom: the "web kiosk view" link is the published kiosk user interface on the mediahub web server; try opening this in another window, or on another device. You should see a browser view with an item for your app, which if you click it has options to `Get on this device`, i.e. download it on that device, or `Send over the Internet`, i.e. get a URL and QRCode that can be entered into another phone or tablet to download it. 
+
+Note that if you specified an `External hosting URL` in step 3 then you will need to copy the published files there before you will actually be able to download the content (expect to get a File not found error if you do try clicking on `Get on this device`).
 
 Well done, you have configured and published your first digital download kiosk using the mediahub.
 
-## 4. Distributing content on other servers/devices
+### 5. Distributing content on other web servers
 
 The last link in the `Publish kiosk to webserver` task is an archive file which you can download and unpack on another web server or on a dedicated kiosk device to make those downloads available there. 
 
-If you are distributing content from another web server (which you configured as the kiosk `External hosting URL`) then download the archive file, upload it to that web server, create the directory if it doesn't already exist and unzip the archive in it. The kiosk view should be the configured path plus `/index.html`.
+If you are distributing content from another web server (which you configured as the kiosk `External hosting URL`) then:
+- download the archive file, 
+- upload it to your web server (which will need to serve static files plus some basic PHP but no database),
+- create the `External hosting URL` directory if it doesn't already exist and
+- unzip the archive in it. 
 
-If you want to (also) distribte the content offline using the Information Hub android app then download the archive file to the android device, e.g. scan the QR code or enter the URL into the browser. Once the file has downloaded open it, and the app should give you option to unzip it and update its cache. Do so and re-open the app and you should have local copies of the same kiosk content.
+The kiosk view should be the configured `External hosting URL` plus `/index.html`.
 
+### 6. Distributing content using the offline kiosk app
 
+If you want to (also) distribute the content offline using the Information Hub android app then:
+
+- find an Android smart phone or tablet to use (it should work on Android 2.1 and above); 
+- install the [Information Hub / Kiosk app](https://play.google.com/store/apps/details?id=org.opensharingtoolkit.chooser) from Google Play;
+- download the archive file from Wototo to the android device, e.g. scan the QR code or enter the URL into the browser (see note 1 below);
+- open the download file on the Android device, and if prompted select the option to open with the Information Hub app (depends on what other apps you have installed that work with archive files);
+- the app should give you option to update its cache; click `Replace` and then `Show main UI and reload content`.
+
+You should now have a complete copy of the content and the kiosk interface on the Android device, which you can use to distribute content to other devices over local WiFi or via the Internet.
+
+1. Note that if the editor is running on a laptop or desktop and is not accessible to the Android device then you will need to copy it to a web server first, or plug the device into your computer and copy the file directly onto it. If you copy the file directly onto it then you will need a File Manager app installed on the device in order to find and open it, e.g. [OI File Manager](https://play.google.com/store/apps/details?id=org.openintents.filemanager).
