@@ -1,0 +1,34 @@
+## mediahubauto - initial set-up routing
+
+server {
+	listen 80 default_server;
+	listen [::]:80 default_server ipv6only=on;
+	client_max_body_size 50m;
+
+	root /home/root/setuphtml;
+#	root /usr/share/nginx/html;
+
+	location ~ .*/$ {
+		try_files $uri $uri/index.html
+                break;
+	}
+	location = /index.html {
+		allow all;
+		break;
+	}
+	# setup script
+	location = /setup.php {
+		fastcgi_split_path_info ^(.*\.php)(/.*)$;
+                if (!-f $document_root$fastcgi_script_name) {
+                        return 404;
+                }
+                fastcgi_pass unix:/var/run/php5-fpm.sock;
+                include fastcgi_params;
+		break;
+        }
+
+	location / {
+		deny all;
+	}
+}
+

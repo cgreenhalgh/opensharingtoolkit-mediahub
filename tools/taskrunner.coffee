@@ -1129,7 +1129,7 @@ updateServerNginx = (task) ->
     serverId = serverId.replace /:/g, '-'
     # guess instance name?!
     instance = 'mediahub'
-    instancepath = __dirname+"/../instance"
+    instancepath = __dirname+"/../../setup/instance"
     try 
       instance = fs.readFileSync instancepath, "utf-8"
       instance = instance.trim()

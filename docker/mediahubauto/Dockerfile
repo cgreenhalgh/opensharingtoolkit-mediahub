@@ -11,6 +11,6 @@ RUN chmod 4755 /home/root/setupscripts/copyfiles
 ADD nginx-mediahubauto /etc/nginx/sites-available/default
 
 #test "/home/root",
-VOLUME ["/etc/nginx"]
+#VOLUME ["/etc/nginx"]
 #cfengine
 ENTRYPOINT ["/var/cfengine/bin/docker_processes_run.sh"]

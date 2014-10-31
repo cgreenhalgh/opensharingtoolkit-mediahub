@@ -55,7 +55,7 @@ ADD index.html /usr/share/nginx/html/
 COPY local.ini /etc/couchdb/
 
 # See template for specific configuration...
-VOLUME ["/var/lib/couchdb","/var/log","/usr/share/nginx/html"]
+#VOLUME ["/var/lib/couchdb","/var/log","/usr/share/nginx/html"]
 EXPOSE 80
 #/usr/sbin/syslogd
 #ENTRYPOINT ["/var/cfengine/bin/docker_processes_run.sh"]

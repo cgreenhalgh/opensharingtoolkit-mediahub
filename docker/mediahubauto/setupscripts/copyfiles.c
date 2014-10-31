@@ -40,7 +40,7 @@ int main(int argc, const char*argv[]) {
     printf("Usage: f1 f2 f3");
     return -1;
   }
-  if (copyfile(argv[1], "/home/root/opensharingtoolkit-mediahub/instance")!=0 ||
+  if (copyfile(argv[1], "/home/root/setup/instance")!=0 ||
       copyfile(argv[2], "/etc/nginx/conf/htpasswd")!=0 || 
       copyfile(argv[3], "/etc/nginx/sites-available/default")!=0) 
     return -1;

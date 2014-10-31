@@ -1,0 +1,3 @@
+# test server farm config file
+default		mediahubauto	8101	enabled		# default instance
+
