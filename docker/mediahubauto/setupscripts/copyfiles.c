@@ -29,6 +29,14 @@ int copyfile(const char* from, const char *to) {
   chmod(to, 0644);
   return 0;
 }
+int fileexists(const char *path) {
+  FILE *in;
+  in = fopen(path, "r");
+  if (in==NULL)
+    return 0;
+  fclose(in);
+  return 1;
+}
 
 int main(int argc, const char*argv[]) {
   char *buf;
@@ -39,6 +47,10 @@ int main(int argc, const char*argv[]) {
   if (argc!=4) {
     printf("Usage: f1 f2 f3");
     return -1;
+  }
+  if (fileexists("/home/root/setup/instance")) {
+    printf("Already initialised (/home/root/setup/instance exists)");
+    return -2;
   }
   if (copyfile(argv[1], "/home/root/setup/instance")!=0 ||
       copyfile(argv[2], "/etc/nginx/conf/htpasswd")!=0 || 

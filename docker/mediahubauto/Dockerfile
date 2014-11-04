@@ -9,6 +9,7 @@ ADD setuphtml/ /home/root/setuphtml/
 ADD setupscripts/ /home/root/setupscripts/
 RUN chmod 4755 /home/root/setupscripts/copyfiles
 ADD nginx-mediahubauto /etc/nginx/sites-available/default
+RUN mkdir -p /home/root/setup/
 
 #test "/home/root",
 #VOLUME ["/etc/nginx"]
