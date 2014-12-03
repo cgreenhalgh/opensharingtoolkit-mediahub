@@ -1,0 +1,10 @@
+# php server for front-end template
+location ~ ^(.*\.php)$ {
+	fastcgi_split_path_info ^(.*\.php)(/.*)$;
+        if (!-f $document_root$fastcgi_script_name) {
+		return 404;
+	}
+	proxy_pass http://#{HOST};
+	break;
+}
+

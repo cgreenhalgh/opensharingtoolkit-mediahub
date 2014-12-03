@@ -1,6 +1,7 @@
 # updateserverfarm.coffee
 
 fs = require 'fs'
+os = require 'os'
 exec = (require 'child_process').exec
 
 errors = []
@@ -22,6 +23,28 @@ done = () ->
 doneError = (msg) ->
   logError msg
   done()
+
+get_local_ip = () ->
+  interfaces = os.networkInterfaces()
+  addresses = []
+  bestaddresses = []
+  for name,ifaddresses of interfaces 
+    for address in ifaddresses
+        if address.family == 'IPv4' && !address.internal
+            addresses.push address.address
+            # prefer interfaces called 'docker...'
+            if name.substring(0,6)=='docker'
+              bestaddresses.push address.address
+            #log "found interface #{name} = #{address.address}"
+  if addresses.length==0
+    doneError 'Could not get local IP address'
+  if bestaddresses.length>0
+    log "using local IP address #{bestaddresses[0]}"
+    return bestaddresses[0]
+  log "using local IP address #{addresses[0]} (could not find docker address)"
+  addresses[0]
+
+local_ip = get_local_ip()
 
 readConfig = (configfile) ->
   log "Read config #{configfile}"
@@ -77,6 +100,15 @@ if !fs.existsSync localserversdir
   catch err
     doneError "could not create local servers dir #{localserversdir}: #{err.message}"
 
+oldlocalserversdir = localserversdir+"/old"
+
+if !fs.existsSync oldlocalserversdir
+  log "create old local servers dir #{oldlocalserversdir}"
+  try
+    fs.mkdirSync oldlocalserversdir
+  catch err
+    doneError "could not create old local servers dir #{oldlocalserversdir}: #{err.message}"
+
 publichtmldir = rootdir+"nginx-public-html"
 
 if !fs.existsSync publichtmldir
@@ -84,7 +116,7 @@ if !fs.existsSync publichtmldir
   try
     fs.mkdirSync publichtmldir
   catch err
-    doneError "could not create public html dir #{localserversdir}: #{err.message}"
+    doneError "could not create public html dir #{publichtmldir}: #{err.message}"
 
 subdirs = 
   'couchdb': '/var/lib/couchdb'
@@ -123,6 +155,15 @@ updateInstance = (instance, continuation) ->
     catch err
       logError "unable to create instance html dir #{instancehtmldir}: #{err.message}"
       return continuation()
+  publicinstancehtmldir = instancehtmldir+'/public'
+  if !fs.existsSync publicinstancehtmldir
+    log "Create public instance html directory #{publicinstancehtmldir}"
+    try 
+      fs.mkdirSync publicinstancehtmldir
+      restart = true
+    catch err
+      logError "unable to create public instance html dir #{publicinstancehtmldir}: #{err.message}"
+      return continuation()
   instancedir = rootdir+instance.name
   if !fs.existsSync instancedir
     log "Create instance directory #{instancedir}"
@@ -152,6 +193,34 @@ updateInstance = (instance, continuation) ->
       catch err
         logError "unable to create config file #{tofile} from template #{template}: #{err.message}"
         return continuation()
+  # front-end nginx config
+  subvars = 
+    '#{NAME}': instance.name
+    '#{HOST}': "#{local_ip}:#{instance.port}"
+    '#{CONTAINER}': instance.name
+  for templateprotocol in ['http','https']
+    template = "templates/local-servers/local-server-#{templateprotocol}.conf.template"
+    tofile = "#{localserversdir}/#{instance.name}-#{templateprotocol}.conf"
+    oldfile = "#{oldlocalserversdir}/#{instance.name}-#{templateprotocol}.conf"
+    action = if !fs.existsSync tofile then "Creating" else "Updating"
+    try
+      f = fs.readFileSync __dirname+'/'+template, {encoding:"utf8"}
+      for n,v of subvars
+        f = f.replace (new RegExp(n,"g")), v
+      fs.writeFileSync tofile, f, {encoding:"utf8"}
+      unchanged = false
+      if fs.existsSync oldfile
+        try
+          f2 = fs.readFileSync oldfile, {encoding:"utf8"}
+          unchanged = f==f2
+        catch err
+          log "warning: unable to read (check) front-end config file #{oldfile}: #{err.message}"
+      if !unchanged
+        log "#{action} front-end config file #{tofile} from template #{template}"
+    catch err
+      logError "unable to create front-end config file #{tofile} from template #{template}: #{err.message}"
+      return continuation()
+
   for file,command of exportfiles
     if !fs.existsSync instancedir+'/'+file
       log "Export initial file #{file}"
@@ -167,6 +236,7 @@ updateInstance = (instance, continuation) ->
         else
           # next step...
           updateInstance instance, continuation
+
 
   ps = exec "sudo docker inspect --format '{{.State.Running}} {{.Image}}' #{instance.name}",
     { timeout: 10000 }, 
@@ -229,7 +299,7 @@ updateInstance = (instance, continuation) ->
         cmd = "sudo docker run -d --name #{instance.name} -h #{instance.name}"
         for subdir,mount of subdirs when mount!=null
           cmd = cmd+" -v #{instancedir}/#{subdir}:#{mount}"
-        cmd = cmd+" -v #{instancehtmldir}:/usr/share/nginx/html/public"
+        cmd = cmd+" -v #{publicinstancehtmldir}:/usr/share/nginx/html/public"
         cmd = cmd+" -p #{instance.port}:80 #{instance.image}"
         log "run instance #{instance.name}: #{cmd}"
         run = exec cmd, (error, stdout, stderr) ->
@@ -260,13 +330,61 @@ nextImage = (instances, continuation) ->
         log "Found image #{instance.image} = #{images[instance.image]}"
         nextImage (instances.slice 1), continuation
     
-nextInstance = () ->
+nextInstance = (continuation) ->
   if instances.length==0
-    done()
+    return continuation()
   instance = (instances.splice 0, 1)[0]
   if images[instance.image]?
     instance.imageid = images[instance.image]
-  updateInstance instance, nextInstance
+  updateInstance instance, ()->nextInstance(continuation)
 
-nextImage instances, nextInstance
+initNginxConfig = () ->
+  # move old front-end configs
+  try
+    configfiles = fs.readdirSync localserversdir
+    for f in configfiles when f.length>=5 and f.substring(f.length-5)=='.conf'
+      try
+        fs.renameSync "#{localserversdir}/#{f}", "#{oldlocalserversdir}/#{f}"
+      catch err
+        log "warning: could not move away front-end config file #{localserversdir}/#{f} to #{oldlocalserversdir}/#{f}: #{err.message}"
+  catch err
+    logError "moving away front-end config files: #{err.message}"
+  # nginx front-end php config
+  subvars = 
+    '#{HOST}': "#{local_ip}:9001"
+  template = "templates/local-servers/php-http.conf.template"
+  tofile = "#{localserversdir}/php-http.conf"
+  oldfile = "#{oldlocalserversdir}/php-http.conf"
+  action = if !fs.existsSync tofile then "Creating" else "Updating"
+  try
+    f = fs.readFileSync __dirname+'/'+template, {encoding:"utf8"}
+    for n,v of subvars
+      f = f.replace (new RegExp(n,"g")), v
+    fs.writeFileSync tofile, f, {encoding:"utf8"}
+    unchanged = false
+    if fs.existsSync oldfile
+      try
+        f2 = fs.readFileSync oldfile, {encoding:"utf8"}
+        unchanged = f==f2
+      catch err
+        log "warning: unable to read (check) front-end config file #{oldfile}: #{err.message}"
+    if !unchanged
+      log "#{action} front-end config file #{tofile} from template #{template}"
+  catch err
+    logError "unable to create front-end config file #{tofile} from template #{template}: #{err.message}"
+
+initNginxConfig()
+
+kickNginx = ()->
+  cmd = "sudo docker kill -s HUP nginx"
+  exec cmd, (error, stdout, stderr) ->
+    if error!=null
+      logError "Could not signal front-end nginx instance: #{stderr.trim()} (code #{error.code}) from #{cmd}"
+    else
+      log "Signalled front-end nginx instance"
+    done()
+
+nextImage instances, ()->nextInstance(kickNginx)
+
+
 

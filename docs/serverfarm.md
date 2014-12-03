@@ -19,7 +19,6 @@ By default we'll call it `config.txt` and put it in the top-level directory.
 
 For each instance there will be a directory `INSTANCENAME` with the following subdirectories:
 
-- `public` - the public HTML file space, mounted on `/usr/share/nginx/html/public`
 - `couchdb` - the CouchDB database files (initially `_replicator.couch`, `_users.couch` and `mediahub.couch`), mounted on `/var/lib/couchdb`
 - `log/nginx` - the nginx system log directory, mounted on `/var/log/nginx`
 - `log/couchdb` - the nginx system log directory, mounted on `/var/log/couchdb`
@@ -27,6 +26,8 @@ For each instance there will be a directory `INSTANCENAME` with the following su
 - `nginx-etc/conf` - location for e.g. htpasswd file, mounted on `/etc/nginx/conf`
 - `nginx-etc/sites-available` - location for `default` nginx server config, mounted on `/etc/nginx/sites-available`
 - `nginx-etc/mediahub-servers` - location for Form Server nginx configs, mounted on `/etc/nginx/mediahub-servers`
+
+There will also be a subdirectory `INSTANCENAME/public` in the top-level static web content directory `nginx-public-html`, which will be mounted on `/usr/share/nginx/html/public` (this will normally be directly served by the front-end nginx server, even if the instance is stopped).
 
 ## Use of docker
 
@@ -41,10 +42,19 @@ There will be (new) admin operations provided by `taskrunner`:
 
 ## Frond-end server
 
-From the config file the configuration of the front-end nginx server will be updated to:
+From the config file the configuration of the front-end nginx server will be updated (in `nginx-local-servers`) to:
 
-- serve `INSTANCENAME/public` over http
 - proxy all https to the specified `LOCALPORT`, stripping off the `INSTANCENAME` from the path
+
+The front-end server will always server HTTP from the top-level `nginx-public-html` (read-only), which includes all of the instance-specific public files. 
+
+The front-end server will proxy public PHP file requests to a separate server on port `9001`.
+
+In `docker/serverfarm`:
+```
+sudo docker run -v $(pwd)/nginx-public-html:/usr/share/nginx/html:ro -v $(pwd)/nginx-local-servers:/etc/nginx/local-servers/:ro --name nginx -h nginx -d -p 80:80 -p 443:443 nginx
+sudo docker run -v $(pwd)/nginx-public-html:/usr/share/nginx/html:ro --name nginxphp -h nginxphp -d -p 9001:80 nginxphp
+```
 
 ## Usage
 
