@@ -1,12 +1,12 @@
 <%# LocationWidget view - in a (for now); data is Location %>
 <a>
 <% if @lastFix and not @old: %>
-  <img src="../../icons/location-ok.png" class="location-icon"/>
+  <img src="<%= window.geticonurl 'location-ok.png' %>" class="location-icon"/>
 <% else if @searching: %>
-  <img src="../../icons/location-searching.png" class="location-icon"/>
+  <img src="<%= window.geticonurl 'location-searching.png' %>" class="location-icon"/>
 <% else if not @lastFix: %>
-  <img src="../../icons/location-off.png" class="location-icon"/>
+  <img src="<%= window.geticonurl 'location-off.png' %>" class="location-icon"/>
 <% else : %>
-  <img src="../../icons/location-ok.png" class="location-icon location-old"/>
+  <img src="<%= window.geticonurl 'location-ok.png' %>" class="location-icon location-old"/>
 <% end %>
 </a>

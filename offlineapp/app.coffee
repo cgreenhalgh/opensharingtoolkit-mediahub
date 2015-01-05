@@ -253,7 +253,14 @@ App =
 
     appid = $('meta[name="mediahub-appid"]').attr('content')
     exported = $('meta[name="mediahub-exported"]').attr('content')
-    console.log "OfflineApp starting... app.id=#{appid}, exported=#{exported}"
+    wordpressfiles = $('meta[name="wototo-wordpress-files"]').attr('content')
+    wordpressajax = $('meta[name="wototo-wordpress-ajax"]').attr('content')
+    console.log "OfflineApp starting... app.id=#{appid}, exported=#{exported}, wordpressfile=#{wordpressfiles}, wordpressajax=#{wordpressajax}"
+    window.geticonurl = ( iconfile ) ->
+      if wordpressfiles
+        wordpressfiles+'/icons/'+iconfile
+      else
+        '../../icons/'+iconfile
 
     # presume index is served by couchdb .../_design/app/_show/...
     dburl = window.location.href

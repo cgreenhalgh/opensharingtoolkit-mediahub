@@ -1,14 +1,14 @@
 <%# FormUploadWidget view - in a (for now); data is FormUpload %>
 <a>
 <% if @uploading: %>
-  <img src="../../icons/uploading.png" class="upload-icon"/>
+  <img src="<%= window.geticonurl 'uploading.png' %>" class="upload-icon"/>
 <% else if @uploadInstanceIds?.length==0 and @lastUploadState=='success': %>
-  <img src="../../icons/upload-success.png" class="upload-icon"/>
+  <img src="<%= window.geticonurl 'upload-success.png' %>" class="upload-icon"/>
 <% else if @uploadInstanceIds?.length==0 : %>
-  <img src="../../icons/upload.png" class="upload-icon upload-idle"/>
+  <img src="<%= window.geticonurl 'upload.png' %>" class="upload-icon upload-idle"/>
 <% else if @lastUploadState=='error': %>
-  <img src="../../icons/upload-error.png" class="upload-icon"/>
+  <img src="<%= window.geticonurl 'upload-error.png' %>" class="upload-icon"/>
 <% else: %>
-  <img src="../../icons/upload.png" class="upload-icon"/>
+  <img src="<%= window.geticonurl 'upload.png' %>" class="upload-icon"/>
 <% end %>
 </a>
