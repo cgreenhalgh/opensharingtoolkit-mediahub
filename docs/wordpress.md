@@ -23,5 +23,7 @@ docker inspect wototo-wordpress | grep IP
 
 ## Design Notes
 
+App is a custom post type (see [wordpress docs](https://developer.wordpress.org/plugins/custom-post-types-and-taxonomies/registering-custom-post-types/).
+ 
 
 
