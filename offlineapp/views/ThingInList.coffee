@@ -23,7 +23,7 @@ module.exports = class ThingInListView extends Backbone.View
       iconurl = @model.attributes.imageurl
     if not iconurl? or iconurl==''
       if @model.attributes.type?
-        iconurl = "../../icons/#{@model.attributes.type}.png"
+        iconurl = window.geticonurl "#{@model.attributes.type}.png"
     @$el.html @template _.extend {}, @model.attributes, { iconurl: iconurl } 
     $('.tag-widget-holder', @$el).replaceWith @tagsView.el
     @
