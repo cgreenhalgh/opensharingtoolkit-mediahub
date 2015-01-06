@@ -13,7 +13,7 @@ echo '<?'?>xml version="1.0" encoding="UTF-8"?>
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-	<title><?php echo the_title() ?></title>
+	<title><?php echo esc_html( the_title() ) ?></title>
 	<!-- just so we know... -->
 	<meta name="mediahub-appid" content="<?php echo $post->ID ?>" />
 	<meta name="mediahub-shareurl" content="${@shareurl}" />
