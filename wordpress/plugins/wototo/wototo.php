@@ -38,11 +38,11 @@ function wototo_create_post_types() {
                 'not_found_in_trash' => __( 'No apps found in Trash' ),
                 'all_items' => __( 'All Apps' )
             ),
-        'description' => __( 'Wototo HTML5 web app' ),
-        'public' => true,
-        'has_archive' => true,
-        'supports' => array( 'title', 'editor', 'author', 'revisions', 'comments', 'thumbnail' ),
-//'menu_icon' => plugins_url( 'images/image.png', __FILE__ )
+            'description' => __( 'Wototo HTML5 web app' ),
+            'public' => true,
+            'has_archive' => true,
+            'supports' => array( 'title', 'editor', 'author', 'revisions', 'comments', 'thumbnail' ),
+	    'menu_icon' => 'dashicons-smartphone',
         )
     );
 }
