@@ -92,4 +92,54 @@ function wototo_include_template_function( $template_path ) {
     }
     return $template_path;
 }
+// Ajax for get json...
+function wototo_get_json() {
+	global $wpdb;
+	$id = intval( $_POST['id'] );
+	if ( !$id ) {
+		echo '{"error":"Invalid request: id not specified"}';
+		wp_die();
+	}
+	$post = get_post($id);
+	if ( $post === null ) {
+		echo '{"error":"Not found: post '.$id.' not found"}';
+		wp_die();
+	}
+        $res = array(
+		"_id" => $id,
+        );
+	if ( $post->post_status != 'publish' ) {
+		echo '{"error":"Not permitted: post '.$id.' is not published/public ('.$post->post_status.')"}';
+		wp_die();
+	}
+	if ( $post->post_type == 'wototo_app' ) {
+		$res['type'] = 'app';
+		$res['title'] = $post->post_title;
+		$res['description'] = $post->post_content;
+		// post_modified, post_status
+		$showAbout = get_post_meta( $post->ID, '_wototo_show_about', true ) == '1';
+		$res['showAbout'] = $showAbout;
+		if ( $showAbout )
+			// default to description
+			$res['aboutText'] = $post->post_content;
+		// danger - needs 64 bit!
+		$timezone = new DateTimeZone('UTC');
+		$date = new DateTime($post->post_date_gmt, $timezone);
+		$res['createdtime'] = $date->getTimestamp()*1000;
+		$res['thingIds'] = array();
+		$res['showShare'] = FALSE;
+		$res['showLocation'] = FALSE;
+		$res['showUser'] = FALSE;
+	}
+	else {
+		echo '{"error":"Unimplemented: support for post_type '.$post->post_type.'"}';
+		wp_die(); 
+	}
+	echo json_encode($res);
+	wp_die();
+}
+if ( is_admin() ) {
+	add_action( 'wp_ajax_wototo_get_json', 'wototo_get_json' );
+	add_action( 'wp_ajax_nopriv_wototo_get_json', 'wototo_get_json' );
+}
 

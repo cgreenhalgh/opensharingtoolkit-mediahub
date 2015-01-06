@@ -9,13 +9,13 @@ while ( have_posts() ) : the_post();
 echo '<?'?>xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
     "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" manifest="<?php echo 'TODO manifest/${@id}' ?>">
+<html xmlns="http://www.w3.org/1999/xhtml" manifest="<?php echo 'TODO manifest/'.$post->ID ?>">
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-	<title>${@title}</title>
+	<title><?php echo the_title() ?></title>
 	<!-- just so we know... -->
-	<meta name="mediahub-appid" content="${@id}" />
+	<meta name="mediahub-appid" content="<?php echo $post->ID ?>" />
 	<meta name="mediahub-shareurl" content="${@shareurl}" />
 	<meta name="wototo-wordpress-files" content="<?php echo plugins_url( 'wototo' ) ?>" />
 	<meta name="wototo-wordpress-ajax" content="<?php echo admin_url( 'admin-ajax.php' ) ?>" />
@@ -51,7 +51,6 @@ echo '<?'?>xml version="1.0" encoding="UTF-8"?>
     <script src="<?php echo plugins_url( 'vendor/backbone-pouchdb/dist/backbone-pouch.js', __FILE__ ) ?>"></script>
     <script src="<?php echo plugins_url( 'vendor/filesaver/FileSaver.js', __FILE__ ) ?>"></script>
     <script src="<?php echo plugins_url( 'vendor/node-uuid/uuid.js', __FILE__ ) ?>"></script>
-    <script src="<?php echo plugins_url( 'js/config.js', __FILE__ ) ?>"></script>
     <script src="<?php echo plugins_url( 'js/offlineapp.js', __FILE__ ) ?>"></script>
     <script src="<?php echo plugins_url( 'clientid.js', __FILE__ ) ?>"></script>
     <script src="<?php echo plugins_url( 'vendor/leaflet/leaflet.js', __FILE__ ) ?>"></script>

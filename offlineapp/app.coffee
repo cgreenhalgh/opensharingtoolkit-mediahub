@@ -301,8 +301,23 @@ App =
         else
           console.log "not tracking - link #{url}"
 
-    # hack - leaflets map tile load doesn't get picked up here
-    if exported == 'true'
+    if wordpressajax?
+      # wordpress ajax - call ajax url with action 'wototo_get_json' and id
+      $.ajaxPrefilter ( options ) ->
+        if options.url? and options.url.indexOf(dburl)==0
+          oldurl = options.url
+          six = options.url.lastIndexOf '/'
+          id = options.url.substring (six+1)
+          options.url = wordpressajax
+          options.type = 'POST'
+          options.data = 'action=wototo_get_json&id='+id
+          console.log "rewrite ajax #{oldurl} to #{options.url} #{JSON.stringify options.data}"
+        else if options.url?
+          console.log "unchanged ajax url #{options.url}"
+        null
+
+    else if exported == 'true'
+     # hack - leaflets map tile load doesn't get picked up here
       appid = encodeURIComponent appid
       console.log "exported: encoding appid -> #{appid}"
       $.ajaxSetup beforeSend: (xhr, options) ->
