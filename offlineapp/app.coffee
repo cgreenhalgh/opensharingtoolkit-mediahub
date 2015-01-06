@@ -264,7 +264,9 @@ App =
 
     # presume index is served by couchdb .../_design/app/_show/...
     dburl = window.location.href
-    if dburl.indexOf('/_design/')>=0
+    if wordpressajax?
+      dburl = wordpressajax+'?action=wototo_get_json&id='
+    else if dburl.indexOf('/_design/')>=0
       dburl = dburl.substring 0,dburl.indexOf('/_design/')
 
     $(document).on 'click', 'a', (ev) ->
@@ -308,10 +310,8 @@ App =
           oldurl = options.url
           six = options.url.lastIndexOf '/'
           id = options.url.substring (six+1)
-          options.url = wordpressajax
-          options.type = 'POST'
-          options.data = 'action=wototo_get_json&id='+id
-          console.log "rewrite ajax #{oldurl} to #{options.url} #{JSON.stringify options.data}"
+          options.url = wordpressajax+'?action=wototo_get_json&id='+id
+          console.log "rewrite ajax #{oldurl} to #{options.url}"
         else if options.url?
           console.log "unchanged ajax url #{options.url}"
         null

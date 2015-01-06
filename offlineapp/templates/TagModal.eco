@@ -4,7 +4,7 @@
 <% for option in (@options ? []) : %>
   <div class="tag-option tag-option-<%= option.value %> <%= if option.value == @value then 'tag-option-selected' %>">
     <div class="thing-in-list-button">
-      <img class="tag-icon" src="../../icons/<%= @name %>-<%= if option.value!=undefined and option.value!=null then option.value else 'undefined' %>.png"/>
+      <img class="tag-icon" src="<%= window.geticonurl @name %>-<%= if option.value!=undefined and option.value!=null then option.value else 'undefined' %>.png"/>
     </div>
     <%= option.label %>
   </div>

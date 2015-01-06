@@ -9,13 +9,16 @@ while ( have_posts() ) : the_post();
 echo '<?'?>xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
     "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" manifest="<?php echo 'TODO manifest/'.$post->ID ?>">
+<html xmlns="http://www.w3.org/1999/xhtml" <?php
+if ( !get_post_meta( $post->ID, '_wototo_disable_appcache', true ) )
+	echo 'manifest="'.admin_url( 'admin-ajax.php' ).'?action=wototo_get_manifest&id='.$post->ID.'"';
+?>>
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 	<title><?php echo esc_html( the_title() ) ?></title>
 	<!-- just so we know... -->
-	<meta name="mediahub-appid" content="<?php echo $post->ID ?>" />
+	<meta name="mediahub-appid" content="<?php echo 'app:'.$post->ID ?>" />
 	<meta name="mediahub-shareurl" content="${@shareurl}" />
 	<meta name="wototo-wordpress-files" content="<?php echo plugins_url( 'wototo' ) ?>" />
 	<meta name="wototo-wordpress-ajax" content="<?php echo admin_url( 'admin-ajax.php' ) ?>" />
@@ -25,7 +28,7 @@ echo '<?'?>xml version="1.0" encoding="UTF-8"?>
 	<link rel="shortcut icon" type="image/x-icon" href="${@faviconurl}" />
 	<!-- other browsers -->
 	<link rel="icon" type="image/x-icon" href="${@faviconurl}" />
-	<script src="<?php plugins_url( 'vendor/modernizr/modernizr.js' ) ?>"></script>
+	<script src="<?php echo plugins_url( 'vendor/modernizr/modernizr.js', __FILE__ ) ?>"></script>
 </head>
 <body>
     <div id="loading-alert" class="row">

@@ -1,1 +1,1 @@
-<img class="tag-icon" src="../../icons/<%= @name %>-<%= if @value!=undefined and @value!=null then @value else 'undefined' %>.png"/>
+<img class="tag-icon" src="<%= window.geticonurl @name %>-<%= if @value!=undefined and @value!=null then @value else 'undefined' %>.png"/>
