@@ -3,7 +3,7 @@
  * Plugin Name: wototo
  * Plugin URI: https://github.com/cgreenhalgh/opensharingtoolkit-mediahub/tree/master/docs/wordpress.md
  * Description: Create simple HTML5 web apps from wordpress content (pages and posts). The web apps are intended for use on recent smart phones and tablets.
- * Version: 0.1.5
+ * Version: 0.1.6
  * Author: Chris Greenhalgh
  * Author URI: http://www.cs.nott.ac.uk/~cmg/
  * Network: true
@@ -23,7 +23,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 */
 // wander anywhere map post  -> wototo place
 define( "DEFAULT_ZOOM", 15 );
-define( "WOTOTO_VERSION", "0.1.5" );
+define( "WOTOTO_VERSION", "0.1.6" );
 
 add_action( 'init', 'wototo_create_post_types' );
 //Register the app post type
@@ -82,7 +82,13 @@ function wototo_inner_custom_box( $post ) {
         <option value="">No</option>
         <option value="1" <?php if ( '1' == $value ) echo 'selected'; ?>>Yes</option>
     </select><br/>
-    <label for="wototo_show_about">Disable app cache (app will always need Internet access)</label><br/>
+    <label for="wototo_show_location">Show Location Screen</label><br/>
+<?php $value = get_post_meta( $post->ID, '_wototo_show_location', true ); 
+?>  <select name="wototo_show_location" id="wototo_show_location" class="postbox">
+        <option value="">No</option>
+        <option value="1" <?php if ( '1' == $value ) echo 'selected'; ?>>Yes</option>
+    </select><br/>
+    <label for="wototo_disable_appcache">Disable app cache (app will always need Internet access)</label><br/>
 <?php $value = get_post_meta( $post->ID, '_wototo_disable_appcache', true ); 
 ?>  <select name="wototo_disable_appcache" id="wototo_disable_appcache" class="postbox">
         <option value="">No</option>
@@ -96,6 +102,12 @@ function wototo_save_postdata( $post_id ) {
         update_post_meta( $post_id,
            '_wototo_show_about',
             $_POST['wototo_show_about']
+        );
+    }
+    if ( array_key_exists('wototo_show_location', $_POST ) ) {
+        update_post_meta( $post_id,
+           '_wototo_show_location',
+            $_POST['wototo_show_location']
         );
     }
     if ( array_key_exists('wototo_things_menu_id', $_POST ) ) {
@@ -181,13 +193,14 @@ function wototo_get_json() {
 		if ( $showAbout )
 			// default to description
 			$res['aboutText'] = filter_content( $post->post_content );
+		$showLocation = get_post_meta( $post->ID, '_wototo_show_location', true ) == '1';
+		$res['showLocation'] = $showLocation;
 		// danger - needs 64 bit!
 		$timezone = new DateTimeZone('UTC');
 		$date = new DateTime($post->post_date_gmt, $timezone);
 		$res['createdtime'] = $date->getTimestamp()*1000;
 		$res['thingIds'] = array();
 		$res['showShare'] = FALSE;
-		$res['showLocation'] = FALSE;
 		$res['showUser'] = FALSE;
 		$things_menu_id = intval( get_post_meta( $post->ID, '_wototo_things_menu_id', true ) );
 		if ( $things_menu_id ) {
