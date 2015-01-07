@@ -20,6 +20,15 @@ Click `View App` to show the app. If you get a wordpress error that the item can
 
 That's it. The app view URL can be opened on a mobile device, shared on social media, etc.
 
+Notes:
+
+- if the post/page has a featured image then this is used as the icon for the item in the app
+- the app content is used for the About screen text
+- Sub-menus are not currently supported - all menu items appear in a single list
+- Only posts or pages (or wander anywhere map posts) are included in the app; other types of menu items are ignored.
+- Only published (public) app(s) and posts/pages are included in the app
+- forms and upload are not currently supported
+
 ## Test / development notes
 
 - start mysql using docker
