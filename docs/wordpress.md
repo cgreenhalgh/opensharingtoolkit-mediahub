@@ -28,4 +28,12 @@ For enabling multi-site see [codex](http://codex.wordpress.org/Create_A_Network)
 App is a custom post type (see [wordpress docs](https://developer.wordpress.org/plugins/custom-post-types-and-taxonomies/registering-custom-post-types/).
  
 
+## Wander Anywhere integration
+
+Wander Anywhere adds custom post type `anywhere_map_post`. This has custom fields:
+
+- `type`, `0` => Point, `1` => Polygon
+- `geojson`
+
+If geojson property `type` = `Polygon` then polygon, else assumed `coordinates[1]` is Latitude and `coordinates[0]` is longitude.
 

@@ -261,6 +261,11 @@ App =
         wordpressfiles+'/icons/'+iconfile
       else
         '../../icons/'+iconfile
+    window.getasseturl = ( assetfile ) ->
+      if wordpressfiles
+        wordpressfiles+'/'+assetfile
+      else
+        '../../'+assetfile
 
     # presume index is served by couchdb .../_design/app/_show/...
     dburl = window.location.href

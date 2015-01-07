@@ -3,7 +3,7 @@
  * Plugin Name: wototo
  * Plugin URI: https://github.com/cgreenhalgh/opensharingtoolkit-mediahub/tree/master/docs/wordpress.md
  * Description: Create simple HTML5 web apps from wordpress content (pages and posts). The web apps are intended for use on recent smart phones and tablets.
- * Version: 0.1.1
+ * Version: 0.1.5
  * Author: Chris Greenhalgh
  * Author URI: http://www.cs.nott.ac.uk/~cmg/
  * Network: true
@@ -21,6 +21,10 @@ Redistribution and use in source and binary forms, with or without modification,
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
+// wander anywhere map post  -> wototo place
+define( "DEFAULT_ZOOM", 15 );
+define( "WOTOTO_VERSION", "0.1.5" );
+
 add_action( 'init', 'wototo_create_post_types' );
 //Register the app post type
 function wototo_create_post_types() {
@@ -193,6 +197,8 @@ function wototo_get_json() {
 				if ( $menu_item->object_id ) {
 					if ( $menu_item->object == 'post' || $menu_item->object == 'page' )
 						$res['thingIds'][] ='html:'.$menu_item->object_id;
+					else if ( $menu_item->object == 'anywhere_map_post' )
+						$res['thingIds'][] ='place:'.$menu_item->object_id;
 					else 
 						//probably an error / unsupported
 						$res['thingIds'][] = $menu_item->object.':'.$menu_item->object_id;
@@ -211,6 +217,30 @@ function wototo_get_json() {
 		$thumbid = get_post_thumbnail_id($post->ID);
 		if ( $thumbid ) 
 			$res['iconurl'] = wp_get_attachment_url( $thumbid );
+	}
+	else if ( $post->post_type == 'anywhere_map_post' ) {
+		if ( $type != 'place' ) {
+			echo '{"error":"Invalid request: type does not match, '.$sid.' vs place ('.$post->post_type.')"}';
+			wp_die();
+		}
+		$res['type'] = 'place';
+		$res['title'] = $post->post_title;
+		$res['description'] = filter_content( $post->post_content );
+		$thumbid = get_post_thumbnail_id($post->ID);
+		if ( $thumbid ) 
+			$res['iconurl'] = wp_get_attachment_url( $thumbid );
+		// additional wander anywhere goodness...
+		$geojson = json_decode( get_post_meta( $post->ID, 'geojson', true ), true );
+		if ( $geojson && is_array( $geojson ) ) {
+			if ( $geojson['type'] == 'Polygon' ) {
+				$res['geojson'] = $geojson;
+				// TODO
+			} else if ( $geojson['coordinates'] && count( $geojson['coordinates'] )>=2 ) {
+				$res['lat'] = $geojson['coordinates'][1];
+				$res['lon'] = $geojson['coordinates'][0];
+				$res['zoom'] = DEFAULT_ZOOM;
+			}
+		}
 	}
 	else {
 		echo '{"error":"Unimplemented: support for post_type '.$post->post_type.'"}';
@@ -243,6 +273,7 @@ function wototo_get_manifest() {
 	header( "Content-Type: text/cache-manifest" );
 ?>CACHE MANIFEST
 <?php
+	echo '# wototo version '.WOTOTO_VERSION."\n";
 	output_plugin_files( array( 
 		'stylesheets/offline.css', 
 		'vendor/leaflet/leaflet.css'
@@ -303,11 +334,14 @@ function wototo_get_manifest() {
 		foreach ( (array) $menu_items as $key => $menu_item ) {
 			echo "# menu item $menu_item->object_id $menu_item->object\n";
 			if ( $menu_item->object_id ) {
-				if ( $menu_item->object == 'post' || $menu_item->object == 'page' ) {
+				if ( $menu_item->object == 'post' || $menu_item->object == 'page' || $menu_item->object == 'anywhere_map_post' ) {
 					$item = get_post( $menu_item->object_id );
 					if ( $item ) {
 						echo "# last modified $item->post_modified_gmt\n";
-						echo admin_url( 'admin-ajax.php' ).'?action=wototo_get_json&id='.rawurlencode( 'html:'.$item->ID )."\n";
+						$idprefix = 'html';
+						if ( $menu_item->object == 'anywhere_map_post' )
+							$idprefix = 'place';
+						echo admin_url( 'admin-ajax.php' ).'?action=wototo_get_json&id='.rawurlencode( $idprefix.':'.$item->ID )."\n";
 						
 						add_mediafiles( $mediafiles, filter_content( $item->post_content ) );
 						$thumbid = get_post_thumbnail_id($item->ID);
@@ -317,6 +351,25 @@ function wototo_get_manifest() {
 								$mediafiles[] = $url;
 						}
 					}
+				}
+				if ( $menu_item->object == 'anywhere_map_post' ) {
+					$item = get_post( $menu_item->object_id );
+					if ( $item ) {
+						$geojson = json_decode( get_post_meta( $item->ID, 'geojson', true ), true );
+						if ( $geojson && is_array( $geojson ) ) {
+							if ( $geojson['type'] == 'Polygon' ) {
+								// TODO
+								echo "# unsupported map post type ".$geojson['type']."\n";
+							} else if ( $geojson['coordinates'] && count( $geojson['coordinates'] )>=2 ) {
+								$lat = $geojson['coordinates'][1];
+								$lon = $geojson['coordinates'][0];
+								$zoom = DEFAULT_ZOOM;
+								add_maptiles( $mediafiles, $lat, $lon, $zoom );
+							} else {
+								echo "# invalid map post geojson ".json_encode( $geojson )."\n";
+							}
+						}
+					}		
 				}
 			}
 		}
@@ -357,6 +410,58 @@ function add_mediafiles ( &$mediafiles, $content ) {
 				$mediafiles[] = $src;
 		}
 	}
+}
+define( MAX_ZOOM, 19 ); // max on OSM??
+define( MAX_ZOOM_IN, 1 );
+define( MAX_ZOOM_OUT, 1 );
+// http://wiki.openstreetmap.org/wiki/Slippy_map_tilenames
+// Math.floor...
+function lon2tile ( $lon, $zoom) { 
+	return ($lon+180)/360*pow(2,$zoom);
+}
+// Math.floor...
+function lat2tile ( $lat, $zoom) { 
+	return (1-log(tan($lat*M_PI/180) + 1/cos($lat*M_PI/180))/M_PI)/2 *pow(2,$zoom);
+}
+function add_maptiles( &$mediafiles, $lat, $lon, $zoom ) {
+	if ( $zoom> MAX_ZOOM )
+		$zoom = MAX_ZOOM;
+	// OSM: http://{s}.tile.osm.org/{z}/{x}/{y}.png
+	$mapUrl = 'http://{s}.tile.osm.org/{z}/{x}/{y}.png';
+	// see https://github.com/Leaflet/Leaflet/blob/master/src/layer/tile/TileLayer.js
+	$subdomains = array( 'a','b','c' );
+	$latTile0 = lat2tile( $lat, 0 );
+	$lonTile0 = lon2tile( $lon, 0 );
+	echo "# add_maptiles $lat,$lon,$zoom -> $latTile0,$lonTile0\n";
+	// delta at zoom, scaled by larger image (up to 400px vs tile 256px)
+	// range = 0.5*1/Math.pow(2,zoom)*400/256
+	$mzoom = $zoom+MAX_ZOOM_IN;
+	$minZoom = $zoom-MAX_ZOOM_OUT;
+	if ( $mzoom > MAX_ZOOM )
+		$mzoom = MAX_ZOOM;
+	$tileRange = 0.5*400/256;
+	$xmax = 1;
+	for( $z=0; $z<=$mzoom; $z++ ) {
+		//tileRange = tileRange/2
+		$y1 = max( 0, floor( $latTile0-$tileRange ) );
+		$y2 = min( $xmax-1, floor( $latTile0+$tileRange ) );
+		$x1 = max( 0, floor( $lonTile0-$tileRange ) );
+		$x2 = min( $xmax-1, floor( $lonTile0+$tileRange ) );
+		$xmax = $xmax*2;
+		$latTile0 = $latTile0*2;
+		$lonTile0 = $lonTile0*2;
+		echo "# tiles zoom $z 0-$xmax-1 $x1:$x2, $y1:$y2\n";
+		if ( $z >= $minZoom ) {
+			for( $x=$x1; $x<=$x2; $x++ ) {
+				for( $y=$y1; $y<=$y2; $y++ ) {
+					$s = $subdomains[abs($x + $y) % count( $subdomains )];
+					$url = str_replace( array( '{s}', '{z}', '{x}', '{y}'), array( $s, $z, $x, $y ), $mapUrl );
+					if ( !in_array( $url, $mediafiles ) )
+						$mediafiles[] = $url;
+				}
+			}
+		}
+	}				
 }
 function output_plugin_files( $array, $title ) {
 	if ( $title )

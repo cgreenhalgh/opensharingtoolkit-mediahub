@@ -2,14 +2,17 @@
 templatePlace = require 'templates/Place'
 location = require 'location'
 
-myIcon = L.icon
-    iconUrl: '../../vendor/leaflet/images/my-icon.png'
-    iconRetinaUrl: '../../vendor/leaflet/images/my-icon-2x.png'
+myIcon = null
+init = -> 
+  if not myIcon?
+   myIcon = L.icon
+    iconUrl: window.getasseturl 'vendor/leaflet/images/my-icon.png'
+    iconRetinaUrl: window.getasseturl 'vendor/leaflet/images/my-icon-2x.png'
     iconSize:    [25, 41]
     iconAnchor:  [12, 41]
     popupAnchor: [1, -34]
     shadowSize:  [41, 41]
-    shadowUrl: '../../vendor/leaflet/images/marker-shadow.png'
+    shadowUrl: window.getasseturl 'vendor/leaflet/images/marker-shadow.png'
     #shadowRetinaUrl: 'my-icon-shadow@2x.png'
     #shadowAnchor: [22, 94]
 
@@ -48,6 +51,7 @@ module.exports = class PlaceView extends Backbone.View
   tagName: 'div'
 
   initialize: ->
+    init()
     #@listenTo @model, 'change', @render
     @render()
 
