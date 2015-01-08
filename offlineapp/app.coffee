@@ -24,11 +24,13 @@ ShareView = require 'views/Share'
 LocationView = require 'views/Location'
 UnlockNumberView = require 'views/UnlockNumber'
 UnlockView = require 'views/Unlock'
+SettingsView = require 'views/Settings'
 
 localdb = require 'localdb'
 formdb = require 'formdb'
 working = require 'working'
 location = require 'location'
+locked = require 'locked'
 
 #config = window.mediahubconfig
 
@@ -70,6 +72,7 @@ class Router extends Backbone.Router
     "unlockNumber": "unlockNumber"
     "unlockArtcode": "unlockArtcode"
     "unlock/:type/:code": "unlock"
+    "settings": "settings"
 
   removeCurrentView: ->
     if currentView?
@@ -165,7 +168,7 @@ class Router extends Backbone.Router
         for unlockCode in item.attributes.unlockCodes 
           if unlockCode.type==type and unlockCode.code==code
             console.log "unlock #{item.id} by #{type} = #{code}"
-            # TODO unlock
+            locked.unlock item
             return window.router.navigate "#thing/#{item.id}", {trigger: true, replace: true}
           #else
           #  console.log "code mismatch for #{item.id}, #{unlockCode.type} = #{unlockCode.code} vs #{type} = #{code}"
@@ -175,6 +178,10 @@ class Router extends Backbone.Router
     else
       @setCurrentView new UnlockView model: 
         (new Backbone.Model { _id: type+':'+code, type:type, code:code, loading:true })
+
+  settings: () ->
+    @setCurrentView new SettingsView model: new Backbone.Model {} 
+
 
 makeThing = (data, collection, thingIds) ->
   try

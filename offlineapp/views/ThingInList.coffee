@@ -10,7 +10,9 @@ module.exports = class ThingInListView extends Backbone.View
   className: 'thing-in-list'
 
   initialize: ->
+    @unlockState = locked.getUnlockState @model
     @listenTo @model, 'change', @render
+    @listenTo @unlockState, 'change', @render
     @tagsView = new TagListWidgetView model: tags.getTagsForSubject @model.id
     @render()
 
@@ -25,7 +27,7 @@ module.exports = class ThingInListView extends Backbone.View
     if not iconurl? or iconurl==''
       if @model.attributes.type?
         iconurl = window.geticonurl "#{@model.attributes.type}.png"
-    @$el.html @template _.extend {}, @model.attributes, { iconurl: iconurl } 
+    @$el.html @template _.extend {}, @model.attributes, { iconurl: iconurl, unlocked: @unlockState.attributes.unlocked } 
     $('.tag-widget-holder', @$el).replaceWith @tagsView.el
     @
 
@@ -35,7 +37,7 @@ module.exports = class ThingInListView extends Backbone.View
   view: (ev) =>
     console.log "view #{@model.attributes._id}"
     ev.preventDefault()
-    if @model.attributes.locked? and @model.attributes.locked!=0
+    if @model.attributes.locked? and @model.attributes.locked!=0 and !@unlockState.attributes.unlocked
       console.log "Item #{@model.attributes._id} is locked"
       locked.showLockedAlert(@model)
       return

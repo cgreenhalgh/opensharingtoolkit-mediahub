@@ -50,9 +50,11 @@ if ( !get_post_meta( $post->ID, '_wototo_disable_appcache', true ) )
     <script src="<?php echo plugins_url( 'vendor/foundation/js/foundation/foundation.offcanvas.js', __FILE__ ) ?>"></script>
     <script src="<?php echo plugins_url( 'vendor/foundation/js/foundation/foundation.topbar.js', __FILE__ ) ?>"></script>
     <script src="<?php echo plugins_url( 'vendor/underscore/underscore.js', __FILE__ ) ?>"></script>
+    <script src="<?php echo plugins_url( 'vendor/IndexedDBShim/IndexedDBShim.min.js', __FILE__ ) ?>"></script>
     <script src="<?php echo plugins_url( 'vendor/backbone/backbone.js', __FILE__ ) ?>"></script>
     <script src="<?php echo plugins_url( 'vendor/pouchdb/dist/pouchdb-3.0.2.min.js', __FILE__ ) ?>"></script>
     <script src="<?php echo plugins_url( 'vendor/backbone-pouchdb/dist/backbone-pouch.js', __FILE__ ) ?>"></script>
+    <script src="<?php echo plugins_url( 'vendor/backbone-indexeddb/backbone-indexeddb.js', __FILE__ ) ?>"></script>
     <script src="<?php echo plugins_url( 'vendor/filesaver/FileSaver.js', __FILE__ ) ?>"></script>
     <script src="<?php echo plugins_url( 'vendor/node-uuid/uuid.js', __FILE__ ) ?>"></script>
     <script src="<?php echo plugins_url( 'js/offlineapp.js', __FILE__ ) ?>"></script>

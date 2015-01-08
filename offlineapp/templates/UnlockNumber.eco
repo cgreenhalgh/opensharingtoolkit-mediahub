@@ -2,7 +2,7 @@
   <div class="columns large-12 small-12">
     <form>
       <label for="unlock_number_id">Enter code number:</label><br/>
-      <input name="unlock_number" id="unlock_number_id" type="number"/><br/>
+      <input name="unlock_number" id="unlock_number_id" type="number" autofocus/><br/>
       <input type="submit" value="Unlock"/>
     </form>
     <% if @message? : %>

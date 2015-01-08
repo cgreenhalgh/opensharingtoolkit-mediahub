@@ -1,0 +1,13 @@
+<div class="row top-item">
+  <div class="columns large-12 small-12">
+    <% if @message? : %>
+      <div class="alert-box"><%= @message %></div>
+    <% end %>
+    <h4>Wipe data from app (cannot be recovered)</h4>
+    <form id="clear_form">
+      <input type="checkbox" name="clear_unlock"/><label for="clear_unlock_id">Re-lock any unlocked content</label><br/>
+      <input type="submit" value="Wipe"/>
+    </form>
+  </div>
+</div>
+

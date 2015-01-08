@@ -1,7 +1,7 @@
 <%# Thing in Thing List, in column, takes Thing as data (title, description, ...) %>
-<div class="thing-in-list-holder <%= if @locked? and @locked!=0 and ( not @lockedShow? or @lockedShow==0 ) then 'hide' %>">
+<div class="thing-in-list-holder <%= if @locked? and @locked!=0 and not @unlocked and ( not @lockedShow? or @lockedShow==0 ) then 'hide' %>">
   <% if @iconurl? and @iconurl!='' :  %>
-    <div class="thing-in-list-icon"><img src="<%= if @locked? and @locked!=0 and @lockedShow==1 then window.geticonurl 'locked.png' else @iconurl %>"/></div>
+    <div class="thing-in-list-icon"><img src="<%= if @locked? and @locked!=0 and not @unlocked and @lockedShow==1 then window.geticonurl 'locked.png' else @iconurl %>"/></div>
   <% end %>
   <div class="thing-in-list-title"><%= @title %></div>
   <div class="tag-widget-holder"></div>
