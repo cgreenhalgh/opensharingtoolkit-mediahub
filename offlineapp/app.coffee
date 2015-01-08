@@ -362,6 +362,17 @@ App =
         console.log "Ignore click on undefined url (target url #{$(ev.target).attr 'href'})"
         ev.preventDefault()
         return
+      if url=='#unlockQrcode'
+        if cordova?.plugins?.barcodeScanner?
+          console.log "try qrcode scanner..."
+          alert "scan..."
+          cordova.plugins.barcodeScanner.scan (result) -> 
+            if (result.cancelled)
+              console.log "qrcode scan cancelled"
+            else
+              console.log "qrcode scan "+result.text+" "+result.format
+              router.navigate "#unlock/qrcode/#{encodeURIComponent result.text}", trigger:true
+          return
       if url.charAt(0)=='#'
         console.log "Local url #{url}"
         router.navigate url, trigger:true
