@@ -2,6 +2,7 @@
 templateThingInList = require 'templates/ThingInList'
 TagListWidgetView = require 'views/TagListWidget'
 tags = require 'tags'
+locked = require 'locked'
 
 module.exports = class ThingInListView extends Backbone.View
 
@@ -34,6 +35,10 @@ module.exports = class ThingInListView extends Backbone.View
   view: (ev) =>
     console.log "view #{@model.attributes._id}"
     ev.preventDefault()
+    if @model.attributes.locked? and @model.attributes.locked!=0
+      console.log "Item #{@model.attributes._id} is locked"
+      locked.showLockedAlert(@model)
+      return
     id = @model.id
     ix = id.indexOf ':'
     type = if ix>0 then id.substring 0,ix else 'unknown'

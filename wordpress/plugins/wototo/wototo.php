@@ -23,7 +23,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 */
 // wander anywhere map post  -> wototo place
 define( "DEFAULT_ZOOM", 15 );
-define( "WOTOTO_VERSION", "0.1.6" );
+define( "WOTOTO_VERSION", "0.1.6-16" );
 
 add_action( 'init', 'wototo_create_post_types' );
 //Register the app post type
@@ -57,12 +57,22 @@ function wototo_add_custom_box() {
     add_meta_box(
         'wototo_app_box_id',        // Unique ID
         'App Settings', 	    // Box title
-        'wototo_inner_custom_box',  // Content callback
+        'wototo_app_custom_box',  // Content callback
         'wototo_app',               // post type
         'normal', 'high'
     );
+    $item_types = array( 'post', 'page', 'anywhere_map_post' );
+    foreach( $item_types as $item_type ) {
+        add_meta_box(
+            'wototo_item_box_id',        // Unique ID
+            'App-specific Settings', 	    // Box title
+            'wototo_item_custom_box',  // Content callback
+       	    $item_type,  // post type
+            'normal', 'default'
+        );
+    }
 }
-function wototo_inner_custom_box( $post ) {
+function wototo_app_custom_box( $post ) {
 ?>
     <label for="wototo_things_menu_id">Pages in app</label><br/>
     <select name="wototo_things_menu_id" id="wototo_things_menu_id">
@@ -96,6 +106,42 @@ function wototo_inner_custom_box( $post ) {
     </select><br/>
 <?php
 }
+function wototo_code_types() {
+    return array( array( "type" => "number", "title" => "Number", "input" => "number" ),
+      array( "type" => "artcode", "title" => "Artcode", "input" => "text" ) );
+}
+function wototo_item_custom_box( $post ) {
+    $value = get_post_meta( $post->ID, '_wototo_item_locked', true ); 
+?>
+    <label for="wototo_item_locked_id">Locked (hidden) when in an app?</label><br/>
+    <select name="wototo_item_locked" id="wototo_item_locked_id" class="postbox">
+        <option value="0">No</option>
+        <option value="1" <?php if ( '1' == $value ) echo 'selected'; ?>>Initially (until unlocked)</option>
+        <option value="2" <?php if ( '2' == $value ) echo 'selected'; ?>>Always</option>
+    </select><br/>
+<?php
+    $value = get_post_meta( $post->ID, '_wototo_item_locked_show', true ); 
+?>
+    <label for="wototo_item_locked_show_id">When locked, show...</label><br/>
+    <select name="wototo_item_locked_show" id="wototo_item_locked_show_id" class="postbox">
+        <option value="0">Nothing</option>
+        <option value="1" <?php if ( '1' == $value ) echo 'selected'; ?>>Item title</option>
+    </select><br/>
+<?php
+    $value = get_post_meta( $post->ID, '_wototo_item_unlock_codes', true );
+    $unlock_codes = $value ? json_decode( $value, true ) : array();
+?>
+    <label for="wototo_item_unlock_codes_id">Unlock by...</label><br/>
+    <table id="wototo_item_unlock_codes_id"><tbody>
+<?php
+    foreach ( wototo_code_types() as $code_type ) {
+?>      <tr><td><?php echo esc_html__( $code_type['title'] ) ?></td><td><input type="<?php echo $code_type['input'] ?>" name="wototo_item_unlock_codes-<?php echo $code_type['type'] ?>" value="<?php echo array_key_exists( $code_type['type'], $unlock_codes ) ? $unlock_codes[$code_type['type']] : '' ?>"/></td></tr>
+<?php
+    }
+?>
+    </tbody></table><br/>
+<?php
+}
 add_action( 'save_post', 'wototo_save_postdata' );
 function wototo_save_postdata( $post_id ) {
     if ( array_key_exists('wototo_show_about', $_POST ) ) {
@@ -122,6 +168,41 @@ function wototo_save_postdata( $post_id ) {
             $_POST['wototo_disable_appcache']
         );
     }
+    if ( array_key_exists('wototo_item_locked', $_POST ) ) {
+        update_post_meta( $post_id,
+           '_wototo_item_locked',
+            $_POST['wototo_item_locked']
+        );
+        $lock_id = get_post_meta( $post->ID, '_wototo_item_lock_id', true );
+        // clear if unlocked; generate if locked     
+        if( $_POST['wototo_item_locked'] && !$lock_id ) 
+            update_post_meta( $post_id,
+               '_wototo_item_lock_id', uniqid('lockid', TRUE) );
+        else if( !$_POST['wototo_item_locked'] && $lock_id ) 
+            update_post_meta( $post_id,
+               '_wototo_item_lock_id', '' );
+    }
+    if ( array_key_exists('wototo_item_locked_show', $_POST ) ) {
+        update_post_meta( $post_id,
+           '_wototo_item_locked_show',
+            $_POST['wototo_item_locked_show']
+        );
+    }
+    $value = get_post_meta( $post->ID, '_wototo_item_unlock_codes', true );
+    $unlock_codes = $value ? json_decode( $value, true ) : array();
+    $changed = FALSE;
+    foreach ( wototo_code_types() as $code_type ) {
+        if( array_key_exists('wototo_item_unlock_codes-'.$code_type['type'], $_POST ) ) {
+            $unlock_codes[$code_type['type']] = $_POST['wototo_item_unlock_codes-'.$code_type['type']];
+            $changed = TRUE;
+        }
+    }
+    if ( $changed ) {
+        update_post_meta( $post_id,
+           '_wototo_item_unlock_codes',
+           json_encode( $unlock_codes )
+        );
+    }
 }
 add_filter( 'template_include', 'wototo_include_template_function', 1 );
 function wototo_include_template_function( $template_path ) {
@@ -146,6 +227,25 @@ function filter_content ( $content ) {
 	// <audio class="wp-audio-shortcode" id="audio-0-1" preload="none" style="width: 100%; /* visibility: hidden; */" controls="controls"><source type="audio/mpeg" src="http://172.17.0.6/wp-content/uploads/2015/01/campus.mp3?_=1"><a href="http://172.17.0.6/wp-content/uploads/2015/01/campus.mp3">http://172.17.0.6/wp-content/uploads/2015/01/campus.mp3</a></audio>
 	$content = preg_replace( '/(<audio\s[^\/>]*)visibility\s*:\s*hidden\s*[;]?/', '$1', $content );
 	return $content;
+}
+// custom meta info, esp. locked stuff
+function wototo_add_item_fields( &$res, $post ) {
+    $value = get_post_meta( $post->ID, '_wototo_item_locked', true ); 
+    if ( $value != "" )
+        $res['locked'] = intval( $value );
+    $value = get_post_meta( $post->ID, '_wototo_item_locked_show', true ); 
+    if ( $value != "" )
+        $res['lockedShow'] = intval( $value );
+    $value = get_post_meta( $post->ID, '_wototo_item_lock_id', true ); 
+    if ( $value != "" )
+        $res['lockId'] = $value;
+    $value = get_post_meta( $post->ID, '_wototo_item_unlock_codes', true );
+    if ( $value ) {
+        $unlock_codes = json_decode( $value, true );
+        $res['unlockCodes'] = array();
+        foreach ( $unlock_codes as $type => $code ) 
+           $res['unlockCodes'][] = array( "type" => $type, "code" => $code ); 
+    }
 }
 // Ajax for get json...
 function wototo_get_json() {
@@ -230,6 +330,7 @@ function wototo_get_json() {
 		$thumbid = get_post_thumbnail_id($post->ID);
 		if ( $thumbid ) 
 			$res['iconurl'] = wp_get_attachment_url( $thumbid );
+		wototo_add_item_fields( $res, $post );
 	}
 	else if ( $post->post_type == 'anywhere_map_post' ) {
 		if ( $type != 'place' ) {
@@ -254,6 +355,7 @@ function wototo_get_json() {
 				$res['zoom'] = DEFAULT_ZOOM;
 			}
 		}
+		wototo_add_item_fields( $res, $post );
 	}
 	else {
 		echo '{"error":"Unimplemented: support for post_type '.$post->post_type.'"}';
@@ -295,7 +397,7 @@ function wototo_get_manifest() {
 		'icons/loading.gif', 'icons/place.png', 'icons/booklet.png', 
 		'icons/list.png', 'icons/file.png', 'icons/form.png', 'icons/html.png',
 		'icons/arrow-l-black.png', 'icons/arrow-r-black.png', 'icons/back-black.png', 
-		'icons/bars-black.png', 
+		'icons/bars-black.png', 'icons/locked.png'
 		), "default icons");
 	output_plugin_files( array( 
 		'vendor/leaflet/images/marker-icon-2x.png',

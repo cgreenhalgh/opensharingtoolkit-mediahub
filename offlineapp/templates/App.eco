@@ -10,6 +10,8 @@
         <li id="showLocation" class="hide"><a href="#location">Location</a></li>
         <li id="showUser" class="hide"><a href="#user">User</a></li>
         <li id="showUpload" class="hide"><a href="#upload">Send</a></li>
+        <li id="unlockNumber" class="hide"><a href="#unlockNumber">Enter Code</a></li>
+        <!-- <li id="unlockArtcode" class="hide"><a href="#unlockArtcode">Scan ArtCode</a></li> -->
       </ul>
     </aside>
 

@@ -14,3 +14,6 @@ wototo.zip:
 
 .PHONY: wototo.zip
 
+wototo.tgz: wototo.zip
+	tar zcf wototo.tgz wototo/
+

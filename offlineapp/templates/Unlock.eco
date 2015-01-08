@@ -1,0 +1,9 @@
+<div class="row top-item">
+  <div class="columns large-12 small-12">
+    <p>Entered <%= @type %> <%= @code %></p>
+    <% if @message? : %>
+      <div class="alert-box warning"><%= @message %></div>
+    <% end %>
+  </div>
+</div>
+

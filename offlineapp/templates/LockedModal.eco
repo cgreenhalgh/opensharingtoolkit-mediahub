@@ -1,0 +1,10 @@
+<%# error %>
+<%# <div id="lockedModal" class="reveal-modal" data-reveal> %>
+  <h2><%= @title %></h2>
+  <p><%= @description %></p>
+  <% if @message? : %>
+    <div class="alert-box warning"><%= @message %></div>
+  <% end %>
+  <a class="close-reveal-modal">&#215;</a>
+<%# </div> %>
+

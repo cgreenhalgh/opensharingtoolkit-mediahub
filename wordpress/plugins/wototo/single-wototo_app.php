@@ -42,6 +42,7 @@ if ( !get_post_meta( $post->ID, '_wototo_disable_appcache', true ) )
       <img src="<?php echo plugins_url( 'icons/loading.gif', __FILE__ ) ?>"/>
     </div>
     <div id="tagModalHolder" class="reveal-modal" data-reveal></div>
+    <div id="lockedModalHolder" class="reveal-modal" data-reveal></div>
 
     <script src="<?php echo plugins_url( 'vendor/jquery/dist/jquery.min.js', __FILE__ ) ?>"></script>
     <script src="<?php echo plugins_url( 'vendor/foundation/js/foundation.min.js', __FILE__ ) ?>"></script>

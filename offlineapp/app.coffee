@@ -22,6 +22,8 @@ FormUploadView = require 'views/FormUpload'
 AboutView = require 'views/About'
 ShareView = require 'views/Share'
 LocationView = require 'views/Location'
+UnlockNumberView = require 'views/UnlockNumber'
+UnlockView = require 'views/Unlock'
 
 localdb = require 'localdb'
 formdb = require 'formdb'
@@ -34,6 +36,16 @@ appid = null
 exported = 'false'
 dburl = null
 appconfig = null
+loadsInProgress = 0
+startLoad = () ->
+  loadsInProgress++
+endLoad = () ->
+  loadsInProgress--
+  if loadsInProgress==0
+    console.log "loading complete"
+    if currentView? and currentView.isUnlock and currentView.model.attributes.loading
+      console.log "Re-check code..."
+      window.router.unlock currentView.model.attributes.type, currentView.model.attributes.code
 
 appmodel = new Backbone.Model {}
 
@@ -55,6 +67,9 @@ class Router extends Backbone.Router
     "about": "about"
     "share": "share"
     "location": "location"
+    "unlockNumber": "unlockNumber"
+    "unlockArtcode": "unlockArtcode"
+    "unlock/:type/:code": "unlock"
 
   removeCurrentView: ->
     if currentView?
@@ -137,6 +152,30 @@ class Router extends Backbone.Router
   location: () ->
     @setCurrentView new LocationView model: location.getLocation()
 
+  unlockNumber: () ->
+    @setCurrentView new UnlockNumberView model: (new Backbone.Model _id: '_unlockNumber')
+
+  unlockArtcode: () ->
+    # TODO
+
+  unlock: (type, code) ->
+    # check current things
+    for id,item of items
+      if item.attributes.unlockCodes?
+        for unlockCode in item.attributes.unlockCodes 
+          if unlockCode.type==type and unlockCode.code==code
+            console.log "unlock #{item.id} by #{type} = #{code}"
+            # TODO unlock
+            return window.router.navigate "#thing/#{item.id}", {trigger: true, replace: true}
+          #else
+          #  console.log "code mismatch for #{item.id}, #{unlockCode.type} = #{unlockCode.code} vs #{type} = #{code}"
+    if loadsInProgress==0
+      @setCurrentView new UnlockView model: 
+        (new Backbone.Model { _id: type+':'+code, type:type, code:code, message:"Sorry, that code didn't do anything" })
+    else
+      @setCurrentView new UnlockView model: 
+        (new Backbone.Model { _id: type+':'+code, type:type, code:code, loading:true })
+
 makeThing = (data, collection, thingIds) ->
   try
     thing = new Backbone.Model data
@@ -176,6 +215,14 @@ checkThing = (data,collection,thingIds) ->
     data = JSON.parse data
     if data.type?
       makeThing data, collection, thingIds
+      if data.locked? and data.locked!=0 and data.unlockCodes?
+        for unlockCode in data.unlockCodes when unlockCode.code? and unlockCode.code!=''
+          if unlockCode.type=='number'
+            $('#unlockNumber').removeClass 'hide'
+          else if unlockCode.type=='artcode'
+            $('#unlockArtcode').removeClass 'hide'
+          else
+            console.log "unknown unlockCode type #{unlockCode.type}"
     else
       console.log "unknown item type #{data.type} - ignored"
   catch err
@@ -185,15 +232,18 @@ loadThing = (thingId,collection,thingIds) ->
   if exported=='true'
     thingId = encodeURIComponent thingId
   console.log "load thing #{thingId}"
+  startLoad()
   $.ajax dburl+"/"+encodeURIComponent(thingId),
     success: (data)->
       checkThing data, collection, thingIds
+      endLoad()
     dataType: "text"
     error: (xhr,status,err) ->
       console.log "get thing error "+xhr.status+": "+err.message
       # on android (at least) files from cache sometimes have status 0!!
       if xhr.status==0 && xhr.responseText
         checkThing xhr.responseText, collection, thingIds
+      endLoad()
 
 loadThings = (app,collection) ->
   for thingId in app.thingIds
@@ -229,9 +279,14 @@ checkConfig = (app) ->
 refresh = ()->
   console.log "refresh #{dburl} #{appid}"
   working.working 'refresh'
+  $('#unlockNumber').addClass 'hide'
+  $('#unlockArtcode').addClass 'hide'
   topLevelThings.reset()
+  startLoad()
   $.ajax dburl+"/"+encodeURIComponent(appid),
-    success: checkConfig
+    success: (data) -> 
+      checkConfig(data)
+      endLoad()
     dataType: "text"
     error: (xhr,status,err) ->
       console.log "get client config error "+xhr.status+": "+err.message
@@ -240,9 +295,12 @@ refresh = ()->
         checkConfig xhr.responseText
       else
         working.error 'Sorry, could not load initial information - please try reloading this app'
+      endLoad()
 
 App = 
   init: ->
+
+    startLoad()
 
     $('body').append templateApp {} 
     # (re)init foundation
@@ -376,6 +434,8 @@ App =
     #appcache.onUpdate () ->
     #  refresh dburl,appid
     refresh dburl,appid
+
+    endLoad()
 
 module.exports = App
 
