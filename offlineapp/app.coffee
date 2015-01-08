@@ -23,6 +23,7 @@ AboutView = require 'views/About'
 ShareView = require 'views/Share'
 LocationView = require 'views/Location'
 UnlockNumberView = require 'views/UnlockNumber'
+UnlockTextView = require 'views/UnlockText'
 UnlockView = require 'views/Unlock'
 SettingsView = require 'views/Settings'
 
@@ -71,6 +72,7 @@ class Router extends Backbone.Router
     "location": "location"
     "unlockNumber": "unlockNumber"
     "unlockArtcode": "unlockArtcode"
+    "unlockQrcode": "unlockQrcode"
     "unlock/:type/:code": "unlock"
     "settings": "settings"
 
@@ -159,7 +161,12 @@ class Router extends Backbone.Router
     @setCurrentView new UnlockNumberView model: (new Backbone.Model _id: '_unlockNumber')
 
   unlockArtcode: () ->
-    # TODO
+    # TODO real artcode scan
+    @setCurrentView new UnlockTextView model: (new Backbone.Model _id: '_unlockText', type: 'artcode', message: 'Sorry, you will have to enter the code by hand for now')
+
+  unlockQrcode: () ->
+    # TODO real qrcode scan
+    @setCurrentView new UnlockTextView model: (new Backbone.Model _id: '_unlockText', type: 'qrcode', message: 'Sorry, you will have to enter the code by hand for now')
 
   unlock: (type, code) ->
     # check current things
@@ -228,6 +235,8 @@ checkThing = (data,collection,thingIds) ->
             $('#unlockNumber').removeClass 'hide'
           else if unlockCode.type=='artcode'
             $('#unlockArtcode').removeClass 'hide'
+          else if unlockCode.type=='qrcode'
+            $('#unlockQrcode').removeClass 'hide'
           else
             console.log "unknown unlockCode type #{unlockCode.type}"
     else
@@ -288,6 +297,7 @@ refresh = ()->
   working.working 'refresh'
   $('#unlockNumber').addClass 'hide'
   $('#unlockArtcode').addClass 'hide'
+  $('#unlockQrcode').addClass 'hide'
   topLevelThings.reset()
   startLoad()
   $.ajax dburl+"/"+encodeURIComponent(appid),

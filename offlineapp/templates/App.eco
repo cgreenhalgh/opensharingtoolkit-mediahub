@@ -11,7 +11,8 @@
         <li id="showUser" class="hide"><a href="#user">User</a></li>
         <li id="showUpload" class="hide"><a href="#upload">Send</a></li>
         <li id="unlockNumber" class="hide"><a href="#unlockNumber">Enter Code</a></li>
-        <!-- <li id="unlockArtcode" class="hide"><a href="#unlockArtcode">Scan ArtCode</a></li> -->
+        <li id="unlockArtcode" class="hide"><a href="#unlockArtcode">Scan ArtCode</a></li>
+        <li id="unlockQrcode" class="hide"><a href="#unlockQrcode">Scan QRCode</a></li>
         <li id="showSettings"><a href="#settings">Settings</a></li>
       </ul>
     </aside>

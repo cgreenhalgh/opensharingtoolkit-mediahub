@@ -3,7 +3,7 @@
  * Plugin Name: wototo
  * Plugin URI: https://github.com/cgreenhalgh/opensharingtoolkit-mediahub/tree/master/docs/wordpress.md
  * Description: Create simple HTML5 web apps from wordpress content (pages and posts). The web apps are intended for use on recent smart phones and tablets.
- * Version: 0.1.6
+ * Version: 0.1.7
  * Author: Chris Greenhalgh
  * Author URI: http://www.cs.nott.ac.uk/~cmg/
  * Network: true
@@ -23,7 +23,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 */
 // wander anywhere map post  -> wototo place
 define( "DEFAULT_ZOOM", 15 );
-define( "WOTOTO_VERSION", "0.1.6-27" );
+define( "WOTOTO_VERSION", "0.1.7-3" );
 
 add_action( 'init', 'wototo_create_post_types' );
 //Register the app post type
@@ -108,7 +108,9 @@ function wototo_app_custom_box( $post ) {
 }
 function wototo_code_types() {
     return array( array( "type" => "number", "title" => "Number", "input" => "number" ),
-      array( "type" => "artcode", "title" => "Artcode", "input" => "text" ) );
+      array( "type" => "artcode", "title" => "Artcode", "input" => "text" ),
+      array( "type" => "qrcode", "title" => "QRcode", "input" => "text" ),
+    );
 }
 function wototo_item_custom_box( $post ) {
     $value = get_post_meta( $post->ID, '_wototo_item_locked', true ); 

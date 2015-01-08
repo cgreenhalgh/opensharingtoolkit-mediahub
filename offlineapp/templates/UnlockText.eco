@@ -1,0 +1,13 @@
+<div class="row top-item">
+  <div class="columns large-12 small-12">
+    <form>
+      <label for="unlock_code_id">Enter code:</label><br/>
+      <input name="unlock_code" id="unlock_code_id" type="text" autofocus/><br/>
+      <input type="submit" value="Unlock"/>
+    </form>
+    <% if @message? : %>
+      <div class="alert-box warning"><%= @message %></div>
+    <% end %>
+  </div>
+</div>
+

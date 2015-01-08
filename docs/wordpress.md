@@ -28,6 +28,8 @@ Notes:
 - Only posts or pages (or wander anywhere map posts) are included in the app; other types of menu items are ignored.
 - Only published (public) app(s) and posts/pages are included in the app
 - forms and upload are not currently supported
+- if you change (update) any of the items in the app or the app itself then existing clients will get a new version of the app the next time they check
+- but if you only change the order of items in a menu then existing clients will not detect that the app has changed
 
 ## Test / development notes
 
