@@ -5,6 +5,32 @@
 
 $wototo = $_POST['wototo'] ? $_POST['wototo'] : $_GET['wototo'];
 	
+if ( $wototo && $wototo == "2" ) {
+	// serve redirect page with custom mime type to start custom app, from which to load
+	// version with standard mime type. work-around for some cordova issues (load context permission
+	// from android downloads).
+	header( "Content-Type: application/x-wototo" );
+	$link =  str_replace( "wototo=2", "wototo=1", "http://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]" );
+	$escaped_link = htmlspecialchars($link, ENT_QUOTES, 'UTF-8');	 
+?>
+<!DOCTYPE HTML>
+<html lang="en-US">
+    <head>
+        <meta charset="UTF-8">
+        <meta http-equiv="refresh" content="1;url=<?php echo $escaped_link ?>">
+        <script type="text/javascript">
+            window.location.href = "<?php echo $escaped_link ?>"
+        </script>
+        <title>Page Redirection</title>
+    </head>
+    <body>
+        If you are not redirected automatically, follow the <a href="<?php echo $escaped_link ?>">link to the app</a>
+    </body>
+</html>
+<?php	
+	exit;
+}
+
 // Start the loop.
 while ( have_posts() ) : the_post();
 

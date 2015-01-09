@@ -253,6 +253,8 @@ function wototo_add_item_fields( &$res, $post ) {
 function wototo_get_json() {
 	global $wpdb;
 	header( "Content-Type: application/json" );
+	// TODO more specific?
+	header( "Access-Control-Allow-Origin: *" );
 	$sid = $_POST['id'] ? $_POST['id'] : $_GET['id'];
 	if ( !$sid ) {
 		echo '{"error":"Invalid request: id not specified"}';
