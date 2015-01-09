@@ -365,7 +365,7 @@ App =
       if url=='#unlockQrcode'
         if cordova?.plugins?.barcodeScanner?
           console.log "try qrcode scanner..."
-          alert "scan..."
+          # alert "scan..."
           cordova.plugins.barcodeScanner.scan (result) -> 
             if (result.cancelled)
               console.log "qrcode scan cancelled"

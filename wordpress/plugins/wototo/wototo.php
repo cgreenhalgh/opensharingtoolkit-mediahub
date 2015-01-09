@@ -23,7 +23,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 */
 // wander anywhere map post  -> wototo place
 define( "DEFAULT_ZOOM", 15 );
-define( "WOTOTO_VERSION", "0.1.7-3" );
+define( "WOTOTO_VERSION", "0.1.7-5" );
 
 add_action( 'init', 'wototo_create_post_types' );
 //Register the app post type
@@ -439,6 +439,14 @@ function wototo_get_manifest() {
 		'clientid.js', 
 		'vendor/leaflet/leaflet.js', 
 		), "javascript from index");
+	$wototo = $_POST['wototo'] ? $_POST['wototo'] : $_GET['wototo'];
+	if ( $wototo ) 
+		output_plugin_files( array( 
+			'vendor/cordova/cordova.js', 
+			'vendor/cordova/cordova_plugins.js', 
+			'vendor/cordova/plugins/org.opensharingtoolkit.cordova.aestheticodes/www/aestheticodes.js', 
+			'vendor/cordova/plugins/com.phonegap.plugins.barcodescanner/www/barcodescanner.js', 
+			), "Apache Cordova");
 ?># app json
 <?php
 	echo "# last modified $post->post_modified_gmt\n";

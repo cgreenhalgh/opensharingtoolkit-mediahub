@@ -3,6 +3,8 @@
  * The template for displaying a single wototo app. From Couchapp/templates/app.html
  */
 
+$wototo = $_POST['wototo'] ? $_POST['wototo'] : $_GET['wototo'];
+	
 // Start the loop.
 while ( have_posts() ) : the_post();
 
@@ -11,7 +13,8 @@ echo '<?'?>xml version="1.0" encoding="UTF-8"?>
     "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" <?php
 if ( !get_post_meta( $post->ID, '_wototo_disable_appcache', true ) )
-	echo 'manifest="'.admin_url( 'admin-ajax.php' ).'?action=wototo_get_manifest&id='.$post->ID.'"';
+	echo 'manifest="'.admin_url( 'admin-ajax.php' ).'?action=wototo_get_manifest&id='.$post->ID.
+		($wototo ? '&wototo='.$wototo : '').'"';
 ?>>
 <head>
 	<meta charset="utf-8">
@@ -22,7 +25,9 @@ if ( !get_post_meta( $post->ID, '_wototo_disable_appcache', true ) )
 	<meta name="mediahub-shareurl" content="${@shareurl}" />
 	<meta name="wototo-wordpress-files" content="<?php echo plugins_url( 'wototo' ) ?>" />
 	<meta name="wototo-wordpress-ajax" content="<?php echo admin_url( 'admin-ajax.php' ) ?>" />
-        <link rel="stylesheet" href="<?php echo plugins_url( 'vendor/leaflet/leaflet.css', __FILE__ ) ?>" />
+<?php   if ( $wototo ) 
+		echo '        <meta name="wototo" content="'.$wototo.'" />'."\n";
+?>        <link rel="stylesheet" href="<?php echo plugins_url( 'vendor/leaflet/leaflet.css', __FILE__ ) ?>" />
 	<link rel="stylesheet" href="<?php echo plugins_url( 'stylesheets/offline.css', __FILE__ ) ?>" />
 	<!-- IE -->
 	<link rel="shortcut icon" type="image/x-icon" href="${@faviconurl}" />
@@ -45,7 +50,10 @@ if ( !get_post_meta( $post->ID, '_wototo_disable_appcache', true ) )
     <div id="lockedModalHolder" class="reveal-modal" data-reveal></div>
 
     <script src="<?php echo plugins_url( 'vendor/jquery/dist/jquery.min.js', __FILE__ ) ?>"></script>
-    <script src="<?php echo plugins_url( 'vendor/foundation/js/foundation.min.js', __FILE__ ) ?>"></script>
+<?php if ( $wototo )
+	echo '    <script src="'.plugins_url( 'vendor/cordova/cordova.js', __FILE__ ).'"></script>'."\n";
+
+?>    <script src="<?php echo plugins_url( 'vendor/foundation/js/foundation.min.js', __FILE__ ) ?>"></script>
     <script src="<?php echo plugins_url( 'vendor/foundation/js/foundation/foundation.reveal.js', __FILE__ ) ?>"></script>
     <script src="<?php echo plugins_url( 'vendor/foundation/js/foundation/foundation.offcanvas.js', __FILE__ ) ?>"></script>
     <script src="<?php echo plugins_url( 'vendor/foundation/js/foundation/foundation.topbar.js', __FILE__ ) ?>"></script>
