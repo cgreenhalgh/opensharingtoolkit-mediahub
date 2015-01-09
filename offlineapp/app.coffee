@@ -372,6 +372,7 @@ App =
             else
               console.log "qrcode scan "+result.text+" "+result.format
               router.navigate "#unlock/qrcode/#{encodeURIComponent result.text}", trigger:true
+          ev.preventDefault()
           return
       if url.charAt(0)=='#'
         console.log "Local url #{url}"

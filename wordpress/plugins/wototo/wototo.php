@@ -23,7 +23,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 */
 // wander anywhere map post  -> wototo place
 define( "DEFAULT_ZOOM", 15 );
-define( "WOTOTO_VERSION", "0.1.7-5" );
+define( "WOTOTO_VERSION", "0.1.7-6" );
 
 add_action( 'init', 'wototo_create_post_types' );
 //Register the app post type
