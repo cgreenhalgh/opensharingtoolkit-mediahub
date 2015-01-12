@@ -333,6 +333,9 @@ module.exports.cacheFile = cacheFile = (surl,fn) ->
     # TODO file extension
     if (type.indexOf 'image/')==0
       mimeextension = type.substring(6)
+    else if (type.indexOf 'audio/mpeg')==0
+      # special case mp3 needed by ios/macs
+      mimeextension = "mp3"
     else if (type.indexOf 'audio/')==0
       mimeextension = type.substring(6)
     else if (type.indexOf 'text/html')==0
