@@ -8,4 +8,12 @@ svg.postselector {
 .lane { stroke:#000; stroke-width:2px; stroke-dasharray:10,10 }
 rect.post { stroke:#000; fill: #ddd }
 text.post { font: 32px sans-serif }
+rect.ghost { stroke:#000; fill: #ddd; opacity: 0.3 }
+text {
+  user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  -webkit-user-select: none;
+  cursor: default;
+}
 
