@@ -196,8 +196,10 @@ function postselector_get_posts() {
 		$ps = get_posts( $args );
 		foreach ($ps as $p) {
 			if ( current_user_can( 'read_post', $p->ID ) ) {
-				$post = array("title" => $p->post_title, "id" => $p->ID, "content" => $p->post_content, 
-					"status" => $p->post_status, "type" => $p->post_type );
+				$thumbid = get_post_thumbnail_id($p->ID);
+				$post = array("title" => $p->post_title, "id" => $p->ID, "content" => filter_content( $p->post_content ), 
+					"status" => $p->post_status, "type" => $p->post_type,
+					"iconurl" => ( $thumbid ? wp_get_attachment_url( $thumbid ) : null ), );
 				$posts[] = $post;
 			}
 		}
@@ -206,7 +208,45 @@ function postselector_get_posts() {
 	echo json_encode( $posts );
 	wp_die();
 }
+// Ajax for save...
+function postselector_save() {
+	global $wpdb;
+	check_ajax_referer( 'postselector-ajax', 'security' );
+	$id = intval( $_POST['id'] ? $_POST['id'] : $_GET['id'] );
+	if ( !$id ) {
+		echo '# Invalid request: id not specified';
+		wp_die();
+	}
+	$post = get_post($id);
+	if ( $post === null ) {
+		echo '# Not found: post '.$id.' not found';
+		wp_die();
+	}
+	if ( ! current_user_can( 'edit_post', $post->ID ) ) {
+		echo '# Not permitted: post '.$id.' is not editable for this user';
+		wp_die();
+	}
+	if ( $post->post_type != 'postselector' ) {
+		echo '# Invalid request: post '.$id.' is not an app ('.$post->post_type.')';
+		wp_die();
+	}
+	$jchoices = $_POST['choices'];
+	if ( !$jchoices ) {
+		echo '# Invalid request: choices not specified';
+		wp_die();
+	}
+        $choices = json_decode( stripslashes( $jchoices ), true );
+        if ( ( !is_array( $choices ) && !is_object( $choices ) ) || !is_array( $choices['selected'] ) || !is_array( $choices['rejected'] ) ) {
+		echo '# Invalid request: choices invalid: '.$jchoices.': '.gettype($choices);
+		wp_die();
+	}
+	// TODO edit output, esp. application thingIds
+	header( "Content-Type: application/json" );
+	echo 'true';
+	wp_die();
+}
 if ( is_admin() ) {
     add_action( 'wp_ajax_postselector_get_posts', 'postselector_get_posts' );
+    add_action( 'wp_ajax_postselector_save', 'postselector_save' );
 }
 

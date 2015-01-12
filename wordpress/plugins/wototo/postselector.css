@@ -1,12 +1,21 @@
 /* postselector.css */
-body { background:#ddd; margin:0 }
+body { background:#ddd; margin:0; overflow:hidden }
+body.post { background:#f8f8f8; margin:0; overflow:hidden }
 svg.postselector {
   display:block; border:1px solid #ccc; position:absolute;
-  top:5%; left:5%; width:90%; height:90%; background:#fff;
+  width:100%; background:#fff;
 }
-
+p.title {
+   font: 24px sans-serif;
+   margin-top: 0.1em;
+   margin-bottom: 0.1em;
+}
+p.title > input {
+   font: 16px sans-serif;
+}
 .lane { stroke:#000; stroke-width:2px; stroke-dasharray:10,10 }
 rect.post { stroke:#000; fill: #ddd }
+g.current > rect.post { stroke:#888; fill: #f8f8f8 }
 text.post { font: 32px sans-serif }
 rect.ghost { stroke:#000; fill: #ddd; opacity: 0.3 }
 text {
@@ -15,5 +24,22 @@ text {
   -ms-user-select: none;
   -webkit-user-select: none;
   cursor: default;
+  overflow: hidden;
+}
+div.content { 
+  user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  -webkit-user-select: none;
+  cursor: default;
+  font: 24px sans-serif;
+  z-index: 10;
+  background:#f8f8f8;
+}
+div.content p {
+  background:inherit;
+} 
+g.post > image {
+  background: #fff;
 }
 

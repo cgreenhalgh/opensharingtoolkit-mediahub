@@ -20,7 +20,15 @@ echo '<?'?>xml version="1.0" encoding="UTF-8"?>
     <body>
         <script src="<?php echo plugins_url( 'vendor/jquery/dist/jquery.min.js', __FILE__ ) ?>"></script>
         <script src="<?php echo plugins_url( 'vendor/d3/d3.min.js', __FILE__ ) ?>" charset="utf-8"></script>
-        <svg class="postselector" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000">
+<?php	
+// Start the loop.
+while ( have_posts() ) : the_post();
+?>        <script type="text/javascript">window.postselector.ids.push('<?php echo $post->ID; ?>');</script>
+          <p class="title"><input type="submit" value="Save Selection" id="submit-<?php echo $post->ID ?>"><?php echo esc_html( the_title() ) ?></p>
+<?php
+endwhile;
+
+?>        <svg class="postselector" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 2000" preserveAspectRatio="xMidYMin slice">
 	  <line class="lane" x1="333" y1="0" x2="333" y2="1000" />
 	  <line class="lane" x1="667" y1="0" x2="667" y2="1000" />
           <!-- <g class"post" transform="translate(10 10)">
@@ -28,14 +36,6 @@ echo '<?'?>xml version="1.0" encoding="UTF-8"?>
              <text class="post" x="10" y="0" dy="1em" width="260" text-overflow="ellipsis">Some text of interest</text>
           </g> -->
         </svg>
-<?php	
-// Start the loop.
-while ( have_posts() ) : the_post();
-?>        <script type="text/javascript">window.postselector.ids.push('<?php echo $post->ID; ?>');</script>
-<?php
-endwhile;
-
-?>
         <script src="<?php echo plugins_url( 'postselector.js', __FILE__ ) ?>"></script>
     </body>
 </html>
