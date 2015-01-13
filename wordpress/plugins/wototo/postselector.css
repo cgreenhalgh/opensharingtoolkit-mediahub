@@ -1,6 +1,8 @@
 /* postselector.css */
-body { background:#ddd; margin:0; overflow:hidden }
-body.post { background:#f8f8f8; margin:0; overflow:hidden }
+body { background:#fff; margin:0; overflow:hidden }
+body.post {
+ background:#f8f8f8; margin:0; overflow:hidden 
+}
 svg.postselector {
   display:block; border:1px solid #ccc; position:absolute;
   width:100%; background:#fff;
@@ -13,7 +15,15 @@ p.title {
 p.title > input {
    font: 16px sans-serif;
 }
-.lane { stroke:#000; stroke-width:2px; stroke-dasharray:10,10 }
+line.lane { stroke:#000; stroke-width:2px; stroke-dasharray:10,10 }
+text.lane {
+ font-family: 'Lucida Grande', sans-serif;
+ font-size: 100px;
+ fill: #aaa; 
+ text-antialiasing: true;
+ stroke: #aaa;
+ /*opacity: 0.3;*/
+}
 rect.post { stroke:#000; fill: #ddd }
 g.current > rect.post { stroke:#888; fill: #f8f8f8 }
 text.post { font: 32px sans-serif }

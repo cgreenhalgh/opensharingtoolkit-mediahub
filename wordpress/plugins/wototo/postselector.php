@@ -3,6 +3,13 @@
  *
  * Meant to support an initial (d3) interface for sorting/selecting posts, e.g. 
  * selecting posts to include within an app.
+ *
+ * To do:
+ * - add option to publish selected posts
+ * - add option to poll for new items
+ * - add option to broadcast view via (say) Union to slave displays
+ * - add option to include only draft items 
+ * - add exit animation
  */
 add_action( 'init', 'postselector_create_post_types' );
 //Register the app post type
@@ -240,11 +247,22 @@ function postselector_get_posts() {
 		foreach ($ps as $p) {
 			if ( current_user_can( 'read_post', $p->ID ) ) {
 				$thumbid = get_post_thumbnail_id($p->ID);
+				$selected = null;
+				$rank = array_search( $p->ID, $selected_ids );
+				if ( $rank !== FALSE ) 
+					$selected = TRUE;
+				else {
+					$rank = array_search( $p->ID, $rejected_ids );
+					if ( $rank !== FALSE )
+						$selected = FALSE;
+				}
+				if ( $rank === FALSE )
+					$rank = null;
 				$selected = in_array( $p->ID, $selected_ids ) ? true : ( in_array( $p->ID, $rejected_ids ) ? false : null ); 
 				$post = array("title" => $p->post_title, "id" => $p->ID, "content" => filter_content( $p->post_content ), 
 					"status" => $p->post_status, "type" => $p->post_type,
 					"iconurl" => ( $thumbid ? wp_get_attachment_url( $thumbid ) : null ), 
-					"selected" => $selected, );
+					"selected" => $selected, "rank" => $rank, );
 				$posts[] = $post;
 			}
 		}

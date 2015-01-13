@@ -7,24 +7,49 @@
 var datas = {};
 //for (var iid in window.postselector.ids) {
 //  var id = window.postselector.ids[iid];
-  var id = window.postselector.ids[0];
+var data = null;
+function load( id ) {
   console.log("id "+id);
   $.ajax(window.postselector.ajaxurl, {
     data: { action: "postselector_get_posts", security: window.postselector.nonce, id: id },
     dataType: 'text',
     error: function(xhr, status, thrown) { console.log("get error: "+status); alert("Sorry, could not get data from wordpress"); },
-    success: function(data) { 
-      console.log("get success for "+id+": "+data); 
-      data = JSON.parse( data );
-      datas[id] = data;
-      updateData(data);
+    success: function(d) { 
+      console.log("get success for "+id+": "+d); 
+      ndata = JSON.parse( d );
+      datas[id] = ndata;
+      // preserve ranks (and array object) if unspecified
+      if (data) {
+        var ds = {};
+        for (var i in ndata)
+          ds[ndata[i].id] = i;
+        var ods = {}
+        for (var i in data)
+          ods[data[i].id] = i;
+        
+        for (var id in ods) 
+          if (ds[id]===undefined)
+            data.splice(ods[id],1);
+        for (var id in ds) 
+          if (ods[id]===undefined)
+            data.push(ndata[ds[id]]);
+         // todo: other fields changed??
+      } else
+        data = ndata;
+      update();
     }
   });
-//}
+}
+load( window.postselector.ids[0] );
+
+$('#refresh').on('click',function() {
+  load( window.postselector.ids[0], datas[window.postselector.ids[0]] );
+});
+
 function comparePosts(a,b) {
-  if ( a.rank===undefined && b.rank!==undefined )
+  if ( ( a.rank===undefined || a.rank===null ) && ( b.rank!==undefined && b.rank!==null ) )
     return 1;
-  if ( a.rank!==undefined && b.rank===undefined )
+  if ( ( a.rank!==undefined && a.rank!==null ) && ( b.rank===undefined || b.rank===null ) )
     return -1;
   return a.rank-b.rank;
 }
@@ -33,7 +58,7 @@ var dragSelection = null;
 var ghost = null;
 var laneRanks = [0,0,0];
 var detail = null;
-function updateData(data) {
+function update() {
   console.log("updateData currentSelection="+currentSelection);
   // preserve old order if any
   data.sort(comparePosts);
@@ -69,6 +94,8 @@ function updateData(data) {
   var nposts = posts.enter().append("g")
       .attr("id", function(d) {return "post"+d.id})
       .classed("post", true)
+      .attr("transform", function(d,i) { return "translate("+(16+333*d.lane)+",2000)"; });
+  nposts.transition().duration(1000)
       .attr("transform", function(d,i) { return "translate("+(16+333*d.lane)+","+(10+d.rank*60)+")"; });
   nposts.append("clipPath").attr("id", function(d) { return "post"+d.id+"-clip" })
     .append("rect").attr("width",300).attr("height",50);
@@ -113,7 +140,7 @@ function updateData(data) {
         break;
       }
     }
-    updateData(data);
+    update();
   });
   var drag = d3.behavior.drag()
     .on("dragstart", function(d) {
@@ -137,7 +164,7 @@ function updateData(data) {
             .classed("ghost", true).attr("width", 300).attr("height", 50);
       }
       if (changed)
-        updateData(data);    
+        update();    
 
       ghost.attr("x", d3.event.x-150).attr("y", d3.event.y-25);
       var selected = d3.event.x<333 ? false : (d3.event.x>667 ? true : null);
@@ -160,7 +187,7 @@ function updateData(data) {
         moved = true;
       }
       if (moved)
-        updateData(data);
+        update();
      })
     .on("dragend", function(d) {
       console.log("dragend");
@@ -169,7 +196,7 @@ function updateData(data) {
       ghost = null;
       if (dragSelection) {
         dragSelection = null;
-        updateData(data);
+        update();
       }
      });
   nposts.call(drag);
@@ -186,7 +213,7 @@ $('input[type=submit]').on('click',function(ev) {
   if (id==window.postselector.ids[0]) {
     $('#submit'+id).prop('disabled', true);
     var res = { selected:[], rejected:[] };
-    var data = datas[id];
+    data.sort(comparePosts);
     for (var di=0; di<data.length; di++) {
       var post = data[di];
       if (post.selected!==null && post.selected!==undefined) {
@@ -206,9 +233,9 @@ $('input[type=submit]').on('click',function(ev) {
         console.log("save error: "+status); alert("Sorry, could not save data to wordpress"); 
         $('#'+id).prop('disabled', false);
       },
-      success: function(data) { 
-        console.log("save result for "+id+": "+data); 
-        if (data=='0' || data=='1' || data.substring(0,1)=='#') 
+      success: function(res) { 
+        console.log("save result for "+id+": "+res); 
+        if (res=='0' || res=='1' || res.substring(0,1)=='#') 
           alert("Sorry, could not save data to wordpress"); 
         $('#'+id).prop('disabled', false);
       }
