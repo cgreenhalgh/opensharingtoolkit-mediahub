@@ -4,17 +4,106 @@
   .enter().append("p")
     .text(function(d) { return "I’m number " + d + "!"; });
 */
+var data = null;
+var currentSelection = null;
+
+// union?!
+var orbiter, chatRoom, joined = false;
+function unionInit() {
+	if (!window.postselector.union_server) {
+		console.log("Not using union");
+		return;
+	}
+	console.log("try union server "+window.postselector.union_server);
+	try {
+		orbiter = new net.user1.orbiter.Orbiter();
+		orbiter.getConnectionMonitor().setAutoReconnectFrequency(15000);
+		orbiter.getLog().setLevel(net.user1.logger.Logger.DEBUG);
+		// Register for Orbiter's connection events
+		orbiter.addEventListener(net.user1.orbiter.OrbiterEvent.READY, unionReadyListener, this);
+		//orbiter.addEventListener(net.user1.orbiter.OrbiterEvent.CLOSE, closeListener, this);
+		orbiter.connect(window.postselector.union_server, 80);
+	} catch (err) {
+		console.log("Error starting union client: "+err.message);
+		alert("Sorry, could not start union client");
+	}
+}
+function unionReadyListener(e) {
+	var roomname = "wototo.postselector."+location.hostname+"."+location.pathname+"."+window.postselector.ids[0];
+	console.log("union ready...joining room "+roomname);
+	// Create the chat room on the server
+	chatRoom = orbiter.getRoomManager().createRoom(roomname);
+	chatRoom.addEventListener(net.user1.orbiter.RoomEvent.JOIN, unionJoinRoomListener);
+ 	if (window.postselector.union_readonly) 
+		chatRoom.addEventListener(net.user1.orbiter.AttributeEvent.UPDATE, unionRoomAttributeUpdateListener);
+	chatRoom.join();
+}
+function publishData() {
+	if (joined && !window.postselector.union_readonly && data) {
+		console.log("Publish data to union");
+		chatRoom.setAttribute("postselector.data", JSON.stringify({data:data,currentSelection:currentSelection}));
+	}
+}
+function unionJoinRoomListener(e) {
+	joined =true;
+	console.log("Joined union room");
+	publishData();
+}
+function unionRoomAttributeUpdateListener (e) {
+	if (e.getChangedAttr().name == "postselector.data") {
+		var ndata = chatRoom.getAttribute("postselector.data");
+		console.log("union data changed");
+		msg = JSON.parse(ndata);
+		data = msg.data;
+		currentSelection = msg.currentSelection;
+		// fix currentSelection
+		if (currentSelection && data.length>1 && data[data.length-1].id!=currentSelection) {
+			for (var i=0; i<data.length; i++) {
+				var item = data[i];
+				if (item.id==currentSelection) {
+					data.splice(i,1);
+					data.push(item);
+					d3.select("svg.postselector")
+				          .selectAll("g.post")
+				            .data(data, function(d) { return d.id; })
+				            .order();        
+					break;
+				}
+			}
+		}
+		update();
+	}
+}
+
 var datas = {};
 //for (var iid in window.postselector.ids) {
 //  var id = window.postselector.ids[iid];
-var data = null;
 function load( id ) {
   console.log("id "+id);
   $.ajax(window.postselector.ajaxurl, {
     data: { action: "postselector_get_posts", security: window.postselector.nonce, id: id },
     dataType: 'text',
-    error: function(xhr, status, thrown) { console.log("get error: "+status); alert("Sorry, could not get data from wordpress"); },
+    error: function(xhr, status, thrown) { 
+      console.log("get error: "+status); 
+      alert("Sorry, could not get data from wordpress"); 
+    },
     success: function(d) { 
+      if (d=='0' || d=='-1') {
+        console.log("wordpress ajax error response : "+d);
+        // try readonly
+        if (window.postselector.union_server && !window.postselector.union_readonly) {
+          console.log("try readonly");
+          var url = window.location.href;
+          if (url.indexOf('?')<0)
+            url = url +"?readonly";
+          else
+            url = url+"&readonly";
+          window.location.href = url;
+          return;
+        }
+        alert("Sorry, could not get data from wordpress"); 
+        return;
+      }
       console.log("get success for "+id+": "+d); 
       ndata = JSON.parse( d );
       datas[id] = ndata;
@@ -34,13 +123,18 @@ function load( id ) {
           if (ods[id]===undefined)
             data.push(ndata[ds[id]]);
          // todo: other fields changed??
-      } else
+      } else {
         data = ndata;
+        unionInit();
+      }
       update();
     }
   });
 }
-load( window.postselector.ids[0] );
+if (!window.postselector.union_readonly)
+	load( window.postselector.ids[0] );
+else 
+	unionInit();
 
 $('#refresh').on('click',function() {
   load( window.postselector.ids[0], datas[window.postselector.ids[0]] );
@@ -53,7 +147,6 @@ function comparePosts(a,b) {
     return -1;
   return a.rank-b.rank;
 }
-var currentSelection = null;
 var dragSelection = null;
 var ghost = null;
 var laneRanks = [0,0,0];
@@ -69,6 +162,7 @@ function update() {
     p.lane = lane;
     p.rank = laneRanks[lane]++;
   }
+  publishData();
   var posts = d3.select("svg.postselector")
     .selectAll("g.post")
      .data(data, function(d) { return d.id; });
@@ -112,6 +206,7 @@ function update() {
   //nposts.append("foreignObject")
   //    .attr("x", 20).attr("y", 60).attr("width", 860).attr("height", 820)
   //    .append("xhtml:body").append("xhtml:div").classed("content", true).html(function(d) { return d.content; });
+  if (!window.postselector.union_readonly) {
   nposts.on('click', function(d,i) {
     if (d3.event.defaultPrevented) return; // click suppressed
     console.log("click on "+d.id);
@@ -200,6 +295,7 @@ function update() {
       }
      });
   nposts.call(drag);
+  }//end of not readonly
   // exit
   posts.exit().remove();
 }

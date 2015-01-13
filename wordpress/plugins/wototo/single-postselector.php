@@ -3,6 +3,11 @@
  * The template for displaying a single PostSelector
  */
 $ajax_nonce = wp_create_nonce( "postselector-ajax" );
+$use_union = get_post_meta( $post->ID, '_postselector_use_union', true ) ? TRUE : FALSE;
+$union_url = get_post_meta( $post->ID, '_postselector_union_url', true );
+if ( empty( $union_url ) ) 
+	$union_url = "tryunion.com";
+$readonly = isset( $_REQUEST['readonly'] );
 
 echo '<?'?>xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
@@ -21,11 +26,25 @@ echo '<?'?>xml version="1.0" encoding="UTF-8"?>
         <script src="<?php echo plugins_url( 'vendor/jquery/dist/jquery.min.js', __FILE__ ) ?>"></script>
         <script src="<?php echo plugins_url( 'vendor/d3/d3.min.js', __FILE__ ) ?>" charset="utf-8"></script>
 <?php	
+	if ( $use_union ) {
+?>
+        <script src="<?php echo plugins_url( 'vendor/unionplatform/Orbiter_Release_min.js', __FILE__ ) ?>"></script>
+        <script type="text/javascript">window.postselector.union_server='<?php echo esc_attr( $union_url ) ?>';</script>
+<?php
+	if ( $readonly ) {
+?>
+        <script type="text/javascript">window.postselector.union_readonly=true;</script>
+<?php
+		}
+	}
 // Start the loop.
 while ( have_posts() ) : the_post();
 ?>        <script type="text/javascript">window.postselector.ids.push('<?php echo $post->ID; ?>');</script>
-          <p class="title"><input type="button" value="Refresh" id="refresh"/> <input type="submit" value="Save Selection" id="submit-<?php echo $post->ID ?>"><?php echo esc_html( the_title() ) ?></p>
 <?php
+	if ( !$readonly ) {
+?>          <p class="title"><input type="button" value="Refresh" id="refresh"/> <input type="submit" value="Save Selection" id="submit-<?php echo $post->ID ?>"><?php echo esc_html( the_title() ) ?></p>
+<?php
+	}
 endwhile;
 
 ?>        <svg class="postselector" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 2000" preserveAspectRatio="xMidYMin slice">

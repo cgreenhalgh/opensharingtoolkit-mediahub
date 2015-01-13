@@ -158,7 +158,14 @@ function postselector_custom_box( $post ) {
 ?>        <option value="<?php echo $app->ID ?>" <?php echo $selected ?> ><?php echo esc_html( $app->post_title ) ?></option>
 <?php		}
 	}
-?>    </select>
+?>    </select><br/>
+<?php
+    $postselector_use_union = get_post_meta( $post->ID, '_postselector_use_union', true );
+    $postselector_union_url = get_post_meta( $post->ID, '_postselector_union_url', true );
+?>
+    <label><input type="hidden" name="postselector_use_union_shown" value="1"/>
+       <input type="checkbox" name="postselector_use_union" <?php echo $postselector_use_union ? 'checked' : '' ?> />Share selection via Union server:</label><br/>
+    <input type="text" name="postselector_union_url" value="<?php esc_attr( $postselector_union_url ) ?>" placeholder="tryunion.com" /><br/>
 <?php
 }
 add_action( 'save_post', 'postselector_save_postdata' );
@@ -174,6 +181,15 @@ function postselector_save_postdata( $post_id ) {
            '_postselector_output_app',
             $_POST['postselector_output_app']
         );
+    }
+    if ( array_key_exists('postselector_use_union_shown', $_POST ) ) {
+	$value = array_key_exists('postselector_use_union', $_POST ) && $_POST['postselector_use_union'] ? 1 : 0;
+        update_post_meta( $post_id,
+           '_postselector_use_union', $value );
+    }
+    if ( array_key_exists('postselector_union_url', $_POST ) ) {
+        update_post_meta( $post_id,
+           '_postselector_union_url', stripslashes( $_POST['postselector_union_url'] ) );
     }
 }
 add_filter( 'template_include', 'postselector_include_template_function', 1 );
