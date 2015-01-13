@@ -139,6 +139,19 @@ function postselector_custom_box( $post ) {
 <?php postselector_category_options( $postselector_input_category ) 
 ?>  </select><br/>
     <!-- <p>Current value: <?php echo $postselector_input_category ?></p> -->
+    <label for="postselector_output_app_id">Output selection to Wototo app (editable by you):</label></br/>
+    <select name="postselector_output_app" id="postselector_output_app_id">
+        <option value="0"><?php printf( '&mdash; %s &mdash;', esc_html__( 'None' ) ); ?></option>
+<?php
+	$postselector_output_app = get_post_meta( $post->ID, '_postselector_output_app', true );
+	$apps = get_posts( array( 'post_type' => 'wototo_app', 'orderby' => 'post_title' ) );
+	foreach ( $apps as $app ) {
+		if ( current_user_can( 'edit_post', $app->ID ) ) {
+			$selected = $postselector_output_app == $app->ID ? 'selected' : '';
+?>        <option value="<?php echo $app->ID ?>" <?php echo $selected ?> ><?php echo esc_html( $app->post_title ) ?></option>
+<?php		}
+	}
+?>    </select>
 <?php
 }
 add_action( 'save_post', 'postselector_save_postdata' );
@@ -147,6 +160,12 @@ function postselector_save_postdata( $post_id ) {
         update_post_meta( $post_id,
            '_postselector_input_category',
             $_POST['postselector_input_category']
+        );
+    }
+    if ( array_key_exists('postselector_output_app', $_POST ) ) {
+        update_post_meta( $post_id,
+           '_postselector_output_app',
+            $_POST['postselector_output_app']
         );
     }
 }
@@ -187,6 +206,30 @@ function postselector_get_posts() {
 		echo '# Invalid request: post '.$id.' is not an app ('.$post->post_type.')';
 		wp_die();
 	}
+	$postselector_output_app = get_post_meta( $post->ID, '_postselector_output_app', true );
+	$selected_ids = array();
+	$rejected_ids = array();
+	if ( $postselector_output_app ) {
+		$app = get_post(intval($postselector_output_app));
+		if ( !$app ) {
+			echo '# Invalid request: output app '.$$postselector_output_app.' not found';
+			wp_die();
+		}
+		$ids = get_post_meta( $app->ID, '_postselector_selected_ids', true );
+		if ( $ids ) {
+			$ids = json_decode( $ids, true );
+			if ( is_array( $ids ) ) 
+				$selected_ids = $ids;
+			// else error... not sure how to signal it, though!
+		}
+		$ids = get_post_meta( $app->ID, '_postselector_rejected_ids', true );
+		if ( $ids ) {
+			$ids = json_decode( $ids, true );
+			if ( is_array( $ids ) ) 
+				$rejected_ids = $ids;
+			// else error... not sure how to signal it, though!
+		}
+	}
 	$postselector_input_category = get_post_meta( $post->ID, '_postselector_input_category', true );
 	$posts = array();
 	if ( $postselector_input_category ) {
@@ -197,9 +240,11 @@ function postselector_get_posts() {
 		foreach ($ps as $p) {
 			if ( current_user_can( 'read_post', $p->ID ) ) {
 				$thumbid = get_post_thumbnail_id($p->ID);
+				$selected = in_array( $p->ID, $selected_ids ) ? true : ( in_array( $p->ID, $rejected_ids ) ? false : null ); 
 				$post = array("title" => $p->post_title, "id" => $p->ID, "content" => filter_content( $p->post_content ), 
 					"status" => $p->post_status, "type" => $p->post_type,
-					"iconurl" => ( $thumbid ? wp_get_attachment_url( $thumbid ) : null ), );
+					"iconurl" => ( $thumbid ? wp_get_attachment_url( $thumbid ) : null ), 
+					"selected" => $selected, );
 				$posts[] = $post;
 			}
 		}
@@ -207,6 +252,18 @@ function postselector_get_posts() {
 	header( "Content-Type: application/json" );
 	echo json_encode( $posts );
 	wp_die();
+}
+// update post modified data
+// based on https://core.trac.wordpress.org/attachment/ticket/24266/24266.3.diff
+function update_post_modified_date( $post_id ) {
+	$post_modified     = current_time( 'mysql' ); 
+	$post_modified_gmt = current_time( 'mysql', 1 ); 
+	global $wpdb; 
+	$updated_fields = array( 'post_modified' => $post_modified, 
+		'post_modified_gmt' => $post_modified_gmt ); 
+	$where = array( 'ID' => $post_id ); 
+	$wpdb->update( $wpdb->posts, $updated_fields, $where );
+	clean_post_cache( $post_id ); 
 }
 // Ajax for save...
 function postselector_save() {
@@ -240,7 +297,25 @@ function postselector_save() {
 		echo '# Invalid request: choices invalid: '.$jchoices.': '.gettype($choices);
 		wp_die();
 	}
-	// TODO edit output, esp. application thingIds
+	// output to app
+	$postselector_output_app = get_post_meta( $post->ID, '_postselector_output_app', true );
+	if ( $postselector_output_app ) {
+		$app = get_post(intval($postselector_output_app));
+		if ( !$app ) {
+			echo '# Invalid request: output app '.$$postselector_output_app.' not found';
+			wp_die();
+		}
+		if ( !current_user_can( 'edit_post', $app->ID ) ) {
+			echo '# Not permitted: output app '.$app->ID.' is not editable for this user';
+			wp_die();
+		}
+	        update_post_meta( $app->ID, '_postselector_selected_ids',
+	            json_encode( $choices['selected'] ) );
+	        update_post_meta( $app->ID, '_postselector_rejected_ids',
+	            json_encode( $choices['rejected'] ) );
+		update_post_modified_date( $app->ID );
+	}
+
 	header( "Content-Type: application/json" );
 	echo 'true';
 	wp_die();

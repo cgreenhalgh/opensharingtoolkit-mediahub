@@ -101,13 +101,19 @@ function wototo_app_custom_box( $post ) {
         <option value="">No</option>
         <option value="1" <?php if ( '1' == $value ) echo 'selected'; ?>>Yes</option>
     </select><br/>
-    <label for="wototo_disable_appcache">Disable app cache (app will always need Internet access)</label><br/>
+<?php $value = get_post_meta( $post->ID, '_postselector_selected_ids', true ); 
+?>    <label for="wototo_clear_postselector"><input type="checkbox" value="1" name="wototo_clear_postselector"/>Clear any PostSelector items (currently <?php echo count( json_decode ( $value ) ) ?>)</label><br/>
+    <input type="hidden" name="wototo_clear_postselector_shown" value="1"/>
+<?php
+/*
+?>    <label for="wototo_disable_appcache">Disable app cache (app will always need Internet access)</label><br/>
 <?php $value = get_post_meta( $post->ID, '_wototo_disable_appcache', true ); 
 ?>  <select name="wototo_disable_appcache" id="wototo_disable_appcache" class="postbox">
         <option value="">No</option>
         <option value="1" <?php if ( '1' == $value ) echo 'selected'; ?>>Yes</option>
     </select><br/>
 <?php
+*/
 }
 function wototo_code_types() {
     return array( array( "type" => "number", "title" => "Number", "input" => "number" ),
@@ -173,6 +179,11 @@ function wototo_save_postdata( $post_id ) {
             $_POST['wototo_disable_appcache']
         );
     }
+    if ( array_key_exists('wototo_clear_postselector', $_POST ) && 
+	$_POST['wototo_clear_postselector'] ) {
+        update_post_meta( $post_id, '_postselector_selected_ids', '');
+        update_post_meta( $post_id, '_postselector_rejected_ids', '');
+    }
     if ( array_key_exists('wototo_item_locked', $_POST ) ) {
         update_post_meta( $post_id,
            '_wototo_item_locked',
@@ -208,6 +219,42 @@ function wototo_save_postdata( $post_id ) {
            json_encode( $unlock_codes )
         );
     }
+}
+function wototo_get_type_for_post_type( $post_type ) {
+	if ( $post_type == 'post' || $post_type == 'page' )
+		return 'html';
+	if ( $post_type == 'anywhere_map_post' )
+		return 'place';
+	//probably an error / unsupported
+	return $post_type;
+}
+function wototo_get_type_for_post( $post_id ) {
+	$post_type = get_post_type( $post_id );
+	return wototo_get_type_for_post_type( $post_type );
+}
+// get combined thing ids
+function wototo_get_thing_ids( $app_id ) {
+	$thing_ids = array();
+	$things_menu_id = intval( get_post_meta( $app_id, '_wototo_things_menu_id', true ) );
+	if ( $things_menu_id ) {
+		//$things_menu = wp_get_nav_menu_object( $things_menu_id );
+		$menu_items = wp_get_nav_menu_items( $things_menu_id );
+		foreach ( (array) $menu_items as $key => $menu_item ) {
+			if ( $menu_item->object_id ) {
+				$thing_ids[] = wototo_get_type_for_post_type($menu_item->object).':'.$menu_item->object_id;
+			}
+		}
+	}
+	// postselector 
+	$selected_ids = get_post_meta( $app_id, '_postselector_selected_ids', true ); 
+	if ( $selected_ids ) 
+		$selected_ids = json_decode( $selected_ids, true );
+	if ( is_array( $selected_ids ) ) {
+		foreach ( $selected_ids as $id ) {
+			$thing_ids[] = wototo_get_type_for_post( $id ).':'.$id;
+		}
+	}
+	return $thing_ids;
 }
 add_filter( 'template_include', 'wototo_include_template_function', 1 );
 function wototo_include_template_function( $template_path ) {
@@ -306,25 +353,9 @@ function wototo_get_json() {
 		$timezone = new DateTimeZone('UTC');
 		$date = new DateTime($post->post_date_gmt, $timezone);
 		$res['createdtime'] = $date->getTimestamp()*1000;
-		$res['thingIds'] = array();
+		$res['thingIds'] = wototo_get_thing_ids( $post->ID );
 		$res['showShare'] = FALSE;
 		$res['showUser'] = FALSE;
-		$things_menu_id = intval( get_post_meta( $post->ID, '_wototo_things_menu_id', true ) );
-		if ( $things_menu_id ) {
-			//$things_menu = wp_get_nav_menu_object( $things_menu_id );
-			$menu_items = wp_get_nav_menu_items( $things_menu_id );
-			foreach ( (array) $menu_items as $key => $menu_item ) {
-				if ( $menu_item->object_id ) {
-					if ( $menu_item->object == 'post' || $menu_item->object == 'page' )
-						$res['thingIds'][] ='html:'.$menu_item->object_id;
-					else if ( $menu_item->object == 'anywhere_map_post' )
-						$res['thingIds'][] ='place:'.$menu_item->object_id;
-					else 
-						//probably an error / unsupported
-						$res['thingIds'][] = $menu_item->object.':'.$menu_item->object_id;
-				}
-			}
-		}
 	}
 	else if ( $post->post_type == 'page' || $post->post_type == 'post' ) {
 		if ( $type != 'html' ) {
@@ -458,50 +489,42 @@ function wototo_get_manifest() {
 	echo admin_url( 'admin-ajax.php' ).'?action=wototo_get_json&id='.rawurlencode( 'app:'.$post->ID )."\n";
 	$mediafiles = array();
 	add_mediafiles( $mediafiles, filter_content( $post->post_content ) );
-	$things_menu_id = intval( get_post_meta( $post->ID, '_wototo_things_menu_id', true ) );
-	if ( $things_menu_id ) {
-		echo "# things_menu_id $things_menu_id\n";
-		//$things_menu = wp_get_nav_menu_object( $things_menu_id );
-		$menu_items = wp_get_nav_menu_items( $things_menu_id );
-		foreach ( (array) $menu_items as $key => $menu_item ) {
-			echo "# menu item $menu_item->object_id $menu_item->object\n";
-			if ( $menu_item->object_id ) {
-				if ( $menu_item->object == 'post' || $menu_item->object == 'page' || $menu_item->object == 'anywhere_map_post' ) {
-					$item = get_post( $menu_item->object_id );
-					if ( $item ) {
-						echo "# last modified $item->post_modified_gmt\n";
-						$idprefix = 'html';
-						if ( $menu_item->object == 'anywhere_map_post' )
-							$idprefix = 'place';
-						echo admin_url( 'admin-ajax.php' ).'?action=wototo_get_json&id='.rawurlencode( $idprefix.':'.$item->ID )."\n";
-						
-						add_mediafiles( $mediafiles, filter_content( $item->post_content ) );
-						$thumbid = get_post_thumbnail_id($item->ID);
-						if ( $thumbid ) {
-							$url = wp_get_attachment_url( $thumbid );
-							if ( !in_array( $url, $mediafiles ) )
-								$mediafiles[] = $url;
-						}
+	$thing_ids = wototo_get_thing_ids( $post->ID );
+	foreach( $thing_ids as $thing_id ) {
+		$ix = strpos( $thing_id, ':' );
+		$idprefix = '';
+		if ( $ix !== FALSE ) {
+			$item_id = substr( $thing_id, $ix+1 );
+			$idprefix = substr( $thing_id, 0, $ix );
+		}
+		echo "# item $idprefix $item_id\n";
+		if ( $idprefix ) {
+			$item = get_post( $item_id );
+			if ( $item ) {
+				if ( $idprefix == 'html' || $idprefix == 'place' ) {
+					echo "# last modified $item->post_modified_gmt\n";
+					echo admin_url( 'admin-ajax.php' ).'?action=wototo_get_json&id='.rawurlencode( $thing_id )."\n";
+					add_mediafiles( $mediafiles, filter_content( $item->post_content ) );
+					$thumbid = get_post_thumbnail_id($item->ID);
+					if ( $thumbid ) {
+						$url = wp_get_attachment_url( $thumbid );
+						if ( !in_array( $url, $mediafiles ) )
+							$mediafiles[] = $url;
 					}
 				}
-				if ( $menu_item->object == 'anywhere_map_post' ) {
-					$item = get_post( $menu_item->object_id );
-					if ( $item ) {
-						$geojson = json_decode( get_post_meta( $item->ID, 'geojson', true ), true );
-						if ( $geojson && is_array( $geojson ) ) {
-							if ( $geojson['type'] == 'Polygon' ) {
-								// TODO
-								echo "# unsupported map post type ".$geojson['type']."\n";
-							} else if ( $geojson['coordinates'] && count( $geojson['coordinates'] )>=2 ) {
-								$lat = $geojson['coordinates'][1];
-								$lon = $geojson['coordinates'][0];
-								$zoom = DEFAULT_ZOOM;
-								add_maptiles( $mediafiles, $lat, $lon, $zoom );
-							} else {
-								echo "# invalid map post geojson ".json_encode( $geojson )."\n";
-							}
+				if ( $idprefix == 'place' ) {
+					$geojson = json_decode( get_post_meta( $item->ID, 'geojson', true ), true );
+					if ( $geojson && is_array( $geojson ) ) {
+						if ( $geojson['coordinates'] && count( $geojson['coordinates'] )>=2 ) {
+							// TODO fit polygon
+							$lat = $geojson['coordinates'][1];
+							$lon = $geojson['coordinates'][0];
+							$zoom = DEFAULT_ZOOM;
+							add_maptiles( $mediafiles, $lat, $lon, $zoom );
+						} else {
+							echo "# invalid map post geojson ".json_encode( $geojson )."\n";
 						}
-					}		
+					}
 				}
 			}
 		}

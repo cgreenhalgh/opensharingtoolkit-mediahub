@@ -40,7 +40,7 @@ function updateData(data) {
   laneRanks[0] = laneRanks[1] = laneRanks[2] = 0;
   for (var pi in data) {
     var p = data[pi];
-    var lane = p.selected===undefined ? 1 : (p.selected ? 2 : 0);
+    var lane = (p.selected===undefined || p.selected===null) ? 1 : (p.selected ? 2 : 0);
     p.lane = lane;
     p.rank = laneRanks[lane]++;
   }
