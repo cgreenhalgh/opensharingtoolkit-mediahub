@@ -129,10 +129,13 @@ function wototo_app_custom_box( $post ) {
 		for ( $i=0; $i < count( $specific_ids ); $i++ ) {
 			$id = $specific_ids[$i];
 			$post = get_post( $id );
+			$unlock_codes = get_post_meta( $post->ID, '_wototo_item_unlock_codes', true );
+			$unlock_codes = $unlock_codes ? json_decode( $unlock_codes, TRUE ) : array();
+			$artcode = $unlock_codes['artcode'] ? ' ('.$unlock_codes['artcode'].')': '';
 ?>	<div class="wototo_thing submitbox">
 		<input type="hidden" name="wototo_thing_id-<?php echo $i ?>" value="<?php echo $id ?>"/>
-		<span class="wototo_item_title"><?php echo esc_html( $post->post_title ) ?></span>
-		<span class="description">
+		<span class="wototo_item_title"><?php echo esc_html( $post->post_title) ?></span>
+		<span class="description"><?php echo esc_html( $artcode ) ?>
 		<a href='#' class="item-delete submitdelete deletion wototo_thing_remove">Remove</a>
 		<a href='#' class="menu_move_up wototo_thing_up <?php echo $i==0 ? 'hide' : '' ?> ">Up</a>
 		<a href='#' class="menu_move_down wototo_thing_down <?php echo $i+1==count( $specific_ids ) ? 'hide' : '' ?> ">Down</a>
@@ -739,6 +742,7 @@ function wototo_ajax_thing_search() {
 	$posts = get_posts( $args );
 	$res = array();
 	foreach ( $posts as $post ) {
+		$unlock_codes = get_post_meta( $post->ID, '_wototo_item_unlock_codes', true );
 		$res[] = array(
 			'ID' => $post->ID,
 			'post_title' => $post->post_title,
@@ -747,6 +751,7 @@ function wototo_ajax_thing_search() {
 			'post_date_gmt' => $post->post_date_gmt,
 			'post_modified_gmt' => $post->post_modified_gmt,
 			'post_author' => $post->post_author, 
+			'_wototo_item_unlock_codes' => $unlock_codes,
 		);
 	}
 	if ( count( $posts ) >= 30 )

@@ -53,10 +53,13 @@
 					if (id.indexOf('-')>=0)
 						id = id.substring(id.indexOf('-')+1);
 					var post = JSON.parse( $('input[name=wototo_thing_res_json-'+id+']').val() );
+					var unlock_codes = post['_wototo_item_unlock_codes'];
+					unlock_codes = unlock_codes ? JSON.parse( unlock_codes ) : {};
+					var artcode = unlock_codes['artcode'] ? ' ('+unlock_codes['artcode']+')': '';
 					things.append('<div class="wototo_thing submitbox">'+
 						'<input type="hidden" name="wototo_thing_id-'+(ix++)+'" value="'+id+'"/>'+
 						'<span class="wototo_item_title">'+$('<div/>').text(post.post_title).html()+'</span> '+
-						'<span class="description">'+
+						'<span class="description">'+$('<div/>').text(artcode).html()+
 						'<a href="#" class="item-delete submitdelete deletion wototo_thing_remove">Remove</a> '+
 						'<a href="#" class="menu_move_down wototo_thing_up">Up</a> '+
 						'<a href="#" class="menu_move_up wototo_thing_down">Down</a>'+
