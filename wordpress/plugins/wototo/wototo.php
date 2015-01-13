@@ -23,6 +23,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 */
 // post_sorter
 require_once( dirname(__FILE__) . '/postselector.php' );
+require_once( dirname(__FILE__) . '/common.php' );
 
 // wander anywhere map post  -> wototo place
 define( "DEFAULT_ZOOM", 15 );
@@ -77,18 +78,6 @@ function wototo_add_custom_box() {
 }
 function wototo_app_custom_box( $post ) {
 ?>
-    <label for="wototo_things_menu_id">Pages in app</label><br/>
-    <select name="wototo_things_menu_id" id="wototo_things_menu_id">
-        <option value="0"><?php printf( '&mdash; %s &mdash;', esc_html__( 'Select a Menu' ) ); ?></option>
-<?php
-    $nav_menus = wp_get_nav_menus();
-    $things_menu_id = get_post_meta( $post->ID, '_wototo_things_menu_id', true );
-    foreach ( $nav_menus as $menu ) : 
-        $selected = $things_menu_id == $menu->term_id; 
-?>	<option <?php if ( $selected ) echo 'data-orig="true"'; ?> <?php selected( $selected ); ?> value="<?php echo $menu->term_id; ?>"><?php echo wp_html_excerpt( $menu->name, 40, '&hellip;' ); ?></option>
-<?php
-        endforeach; 
-?>  </select><br/>
     <label for="wototo_show_about">Show About Screen</label><br/>
 <?php $value = get_post_meta( $post->ID, '_wototo_show_about', true ); 
 ?>  <select name="wototo_show_about" id="wototo_show_about" class="postbox">
@@ -102,8 +91,21 @@ function wototo_app_custom_box( $post ) {
         <option value="1" <?php if ( '1' == $value ) echo 'selected'; ?>>Yes</option>
     </select><br/>
 <?php $value = get_post_meta( $post->ID, '_postselector_selected_ids', true ); 
-?>    <label for="wototo_clear_postselector"><input type="checkbox" value="1" name="wototo_clear_postselector"/>Clear any PostSelector items (currently <?php echo count( json_decode ( $value ) ) ?>)</label><br/>
+?>    <div  class="checkbox_item">
+	<label for="wototo_clear_postselector"><input type="checkbox" value="1" name="wototo_clear_postselector"/>Clear any PostSelector items (currently <?php echo count( json_decode ( $value ) ) ?>)</label></div>
     <input type="hidden" name="wototo_clear_postselector_shown" value="1"/>
+    <label for="wototo_things_menu_id">Include Pages From a Site Menu</label><br/>
+    <select name="wototo_things_menu_id" id="wototo_things_menu_id" class="postbox">
+        <option value="0">&mdash; No &mdash;</option>
+<?php
+    $nav_menus = wp_get_nav_menus();
+    $things_menu_id = get_post_meta( $post->ID, '_wototo_things_menu_id', true );
+    foreach ( $nav_menus as $menu ) : 
+        $selected = $things_menu_id == $menu->term_id; 
+?>	<option <?php if ( $selected ) echo 'data-orig="true"'; ?> <?php selected( $selected ); ?> value="<?php echo $menu->term_id; ?>"><?php echo wp_html_excerpt( $menu->name, 40, '&hellip;' ); ?></option>
+<?php
+        endforeach; 
+?>  </select><br/>
 <?php
 /*
 ?>    <label for="wototo_disable_appcache">Disable app cache (app will always need Internet access)</label><br/>
@@ -114,6 +116,75 @@ function wototo_app_custom_box( $post ) {
     </select><br/>
 <?php
 */
+	wp_enqueue_script( 'wototo-ajax', plugins_url( 'wototo.js', __FILE__ ) );
+	wp_enqueue_style( 'wototo-css', plugins_url( 'wototo.css', __FILE__ ) );
+?>	<h4>Specific Items</h4>
+	<div id="wototo_things" class="wototo_things">
+	<input type="hidden" name="wototo_thing_ids_shown" value="1"/>
+<?php
+	$specific_ids = get_post_meta( $post->ID, '_wototo_thing_ids', true ); 
+	if ( $specific_ids ) 
+		$specific_ids = json_decode( $specific_ids, true );
+	if ( is_array( $specific_ids ) ) {
+		for ( $i=0; $i < count( $specific_ids ); $i++ ) {
+			$id = $specific_ids[$i];
+			$post = get_post( $id );
+?>	<div class="wototo_thing submitbox">
+		<input type="hidden" name="wototo_thing_id-<?php echo $i ?>" value="<?php echo $id ?>"/>
+		<span class="wototo_item_title"><?php echo esc_html( $post->post_title ) ?></span>
+		<span class="description">
+		<a href='#' class="item-delete submitdelete deletion wototo_thing_remove">Remove</a>
+		<a href='#' class="menu_move_up wototo_thing_up <?php echo $i==0 ? 'hide' : '' ?> ">Up</a>
+		<a href='#' class="menu_move_down wototo_thing_down <?php echo $i+1==count( $specific_ids ) ? 'hide' : '' ?> ">Down</a>
+		</span>
+	</div>
+<?php		}
+	}
+?>	</div>
+<?php	wototo_thing_search_html();
+}
+// output search form stuff for selecting posts/etc in app meta box
+function wototo_thing_search_html() {
+?>	<h4>Add Items</h4>
+	<table><tbody><tr>
+		<td>Title</td>
+		<td>Category</td>
+		<td>Type</td>
+		<td>Author</td>
+		<td>Sort by/Reverse</td>
+	</tr>
+	<!-- <tr><td>Status</td><td>
+		<select name="wototo_thing_search_status">
+			<option value="">Any</option>
+			<option value="publish">Published</option>
+		</select></td></tr> -->
+	<tr>
+		<td><input type="search" name="wototo_thing_search_search"/></td>
+   		<td><select name="wototo_thing_search_category">
+			<option value="0">&mdash;Any&mdash;</option>
+<?php wototo_category_options_html(); 
+?>		</select></td>
+		<td><select name="wototo_thing_search_type">
+			<option value="post">Post</option>
+			<option value="page">Page</option>
+			<option value="anywhere_map_post">Map Post</option>
+		</select></td>
+		<td><select name="wototo_thing_search_author">
+			<option value="1">You</option>
+			<option value="0">Anyone</option>
+		</select></td>
+		<td><select name="wototo_thing_search_orderby">
+			<option value="title">Title</option>
+			<option value="date">Date</option>
+			<option value="modified">Modified</option>
+		</select>/<input name="wototo_thing_search_reverse" type="checkbox"/></td>
+	</tr>
+	<tr>
+		<td id="wototo_thing_search_spinner"><input type="button" value="Search" name="wototo_thing_search" id="wototo_thing_search_id"/><span class="spinner"></span></td>
+	</tr>
+	</tbody></table>
+	<div id="wototo_thing_search_result"></div>
+<?php
 }
 function wototo_code_types() {
     return array( array( "type" => "number", "title" => "Number", "input" => "number" ),
@@ -184,6 +255,16 @@ function wototo_save_postdata( $post_id ) {
         update_post_meta( $post_id, '_postselector_selected_ids', '');
         update_post_meta( $post_id, '_postselector_rejected_ids', '');
     }
+	if ( array_key_exists('wototo_thing_ids_shown', $_POST ) ) {
+		$thing_ids = array();
+		for ($i = 0; true; $i++) {
+			if ( array_key_exists('wototo_thing_id-'.$i, $_POST ) )
+				$thing_ids[] = intval( $_POST['wototo_thing_id-'.$i] );
+			else
+				break;
+		}
+	        update_post_meta( $post_id, '_wototo_thing_ids', json_encode( $thing_ids ) );
+	}
     if ( array_key_exists('wototo_item_locked', $_POST ) ) {
         update_post_meta( $post_id,
            '_wototo_item_locked',
@@ -243,6 +324,14 @@ function wototo_get_thing_ids( $app_id ) {
 			if ( $menu_item->object_id ) {
 				$thing_ids[] = wototo_get_type_for_post_type($menu_item->object).':'.$menu_item->object_id;
 			}
+		}
+	}
+	$specific_ids = get_post_meta( $app_id, '_wototo_thing_ids', true ); 
+	if ( $specific_ids ) 
+		$specific_ids = json_decode( $specific_ids, true );
+	if ( is_array( $specific_ids ) ) {
+		foreach ( $specific_ids as $id ) {
+			$thing_ids[] = wototo_get_type_for_post( $id ).':'.$id;
 		}
 	}
 	// postselector 
@@ -624,10 +713,52 @@ function output_plugin_files( $array, $title ) {
 	foreach ( $array as $file ) 
 		echo plugins_url( $file, __FILE__ )."\n";
 }
+function wototo_ajax_thing_search() {
+	header( "Content-Type: application/json" );
+	$args = array();
+	if ( isset( $_POST['search'] ) ) {
+		$args['s'] = $_POST['search'];
+	}
+	if ( isset( $_POST['author'] ) && intval( $_POST['author'] ) ) {
+		$args['author'] = get_current_user_id();
+	}
+	if ( isset( $_POST['post_type'] ) ) {
+		$args['post_type'] = $_POST['post_type'];
+	}
+	if ( isset( $_POST['cat'] ) ) {
+		$args['category'] = intval( $_POST['cat'] );
+	}
+	if ( isset( $_POST['orderby'] ) ) {
+		$args['orderby'] = $_POST['orderby'];
+	}
+	if ( isset( $_POST['reverse'] ) && intval( $_POST['reverse'] ) ) {
+		$args['order'] = 'ASC'; // DESC
+	}
+		$args['posts_per_page'] = 30;
+	$args['post_status'] = 'publish';
+	$posts = get_posts( $args );
+	$res = array();
+	foreach ( $posts as $post ) {
+		$res[] = array(
+			'ID' => $post->ID,
+			'post_title' => $post->post_title,
+			'post_type' => $post->post_type,
+			'post_status' => $post->post_status,
+			'post_date_gmt' => $post->post_date_gmt,
+			'post_modified_gmt' => $post->post_modified_gmt,
+			'post_author' => $post->post_author, 
+		);
+	}
+	if ( count( $posts ) >= 30 )
+		$res[] = array( 'more' => TRUE );
+	echo json_encode( $res );
+	wp_die();
+}
 if ( is_admin() ) {
 	add_action( 'wp_ajax_wototo_get_json', 'wototo_get_json' );
 	add_action( 'wp_ajax_nopriv_wototo_get_json', 'wototo_get_json' );
 	add_action( 'wp_ajax_wototo_get_manifest', 'wototo_get_manifest' );
 	add_action( 'wp_ajax_nopriv_wototo_get_manifest', 'wototo_get_manifest' );
+	add_action( 'wp_ajax_wototo_thing_search', 'wototo_ajax_thing_search' );
 }
 

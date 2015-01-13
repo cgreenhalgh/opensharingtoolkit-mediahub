@@ -1,0 +1,17 @@
+/* wototo.css */
+div.wototo_thing {
+  border: solid 1px gray;
+  padding: 0.35em;
+  margin-bottom: 0.25em;
+}
+.hide {
+  display:none;
+}
+span.wototo_item_title {
+  font-weight: 600;
+  font-size: 13px;
+}
+.checkbox_item {
+  margin-bottom: 20px;
+}
+

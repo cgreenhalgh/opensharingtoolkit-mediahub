@@ -48,102 +48,13 @@ function postselector_add_custom_box() {
         'normal', 'high'
     );
 }
-/**
- * Walker to output an unordered list of category option elements.
- * based on Walker_Category_Checklist in wp-admin/includes/meta-boxes.php
- */
-class Walker_Category_Options extends Walker {
-	public $tree_type = 'category';
-	public $db_fields = array ('parent' => 'parent', 'id' => 'term_id'); //TODO: decouple this
-
-	/**
-	 * Starts the list before the elements are added.
-	 *
-	 * @see Walker:start_lvl()
-	 *
-	 * @since 2.5.1
-	 *
-	 * @param string $output Passed by reference. Used to append additional content.
-	 * @param int    $depth  Depth of category. Used for tab indentation.
-	 * @param array  $args   An array of arguments. @see wp_terms_checklist()
-	 */
-	public function start_lvl( &$output, $depth = 0, $args = array() ) {
-		//$indent = str_repeat("&mdash; ", $depth);
-		//$output .= "$indent<ul class='children'>\n";
-	}
-
-	/**
-	 * Ends the list of after the elements are added.
-	 *
-	 * @see Walker::end_lvl()
-	 *
-	 * @since 2.5.1
-	 *
-	 * @param string $output Passed by reference. Used to append additional content.
-	 * @param int    $depth  Depth of category. Used for tab indentation.
-	 * @param array  $args   An array of arguments. @see wp_terms_checklist()
-	 */
-	public function end_lvl( &$output, $depth = 0, $args = array() ) {
-		//$output .= "$indent</ul>\n";
-	}
-
-	/**
-	 * Start the element output.
-	 *
-	 * @see Walker::start_el()
-	 *
-	 * @since 2.5.1
-	 *
-	 * @param string $output   Passed by reference. Used to append additional content.
-	 * @param object $category The current term object.
-	 * @param int    $depth    Depth of the term in reference to parents. Default 0.
-	 * @param array  $args     An array of arguments. @see wp_terms_checklist()
-	 * @param int    $id       ID of the current term.
-	 */
-	public function start_el( &$output, $category, $depth = 0, $args = array(), $id = 0 ) {
-		if ( empty( $args['taxonomy'] ) ) {
-			$taxonomy = 'category';
-		} else {
-			$taxonomy = $args['taxonomy'];
-		}
-		$selected = !empty( $args['current_value'] ) ? ( $args['current_value'] == $category->term_id ? 'selected' : '') : '';
-		/** This filter is documented in wp-includes/category-template.php */
-		$output .= "\n<option value='{$category->term_id}' $selected>" .
-			esc_html( apply_filters( 'the_category', $category->name ) );
-	}
-
-	/**
-	 * Ends the element output, if needed.
-	 *
-	 * @see Walker::end_el()
-	 *
-	 * @since 2.5.1
-	 *
-	 * @param string $output   Passed by reference. Used to append additional content.
-	 * @param object $category The current term object.
-	 * @param int    $depth    Depth of the term in reference to parents. Default 0.
-	 * @param array  $args     An array of arguments. @see wp_terms_checklist()
-	 */
-	public function end_el( &$output, $category, $depth = 0, $args = array() ) {
-		$output .= "</option>\n";
-	}
-}
-function postselector_category_options( $current_value ) {
-    // see wp_terms_checklist
-    $walker = new Walker_Category_Options;
-    $taxonomy = 'category';
-    $tax = get_taxonomy( $taxonomy );
-    $categories = (array) get_terms( $taxonomy, array( 'get' => 'all' ) );
-    $args = array( 'taxonomy' => $taxonomy, 'current_value' => $current_value );
-    echo call_user_func_array( array( $walker, 'walk' ), array( $categories, 0, $args ) );
-}
 function postselector_custom_box( $post ) {
     $postselector_input_category = get_post_meta( $post->ID, '_postselector_input_category', true );
 ?>
     <label for="postselector_input_category_id">Category of posts to select from:</label><br/>
     <select name="postselector_input_category" id="postselector_input_category_id">
         <option value="0"><?php printf( '&mdash; %s &mdash;', esc_html__( 'Select a Category' ) ); ?></option>
-<?php postselector_category_options( $postselector_input_category ) 
+<?php wototo_category_options_html( $postselector_input_category ) 
 ?>  </select><br/>
     <!-- <p>Current value: <?php echo $postselector_input_category ?></p> -->
     <label for="postselector_output_app_id">Output selection to Wototo app (editable by you):</label></br/>
