@@ -6,13 +6,13 @@ cordova.define("org.opensharingtoolkit.cordova.aestheticodes.Aestheticodes", fun
 var exec = require("cordova/exec");
 
 var aestheticodes = {
-scan: function (success, error) {
+scan: function (experience, success, error) {
 	console.log("scan...");
 	if (typeof success != "function")
-		success = function () { console.log("aestheticodes.scan success!"); }
+		success = function ( code ) { console.log("aestheticodes.scan success: "+code); }
 	if (typeof error != "function")
 		error = function () { console.log("aestheticodes.scan error"); }
-	exec(success, error, "Aestheticodes", "scan", []);
+	exec(success, error, "Aestheticodes", "scan", [experience]);
 }
 }
 module.exports = aestheticodes;
