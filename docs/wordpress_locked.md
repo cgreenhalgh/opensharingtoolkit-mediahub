@@ -27,13 +27,15 @@ Now `Publish` or `Update` the post/page and reload the app that includes it; app
 
 A web app within a browser cannot directly access a QRCode reader on the device. In this case the `Scan QRCode` option will prompt the user to type in the URL.
 
-There is also an experimental Android app for hosting Wototo apps; if the app is downloaded into this then the `Scan QRCode` option works correctly, starting a QRCode scanner.
+There is also an experimental Android app, WototoPlayer, for hosting Wototo apps. If the app is opened in WototoPlayer then the `Scan QRCode` option works correctly, starting a QRCode scanner.
 
-The app is not currently in the app store; the source code is [on github](https://github.com/cgreenhalgh/wototoplayer). Once the app is built and installed you can cause it to host a wototo app by browsing to the app view but replacing the first part of the URL with `wototot:` rather than `http:`. Alteratively if you add the URL parameter `wototo=2` to the view URL then the downloaded file should be openable with the android app, which will then download the app into itself.
+WototoPlayer needs to be installed on your device first, then you must open the app in it by browsing to the app's WordPress page and clicking the option `Open in WototoPlayer via URL` or `Open in WototoPlayer via download`.
+
+WototoPlayer is not currently in the app store; the source code is [on github](https://github.com/cgreenhalgh/wototoplayer). For the interested it is triggered the URL scheme `x-wototo` or MIME type `application/x-wototo`.
 
 ## Using ArtCodes
 
 A web app within a browser cannot directly access a QRCode reader on the device. In this case the `Scan Artode` option will prompt the user to type in the URL.
 
-It is intended in future to provide direct support for scanning Artcodes, initially on Android, as has been done for QRCodes (see above).
+If the app is run in the Android app WototoPlayer (see above) AND the Aestheticodes Android app is installed (version more recent than 14/01/2015, which is a closed beta version as of 15/01/2015) then the `Scan Artcode` option works correctly.
 

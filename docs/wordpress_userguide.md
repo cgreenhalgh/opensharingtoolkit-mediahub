@@ -20,7 +20,9 @@ The current posts/pages in the app are listed under `Specific Items`. You can ad
 
 Now `Publish` the app: click `Publish` (or if you have changed an existing app `Update`) in the `Publish` editing box (usually top-right in a two-column view). 
 
-Click `View App` to show the app. If you get a wordpress error that the item cannot be found then try going to admin `Settings` > `Permalinks` (permalinks sometimes need a kick when a new plugin has been added).
+Click `View App` to show the app's Wordpress page, with its title and description. If you get a wordpress error that the item cannot be found then try going to admin `Settings` > `Permalinks` (permalinks sometimes need a kick when a new plugin has been added).
+
+On the app's page, below the description, you should see some buttons/links; click the first, `Open in Browser`. (The other links are only needed for integrated QRCode and ArtCode scanning - see the [Locked Content User Guide](wordpress_locked.md).)
 
 That's it. The app view URL can be opened on a mobile device, shared on social media, etc.
 

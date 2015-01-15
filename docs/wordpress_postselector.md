@@ -10,7 +10,9 @@ The plugin also adds a custom type `PostSelector`; this can be used on a tablet 
 
 From the admin menu select `PostSelector` > `Add New`. Give the PostSelector a title. In the `PostSelector Settings` box choose a post category as input and an app as output. Now `Publish` the PostSelector.
 
-When you view the PostSelector you should see a screen with three "lanes": "No", "?" and "Yes"; if the category has any (published) posts in it then they should appear, initially in the middle lane.
+When you view the PostSelector, below the title and description you should see two buttons: `Open in Browser` and `Open in Browser (readonly)`; click the first, which will open the main PostSelector user interface.
+
+In the PostSelector interface you should see three "lanes": "No", "?" and "Yes"; if the category has any (published) posts in it then they should appear, initially in the middle lane.
 
 To see a post in more detail click on it. To select a post drag it to the "Yes" lane. To save the selection and update the output app click `Save Selection` at the top of the screen. To load any extra newly published posts click `Refresh`.
 
@@ -24,6 +26,6 @@ To do so, in the `PostSelector Settings` check `Share selection via Union server
 
 When you view the PostSelector now it will attempt to share its state via the specified Union server. 
 
-If you view the PostSelector from a browser what is not logged into wordpress, or lacks suitable permissions, then it will open in readonly mode and attempt to get and show the shared selection state. You can also force readonly mode by adding the URL parameter `readonly` (no value needed) to the PostSelector view URL. 
+If you view the PostSelector using the `Open in Browser (readonly)` option (or view it from a browser what is not logged into wordpress or lacks suitable permissions) then it will open in readonly mode and attempt to get and show the shared selection state.
 
 
