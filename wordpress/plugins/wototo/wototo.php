@@ -3,7 +3,7 @@
  * Plugin Name: wototo
  * Plugin URI: https://github.com/cgreenhalgh/opensharingtoolkit-mediahub/tree/master/docs/wordpress.md
  * Description: Create simple HTML5 web apps from wordpress content (pages and posts). The web apps are intended for use on recent smart phones and tablets.
- * Version: 0.2.1
+ * Version: 0.3.0
  * Author: Chris Greenhalgh
  * Author URI: http://www.cs.nott.ac.uk/~cmg/
  * Network: true
@@ -27,7 +27,7 @@ require_once( dirname(__FILE__) . '/common.php' );
 
 // wander anywhere map post  -> wototo place
 define( "DEFAULT_ZOOM", 15 );
-define( "WOTOTO_VERSION", "0.2.1" );
+define( "WOTOTO_VERSION", "0.3.0" );
 
 add_action( 'init', 'wototo_create_post_types' );
 //Register the app post type
@@ -132,10 +132,15 @@ function wototo_app_custom_box( $post ) {
 			$unlock_codes = get_post_meta( $post->ID, '_wototo_item_unlock_codes', true );
 			$unlock_codes = $unlock_codes ? json_decode( $unlock_codes, TRUE ) : array();
 			$artcode = $unlock_codes['artcode'] ? ' ('.$unlock_codes['artcode'].')': '';
+			$current_user_can_edit = current_user_can ( 'edit_post', $post->ID );
+			// NB links have & escaped already
 ?>	<div class="wototo_thing submitbox">
 		<input type="hidden" name="wototo_thing_id-<?php echo $i ?>" value="<?php echo $id ?>"/>
 		<span class="wototo_item_title"><?php echo esc_html( $post->post_title) ?></span>
 		<span class="description"><?php echo esc_html( $artcode ) ?>
+		<a href="<?php echo get_edit_post_link( $post->ID ) ?>" target="_blank" class="<?php echo !$current_user_can_edit ? 'hide' : '' ?>">Edit</a>
+		<a href="<?php echo get_post_view_url( $post ) ?>" target="_blank" class="">View</a>
+		|
 		<a href='#' class="item-delete submitdelete deletion wototo_thing_remove">Remove</a>
 		<a href='#' class="menu_move_up wototo_thing_up <?php echo $i==0 ? 'hide' : '' ?> ">Up</a>
 		<a href='#' class="menu_move_down wototo_thing_down <?php echo $i+1==count( $specific_ids ) ? 'hide' : '' ?> ">Down</a>
@@ -145,6 +150,12 @@ function wototo_app_custom_box( $post ) {
 	}
 ?>	</div>
 <?php	wototo_thing_search_html();
+}
+function get_post_view_url( $post ) {
+	if ( $post->post_type == 'post' || $post->post_type == 'page' )
+		return get_permalink( $post->ID );
+	else
+		return get_post_permalink( $post->ID );
 }
 // output search form stuff for selecting posts/etc in app meta box
 function wototo_thing_search_html() {
@@ -752,6 +763,8 @@ function wototo_ajax_thing_search() {
 			'post_modified_gmt' => $post->post_modified_gmt,
 			'post_author' => $post->post_author, 
 			'_wototo_item_unlock_codes' => $unlock_codes,
+			'edit_url' => get_edit_post_link( $post->ID ), // checks permission, & escaped
+			'view_url' => get_post_view_url( $post ), // &escaped
 		);
 	}
 	if ( count( $posts ) >= 30 )

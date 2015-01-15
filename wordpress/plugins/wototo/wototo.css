@@ -14,4 +14,26 @@ span.wototo_item_title {
 .checkbox_item {
   margin-bottom: 20px;
 }
-
+div.wototo-links {
+}
+div.wototo-links p {
+  margin-top: 20px;
+  margin-bottom: 20px;
+}
+div.wototo-links a {
+  border: solid 1px gray;
+  border-radius: 0.3em;
+  padding: 0.5em;
+  background-color: #ccc;
+  font-size: 80%;
+}
+div.wototo-links a:hover {
+  background-color: #e8e8e8;
+  transition: background-color 0.2s;
+  -webkit-transition: background-color 0.2s;
+}
+span.wototo-warning {
+  font-style: sans-serif;
+  font-size: 70%;
+  color: red; 
+}
