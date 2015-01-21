@@ -3,7 +3,7 @@
  * Plugin Name: wototo
  * Plugin URI: https://github.com/cgreenhalgh/opensharingtoolkit-mediahub/tree/master/docs/wordpress.md
  * Description: Create simple HTML5 web apps from wordpress content (pages and posts). The web apps are intended for use on recent smart phones and tablets.
- * Version: 0.3.0
+ * Version: 0.3.3
  * Author: Chris Greenhalgh
  * Author URI: http://www.cs.nott.ac.uk/~cmg/
  * Network: true
@@ -27,7 +27,7 @@ require_once( dirname(__FILE__) . '/common.php' );
 
 // wander anywhere map post  -> wototo place
 define( "DEFAULT_ZOOM", 15 );
-define( "WOTOTO_VERSION", "0.3.0" );
+define( "WOTOTO_VERSION", "0.3.3" );
 
 add_action( 'init', 'wototo_create_post_types' );
 //Register the app post type
@@ -650,7 +650,7 @@ function add_mediafiles ( &$mediafiles, $content ) {
 	if ( preg_match_all( '/<[sS][oO][uU][rR][cC][eE][^>]+src="?([^"\s>]+)"?[^>]*\/>/', $content, $matches ) ) {
 		foreach ( $matches[1] as $src ) {
 			//echo "# found $src\n";
-			$src = str_replace( '/[&]amp[;]/', '&', $src );
+			$src = str_replace( '&amp;', '&', $src );
 			if ( !in_array( $src, $mediafiles ) ) {
 				//echo "# added $src\n";
 				$mediafiles[] = $src;
@@ -663,7 +663,7 @@ function add_mediafiles ( &$mediafiles, $content ) {
 	if ( preg_match_all( '/<[iI][mM][gG][^>]+src="?([^"\s>]+)"?[^>]*\/>/', $content, $matches ) ) {
 		foreach ( $matches[1] as $src ) {
 			//echo "# found $src\n";
-			$src = str_replace( '/[&]amp[;]/', '&', $src );
+			$src = str_replace( '&amp;', '&', $src );
 			if ( !in_array( $src, $mediafiles ) )
 				$mediafiles[] = $src;
 		}
