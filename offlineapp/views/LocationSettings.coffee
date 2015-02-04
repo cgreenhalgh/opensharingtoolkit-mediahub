@@ -1,9 +1,9 @@
 # Location (offline) View
 
-templateLocation = require 'templates/Location'
+templateLocation = require 'templates/LocationSettings'
 location = require 'location'
 
-module.exports = class UserView extends Backbone.View
+module.exports = class LocationView extends Backbone.View
 
   title: 'Location'
 

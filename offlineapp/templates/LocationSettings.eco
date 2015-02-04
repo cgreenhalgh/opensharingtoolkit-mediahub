@@ -1,4 +1,7 @@
-<div class="row top-item">
+<div class="row top-item <%= if not @showLocation then 'hide' %>">
+  <div class="columns large-12 small-12">
+    <h4>Location Settings</h4>
+  </div>
   <div class="columns large-12 small-12">
     <label><input type="checkbox" name="showOnMap" <%= if @showOnMap then 'checked' %> />Show location on map(s)
     </label> 
@@ -28,6 +31,7 @@
       <p>old?: <%= @old %></p>
       <p>lastResult: <%= @lastResult %></p>
     </div>
+    <hr/>
   </div>
 </div>
 

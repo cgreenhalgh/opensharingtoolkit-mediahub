@@ -2,20 +2,29 @@
 
 templateSettings = require 'templates/Settings'
 locked = require 'locked'
+LocationSettingsView = require 'views/LocationSettings'
+location = require 'location'
 
 module.exports = class SettingsView extends Backbone.View
 
-  title: 'Enter Code'
+  title: 'Settings'
 
   initialize: ->
-    @listenTo @model, 'change', @render
+    @listenTo @model, 'change', @update
     @render()
 
   template: (d) =>
     templateSettings d
 
   render: =>
-    @$el.html @template _.extend {}, @model.attributes 
+    @$el.append "<div></div>"
+    @update()
+    @locationView = new LocationSettingsView model: location.getLocation()
+    @$el.append @locationView.el
+    @
+
+  update: =>
+    @$el.children('div:first').html @template _.extend {}, @model.attributes 
     @
 
   events: 
@@ -28,4 +37,9 @@ module.exports = class SettingsView extends Backbone.View
     if clearUnlock
       locked.clear()
       @model.set 'message',"Done"
+
+  remove: =>
+    if @locationView?
+      @locationView.remove()
+      @locationView = null
 

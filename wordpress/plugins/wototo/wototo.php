@@ -27,7 +27,7 @@ require_once( dirname(__FILE__) . '/common.php' );
 
 // wander anywhere map post  -> wototo place
 define( "DEFAULT_ZOOM", 15 );
-define( "WOTOTO_VERSION", "0.3.4" );
+define( "WOTOTO_VERSION", "0.3.4m" );
 
 add_action( 'init', 'wototo_create_post_types' );
 //Register the app post type

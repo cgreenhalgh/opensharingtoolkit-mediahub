@@ -206,4 +206,17 @@ location.on 'change:showOnMap', (model,value) ->
   persist 'showOnMap', value
   updateMarkers()
 
+class NavState extends Backbone.Model
+  defaults:
+    distanceText: '---'
+    bearingText: '---'
+
+navStates = {}
+
+module.exports.getNavState = ( model ) ->
+  if navStates[model.id]?
+    return navStates[model.id]
+  navState = new NavState id:model.id
+  navStates[model.id] = navState
+  navState
 

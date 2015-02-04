@@ -21,7 +21,6 @@ ThingListView = require 'views/ThingList'
 FormUploadView = require 'views/FormUpload'
 AboutView = require 'views/About'
 ShareView = require 'views/Share'
-LocationView = require 'views/Location'
 NearbyView = require 'views/Nearby'
 UnlockNumberView = require 'views/UnlockNumber'
 UnlockTextView = require 'views/UnlockText'
@@ -70,7 +69,6 @@ class Router extends Backbone.Router
     "user": "user"
     "about": "about"
     "share": "share"
-    "location": "location"
     "unlockNumber": "unlockNumber"
     "unlockArtcode": "unlockArtcode"
     "unlockQrcode": "unlockQrcode"
@@ -156,9 +154,6 @@ class Router extends Backbone.Router
   share: () ->
     @setCurrentView new ShareView model: appmodel
 
-  location: () ->
-    @setCurrentView new LocationView model: location.getLocation()
-
   nearby: () ->
     @setCurrentView new NearbyView model: location.getLocation()
 
@@ -224,7 +219,7 @@ makeThing = (data, collection, thingIds) ->
           ix++
       collection.add thing, at:ix
       places = location.getLocation().attributes.places
-      if not places.get( thing.id )
+      if thing.attributes.type=='place' and not places.get( thing.id )
         places.add thing
   catch err
     console.log "error making thing: #{err.message}: #{data}\n#{err.stack}"
