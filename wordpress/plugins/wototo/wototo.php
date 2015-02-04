@@ -3,7 +3,7 @@
  * Plugin Name: wototo
  * Plugin URI: https://github.com/cgreenhalgh/opensharingtoolkit-mediahub/tree/master/docs/wordpress.md
  * Description: Create simple HTML5 web apps from wordpress content (pages and posts). The web apps are intended for use on recent smart phones and tablets.
- * Version: 0.3.3
+ * Version: 0.3.4
  * Author: Chris Greenhalgh
  * Author URI: http://www.cs.nott.ac.uk/~cmg/
  * Network: true
@@ -27,7 +27,7 @@ require_once( dirname(__FILE__) . '/common.php' );
 
 // wander anywhere map post  -> wototo place
 define( "DEFAULT_ZOOM", 15 );
-define( "WOTOTO_VERSION", "0.3.3" );
+define( "WOTOTO_VERSION", "0.3.4" );
 
 add_action( 'init', 'wototo_create_post_types' );
 //Register the app post type
@@ -402,6 +402,66 @@ function wototo_add_item_fields( &$res, $post ) {
            $res['unlockCodes'][] = array( "type" => $type, "code" => $code ); 
     }
 }
+// geojson stuff
+function geojson_get_lat($geojson) {
+	if ( $geojson['type'] == 'Polygon' ) {
+		if ( $geojson['coordinates'] && count( $geojson['coordinates'] )>=1 && count( $geojson['coordinates'][0] )>=1 ) {
+			$max = $geojson['coordinates'][0][0][1];
+			$min = $max;
+			for( $i=1; $i < count( $geojson['coordinates'][0] ); $i++) {
+				$max = max( $max, $geojson['coordinates'][0][$i][1] );
+				$min = min( $min, $geojson['coordinates'][0][$i][1] );
+			}
+			return ($max+$min)/2;
+		}
+	} else if ( $geojson['coordinates'] && count( $geojson['coordinates'] )>=2 ) {
+		return $geojson['coordinates'][1];
+	}
+	return null;
+}
+function geojson_get_lon($geojson) {
+	if ( $geojson['type'] == 'Polygon' ) {
+		if ( $geojson['coordinates'] && count( $geojson['coordinates'] )>=1 && count( $geojson['coordinates'][0] )>=1 ) {
+			$max = $geojson['coordinates'][0][0][0];
+			$min = $max;
+			for( $i=1; $i < count( $geojson['coordinates'][0] ); $i++) {
+				$max = max( $max, $geojson['coordinates'][0][$i][0] );
+				$min = min( $min, $geojson['coordinates'][0][$i][0] );
+			}
+			return ($max+$min)/2;
+		}
+	} else if ( $geojson['coordinates'] && count( $geojson['coordinates'] )>=2 ) {
+		return $geojson['coordinates'][0];
+	}
+	return null;
+}
+function geojson_get_zoom($geojson) {
+	if ( $geojson['type'] == 'Polygon' ) {
+		if ( $geojson['coordinates'] && count( $geojson['coordinates'] )>=1 && count( $geojson['coordinates'][0] )>=1 ) {
+			$max0 = $geojson['coordinates'][0][0][0];
+			$min0 = $max0;
+			$max1 = $geojson['coordinates'][0][0][1];
+			$min1 = $max1;
+			for( $i=1; $i < count( $geojson['coordinates'][0] ); $i++) {
+				$max0 = max( $max0, $geojson['coordinates'][0][$i][0] );
+				$min0 = min( $min0, $geojson['coordinates'][0][$i][0] );
+				$max1 = max( $max1, $geojson['coordinates'][0][$i][1] );
+				$min1 = min( $min1, $geojson['coordinates'][0][$i][1] );
+			}
+			// TODO
+			return DEFAULT_ZOOM;
+		}
+	} else if ( $geojson['coordinates'] && count( $geojson['coordinates'] )>=2 ) {
+		return DEFAULT_ZOOM;
+	}
+	return null;
+}
+function wototo_get_iconurl( $thumbid ) {
+	$iconurl = wp_get_attachment_url( $thumbid );
+	if ( $iconurl !== false )
+		return $iconurl;
+	return null;
+}
 // Ajax for get json...
 function wototo_get_json() {
 	global $wpdb;
@@ -469,8 +529,9 @@ function wototo_get_json() {
 		$res['title'] = $post->post_title;
 		$res['html'] = filter_content( $post->post_content );
 		$thumbid = get_post_thumbnail_id($post->ID);
-		if ( $thumbid ) 
-			$res['iconurl'] = wp_get_attachment_url( $thumbid );
+		if ( $thumbid ) {
+			$res['iconurl'] = wototo_get_iconurl( $thumbid );
+		}
 		wototo_add_item_fields( $res, $post );
 	}
 	else if ( $post->post_type == 'anywhere_map_post' ) {
@@ -483,18 +544,16 @@ function wototo_get_json() {
 		$res['description'] = filter_content( $post->post_content );
 		$thumbid = get_post_thumbnail_id($post->ID);
 		if ( $thumbid ) 
-			$res['iconurl'] = wp_get_attachment_url( $thumbid );
+			$res['iconurl'] = wototo_get_iconurl( $thumbid );
 		// additional wander anywhere goodness...
 		$geojson = json_decode( get_post_meta( $post->ID, 'geojson', true ), true );
 		if ( $geojson && is_array( $geojson ) ) {
 			if ( $geojson['type'] == 'Polygon' ) {
 				$res['geojson'] = $geojson;
-				// TODO
-			} else if ( $geojson['coordinates'] && count( $geojson['coordinates'] )>=2 ) {
-				$res['lat'] = $geojson['coordinates'][1];
-				$res['lon'] = $geojson['coordinates'][0];
-				$res['zoom'] = DEFAULT_ZOOM;
-			}
+			} 
+			$res['lat'] = geojson_get_lat( $geojson );
+			$res['lon'] = geojson_get_lon( $geojson );
+			$res['zoom'] = geojson_get_zoom( $geojson );
 		}
 		wototo_add_item_fields( $res, $post );
 	}
@@ -610,7 +669,7 @@ function wototo_get_manifest() {
 					add_mediafiles( $mediafiles, filter_content( $item->post_content ) );
 					$thumbid = get_post_thumbnail_id($item->ID);
 					if ( $thumbid ) {
-						$url = wp_get_attachment_url( $thumbid );
+						$url = wototo_get_iconurl( $thumbid );
 						if ( !in_array( $url, $mediafiles ) )
 							$mediafiles[] = $url;
 					}
@@ -618,11 +677,10 @@ function wototo_get_manifest() {
 				if ( $idprefix == 'place' ) {
 					$geojson = json_decode( get_post_meta( $item->ID, 'geojson', true ), true );
 					if ( $geojson && is_array( $geojson ) ) {
-						if ( $geojson['coordinates'] && count( $geojson['coordinates'] )>=2 ) {
-							// TODO fit polygon
-							$lat = $geojson['coordinates'][1];
-							$lon = $geojson['coordinates'][0];
-							$zoom = DEFAULT_ZOOM;
+						$lat = geojson_get_lat( $geojson );
+						$lon = geojson_get_lon( $geojson );
+						$zoom = geojson_get_zoom( $geojson );
+						if ( $lat!==null && $lon!==null && $zoom!==null ) {
 							add_maptiles( $mediafiles, $lat, $lon, $zoom );
 						} else {
 							echo "# invalid map post geojson ".json_encode( $geojson )."\n";
