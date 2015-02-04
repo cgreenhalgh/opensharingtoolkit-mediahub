@@ -22,6 +22,7 @@ FormUploadView = require 'views/FormUpload'
 AboutView = require 'views/About'
 ShareView = require 'views/Share'
 LocationView = require 'views/Location'
+NearbyView = require 'views/Nearby'
 UnlockNumberView = require 'views/UnlockNumber'
 UnlockTextView = require 'views/UnlockText'
 UnlockView = require 'views/Unlock'
@@ -75,6 +76,7 @@ class Router extends Backbone.Router
     "unlockQrcode": "unlockQrcode"
     "unlock/:type/:code": "unlock"
     "settings": "settings"
+    "nearby": "nearby"
 
   removeCurrentView: ->
     if currentView?
@@ -157,6 +159,9 @@ class Router extends Backbone.Router
   location: () ->
     @setCurrentView new LocationView model: location.getLocation()
 
+  nearby: () ->
+    @setCurrentView new NearbyView model: location.getLocation()
+
   unlockNumber: () ->
     @setCurrentView new UnlockNumberView model: (new Backbone.Model _id: '_unlockNumber')
 
@@ -218,6 +223,9 @@ makeThing = (data, collection, thingIds) ->
         if (collection.at ix).id == tid
           ix++
       collection.add thing, at:ix
+      places = location.getLocation().attributes.places
+      if not places.get( thing.id )
+        places.add thing
   catch err
     console.log "error making thing: #{err.message}: #{data}\n#{err.stack}"
 
@@ -287,6 +295,7 @@ checkConfig = (app) ->
     formdb.setApp app
     location.getLocation().set 'showLocation', appconfig.showLocation
     $('#showLocation').toggleClass 'hide', appconfig.showLocation!=true
+    $('#showNearby').toggleClass 'hide', appconfig.showLocation!=true
     loadThings app,topLevelThings
   catch err
     console.log "error initialising app with new config: #{err.message}: #{JSON.stringify appconfig} - #{err.stack}"

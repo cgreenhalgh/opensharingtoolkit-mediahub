@@ -11,6 +11,7 @@ location = new Location
   #lastFix: null
   #lastFixTime: 0
   #old: true
+  places: new Backbone.Collection()
 
 console.log "localStorage requestRecent=#{window.localStorage?.getItem 'requestRecent'}"
 

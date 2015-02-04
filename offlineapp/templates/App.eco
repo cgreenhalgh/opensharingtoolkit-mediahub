@@ -7,6 +7,7 @@
         <li><a href="#">Home</a></li>
         <li id="showAbout" class="hide"><a href="#about">About</a></li>
         <li id="showShare" class="hide"><a href="#share">Share</a></li>
+        <li id="showNearby" class="hide"><a href="#nearby">Nearby</a></li>
         <li id="showLocation" class="hide"><a href="#location">Location</a></li>
         <li id="showUser" class="hide"><a href="#user">User</a></li>
         <li id="showUpload" class="hide"><a href="#upload">Send</a></li>
