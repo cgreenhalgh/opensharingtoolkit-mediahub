@@ -4,7 +4,7 @@ TagWidgetView = require 'views/TagWidget'
 module.exports = class TagListWidgetView extends Backbone.View
 
   tagName: 'div'
-  className: 'thing-in-list-buttons'
+  #className: ''
 
   initialize: ->
     @views = []

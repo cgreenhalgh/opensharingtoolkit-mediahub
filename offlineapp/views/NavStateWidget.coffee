@@ -7,6 +7,7 @@ module.exports = class NavStateWidgetView extends Backbone.View
   className: 'nav-state-widget'
 
   initialize: =>
+    @listenTo @model, 'change', @render
     @render()
 
   template: (d) =>
@@ -16,4 +17,12 @@ module.exports = class NavStateWidgetView extends Backbone.View
     @$el.html @template _.extend {}, @model.attributes 
     @
 
+  events: 
+    "click": "onClick"
+
+  onClick: (ev) =>
+    ev.preventDefault()
+    ev.stopPropagation()
+    console.log "Click NavStateWidget #{@model.id}..."
+    # TODO
 

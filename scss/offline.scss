@@ -187,6 +187,9 @@ $thing-color: #bbb;
       top: 2.2em;
       margin: 1px;
       right: 0;
+      > div {
+        display: inline-block;
+      }
     }
     .thing-in-list-clear { 
       clear: both;
@@ -311,6 +314,12 @@ $outline-color: #000;
   height: 1em;
   padding: 2px;
 };
+.big-location-icon {
+  width: 1.5em;
+  height: 1.5em;
+  padding: 2px;
+};
+
 
 .location-old {
   opacity: 0.3;    

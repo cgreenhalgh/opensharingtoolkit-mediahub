@@ -1,1 +1,5 @@
-<%= @distanceText %> <%= @bearingText %> Nav<!-- ... -->
+<div class="thing-in-list-button">
+<img class="tag-icon" src="<%= window.geticonurl 'navigation-black.png' %>"/>
+</div>
+<%= @distanceText %> <%= @bearingText %>
+

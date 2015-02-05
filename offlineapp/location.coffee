@@ -75,6 +75,7 @@ positionSuccess = (position) ->
     old: false
     lastResult: "position success: #{JSON.stringify fix}"
 
+  updateNavStates fix
   updateMarkers()
 
   resetOldTimer()
@@ -145,7 +146,8 @@ module.exports.touchWidget = () ->
     console.log "touch -> refresh for geo widget"
     refresh()
   else
-    window.router.navigate "#location", trigger:true
+    console.log "touch (location) -> nearby"
+    window.router.navigate "#nearby", trigger:true
 
 # show location on map (leaflet)
 currentMap = null
@@ -206,17 +208,89 @@ location.on 'change:showOnMap', (model,value) ->
   persist 'showOnMap', value
   updateMarkers()
 
+# Navigation / Nearby Places
+
 class NavState extends Backbone.Model
   defaults:
     distanceText: '---'
     bearingText: '---'
+    #placeId: ''
+    #lat:
+    #lon:
+    #zoom:
+    #geojson:
 
 navStates = {}
 
 module.exports.getNavState = ( model ) ->
   if navStates[model.id]?
     return navStates[model.id]
-  navState = new NavState id:model.id
+  navState = new NavState 
+    id:model.id
+    _id:model.id
+    placeId: model.id
+    lat: model.attributes.lat
+    lon: model.attributes.lon
+    zoom: model.attributes.zoom
+    geojson: model.attributes.geojson
   navStates[model.id] = navState
+  if location.attributes.lastFix?
+    updateNavState navState, location.attributes.lastFix
   navState
+
+# http://www.movable-type.co.uk/scripts/latlong.html
+distance = (lat1, lon1, lat2, lon2) ->
+  R = 6371000.0
+  r1 = lat1*Math.PI/180.0
+  r2 = lat2*Math.PI/180.0
+  dr = (lat2-lat1)*Math.PI/180.0
+  dl = (lon2-lon1)*Math.PI/180.0
+  a = Math.sin(dr/2) * Math.sin(dr/2) + Math.cos(r1) * Math.cos(r2) * Math.sin(dl/2) * Math.sin(dl/2)
+  c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a))
+  #console.log('distance '+lat1+','+lon1+' - '+lat2+','+lon2+', R*c='+R*c)
+  R * c
+
+initialBearing = (lat1, lon1, lat2, lon2) ->
+  r1 = lat1*Math.PI/180.0
+  r2 = lat2*Math.PI/180.0
+  dl = (lon2-lon1)*Math.PI/180.0
+  # see http://mathforum.org/library/drmath/view/55417.html
+  y = Math.sin(dl) * Math.cos(r2)
+  x = Math.cos(r1)*Math.sin(r2) - Math.sin(r1)*Math.cos(r2)*Math.cos(dl)
+  theta = Math.atan2(y, x);
+  theta = (theta*180/Math.PI)
+  theta - 360*Math.floor(theta/360)
+
+getDistanceText = ( d )->
+  suffix = 'm'
+  if d>=1000
+    d /= 1000
+    suffix = 'km'
+  Number(d).toPrecision(2)+suffix
+
+bearings = ['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSW','SW','WSW','W','WNW','NW','NNW']
+
+getBearingText = ( b )->
+  dir = Math.floor( (b-360*Math.floor(b/360))*16/360 + 0.5) % 16
+  bearings[dir]
+
+updateNavStates = ( fix ) ->
+  for id,navState of navStates
+    updateNavState navState, fix
+
+updateNavState = ( navState, fix ) ->
+  if navState.attributes.lat? and navState.attributes.lon? and fix.latitude and fix.longitude
+    d = distance fix.latitude, fix.longitude, navState.attributes.lat, navState.attributes.lon
+    b = initialBearing fix.latitude, fix.longitude, navState.attributes.lat, navState.attributes.lon
+    console.log "Update NavState #{navState.id} distance #{d} (#{getDistanceText d}), bearing #{b} (#{getBearingText b})"
+    navState.set
+      distance: d
+      distanceText: getDistanceText d
+      bearing: b
+      bearingText: getBearingText b
+      hasFix: true
+
+  else 
+    console.log "no nav info for #{navState.id} vs fix #{fix}"
+    navState.set hasFix: false
 

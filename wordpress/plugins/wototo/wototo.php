@@ -27,7 +27,7 @@ require_once( dirname(__FILE__) . '/common.php' );
 
 // wander anywhere map post  -> wototo place
 define( "DEFAULT_ZOOM", 15 );
-define( "WOTOTO_VERSION", "0.3.4m" );
+define( "WOTOTO_VERSION", "0.3.4z" );
 
 add_action( 'init', 'wototo_create_post_types' );
 //Register the app post type
@@ -612,7 +612,7 @@ function wototo_get_manifest() {
 		), "upload icons");
 	output_plugin_files( array( 
 		'icons/location-ok.png', 'icons/location-searching.png', 
-		'icons/location-off.png', 
+		'icons/location-off.png', 'icons/navigation-black.png',
 		), "location icons");
 	output_plugin_files( array( 
 		'icons/like-undefined.png', 'icons/like-0.png',

@@ -8247,26 +8247,30 @@ th.hide-for-touch {
   margin: 1px;
   right: 0;
 }
-/* line 191, ../../scss/offline.scss */
+/* line 190, ../../scss/offline.scss */
+.thing-in-list .thing-in-list-holder .thing-in-list-buttons > div {
+  display: inline-block;
+}
+/* line 194, ../../scss/offline.scss */
 .thing-in-list .thing-in-list-holder .thing-in-list-clear {
   clear: both;
 }
-/* line 198, ../../scss/offline.scss */
+/* line 201, ../../scss/offline.scss */
 .thing-in-list .thing-in-list-holder:hover, .thing-in-list .thing-in-list-holder:focus {
   background-color: #ebebeb;
 }
-/* line 201, ../../scss/offline.scss */
+/* line 204, ../../scss/offline.scss */
 .thing-in-list .thing-in-list-holder.disabled {
   cursor: default;
   opacity: 0.7;
   box-shadow: none;
 }
-/* line 205, ../../scss/offline.scss */
+/* line 208, ../../scss/offline.scss */
 .thing-in-list .thing-in-list-holder.disabled:hover, .thing-in-list .thing-in-list-holder.disabled:focus {
   background-color: #dddddd;
 }
 
-/* line 210, ../../scss/offline.scss */
+/* line 213, ../../scss/offline.scss */
 .thing-in-list-button {
   display: inline-block;
   width: 2rem;
@@ -8274,20 +8278,20 @@ th.hide-for-touch {
   border: 1px solid #888;
   margin: 1px;
 }
-/* line 217, ../../scss/offline.scss */
+/* line 220, ../../scss/offline.scss */
 .thing-in-list-button > .tag-icon {
   padding: 1px;
   width: 100%;
   height: 100%;
 }
 
-/* line 224, ../../scss/offline.scss */
+/* line 227, ../../scss/offline.scss */
 .stretch-100 {
   width: 100%;
   position: relative;
   padding-bottom: 100%;
 }
-/* line 229, ../../scss/offline.scss */
+/* line 232, ../../scss/offline.scss */
 .stretch-100 .stretch-child {
   position: absolute;
   top: 0;
@@ -8296,7 +8300,7 @@ th.hide-for-touch {
   right: 0;
 }
 
-/* line 237, ../../scss/offline.scss */
+/* line 240, ../../scss/offline.scss */
 .place-map {
   position: static;
   width: 100%;
@@ -8306,7 +8310,7 @@ th.hide-for-touch {
   border: 1px solid #000;
 }
 
-/* line 247, ../../scss/offline.scss */
+/* line 250, ../../scss/offline.scss */
 .working-modal {
   z-index: 200;
   background-color: rgba(255, 255, 255, 0.8);
@@ -8316,7 +8320,7 @@ th.hide-for-touch {
   right: 0;
   bottom: 0;
 }
-/* line 255, ../../scss/offline.scss */
+/* line 258, ../../scss/offline.scss */
 .working-modal > img {
   position: absolute;
   left: 48%;
@@ -8325,14 +8329,14 @@ th.hide-for-touch {
   height: auto;
 }
 
-/* line 264, ../../scss/offline.scss */
+/* line 267, ../../scss/offline.scss */
 .upload-icon {
   width: 1em;
   height: 1em;
   padding: 2px;
 }
 
-/* line 270, ../../scss/offline.scss */
+/* line 273, ../../scss/offline.scss */
 .upload-status-icon {
   width: 1.5em;
   height: 1.5em;
@@ -8340,22 +8344,22 @@ th.hide-for-touch {
   vertical-align: middle;
 }
 
-/* line 277, ../../scss/offline.scss */
+/* line 280, ../../scss/offline.scss */
 .upload-idle {
   opacity: 0.3;
 }
 
-/* line 281, ../../scss/offline.scss */
+/* line 284, ../../scss/offline.scss */
 .top-item {
   margin-top: 1.25rem;
 }
 
-/* line 285, ../../scss/offline.scss */
+/* line 288, ../../scss/offline.scss */
 .gap-before {
   margin-top: 1rem;
 }
 
-/* line 289, ../../scss/offline.scss */
+/* line 292, ../../scss/offline.scss */
 .link-qrcode {
   width: 70%;
   max-width: 500px;
@@ -8363,7 +8367,7 @@ th.hide-for-touch {
   padding: 10px;
 }
 
-/* line 296, ../../scss/offline.scss */
+/* line 299, ../../scss/offline.scss */
 .link-url {
   font-family: Monospace;
   font-size: 120%;
@@ -8376,19 +8380,26 @@ th.hide-for-touch {
   user-select: text;
 }
 
-/* line 309, ../../scss/offline.scss */
+/* line 312, ../../scss/offline.scss */
 .location-icon {
   width: 1em;
   height: 1em;
   padding: 2px;
 }
 
-/* line 315, ../../scss/offline.scss */
+/* line 317, ../../scss/offline.scss */
+.big-location-icon {
+  width: 1.5em;
+  height: 1.5em;
+  padding: 2px;
+}
+
+/* line 324, ../../scss/offline.scss */
 .location-old {
   opacity: 0.3;
 }
 
-/* line 319, ../../scss/offline.scss */
+/* line 328, ../../scss/offline.scss */
 .topbar-widget {
   float: right;
   padding-left: 0.5em;
@@ -8398,7 +8409,7 @@ th.hide-for-touch {
   cursor: pointer;
 }
 
-/* line 329, ../../scss/offline.scss */
+/* line 338, ../../scss/offline.scss */
 .tag-option {
   margin: 0.4em;
   border: solid 2px;
@@ -8407,27 +8418,27 @@ th.hide-for-touch {
   cursor: pointer;
   transition: background-color 300ms ease-out;
 }
-/* line 335, ../../scss/offline.scss */
+/* line 344, ../../scss/offline.scss */
 .tag-option:hover, .tag-option:focus {
   background-color: #eee;
 }
 
-/* line 340, ../../scss/offline.scss */
+/* line 349, ../../scss/offline.scss */
 .tag-option-selected {
   border-color: #000;
   background-color: #fff;
 }
-/* line 343, ../../scss/offline.scss */
+/* line 352, ../../scss/offline.scss */
 .tag-option-selected:hover, .tag-option-selected:focus {
   background-color: #eee;
 }
 
-/* line 347, ../../scss/offline.scss */
+/* line 356, ../../scss/offline.scss */
 .location-debug {
   background-color: #ddd;
   padding: 4px;
 }
-/* line 350, ../../scss/offline.scss */
+/* line 359, ../../scss/offline.scss */
 .location-debug > p {
   font-family: monospace;
   font-size: 10pt;
@@ -8438,7 +8449,7 @@ th.hide-for-touch {
   word-break: break-all;
 }
 
-/* line 361, ../../scss/offline.scss */
+/* line 370, ../../scss/offline.scss */
 .action-button {
   border-style: solid;
   border-width: 0px;

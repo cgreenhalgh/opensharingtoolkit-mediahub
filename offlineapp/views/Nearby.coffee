@@ -9,7 +9,8 @@ module.exports = class NearbyView extends Backbone.View
   title: 'Nearby'
 
   initialize: ->
-    #@listenTo @model, 'change', @render
+    # model is location.getLocation
+    @listenTo @model, 'change', @render
     @render()
 
   template: (d) =>
@@ -17,14 +18,11 @@ module.exports = class NearbyView extends Backbone.View
 
   render: =>
     @$el.html @template @model.attributes
-    if @listView?
-      @listView.render()
-    else if @model.attributes.places?
+    if @model.attributes.places? and not @listView?
       @listView = new PlaceListView model: @model.attributes.places
       @listView.render()
-      @$el.append @listView.el
-    else
-      console.log "error: render ListView without @things (thingsIds=#{@model.attributes.thingIds})"
+    if @listView?
+      $('.list-holder', @$el).replaceWith @listView.el 
     @
 
   remove: =>
