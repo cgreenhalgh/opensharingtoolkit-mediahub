@@ -22,6 +22,7 @@ FormUploadView = require 'views/FormUpload'
 AboutView = require 'views/About'
 ShareView = require 'views/Share'
 NearbyView = require 'views/Nearby'
+NavigateView = require 'views/Navigate'
 UnlockNumberView = require 'views/UnlockNumber'
 UnlockTextView = require 'views/UnlockText'
 UnlockView = require 'views/Unlock'
@@ -57,6 +58,8 @@ currentView = null
 
 topLevelThings = new Backbone.Collection()
 
+lastNavigateId = null
+
 class Router extends Backbone.Router
   routes: 
     "" : "entries"
@@ -75,6 +78,8 @@ class Router extends Backbone.Router
     "unlock/:type/:code": "unlock"
     "settings": "settings"
     "nearby": "nearby"
+    "navigate": "placeNavigateDefault"
+    "navigate/:id": "placeNavigate"
 
   removeCurrentView: ->
     if currentView?
@@ -157,6 +162,28 @@ class Router extends Backbone.Router
   nearby: () ->
     @setCurrentView new NearbyView model: location.getLocation()
 
+  placeNavigate: (id) ->
+    console.log "navigate to thing #{id}"
+    lastNavigateId = id
+    thing = items[id]
+    if not thing?
+      console.log "could not find thing #{id}"
+      view = new MissingView model: (new Backbone.Model _id: id)
+      view.isNavigate = true
+      @setCurrentView view
+      return true
+    
+    view = new NavigateView model: thing
+    @setCurrentView view
+    true
+
+  placeNavigateDefault: ->
+    # TODO persisted?!
+    if lastNavigateId?
+      @placeNavigate lastNavigateId
+    else
+      @navigate '#nearby', { trigger:true, replace:true }
+
   unlockNumber: () ->
     @setCurrentView new UnlockNumberView model: (new Backbone.Model _id: '_unlockNumber')
 
@@ -207,6 +234,8 @@ makeThing = (data, collection, thingIds) ->
             canchor = currentView.anchor
             window.router.thing thing.id        
             window.router.bookletPage thing.id, cpage, canchor
+          else if currentView.isNavigate
+            window.router.placeNavigate thing.id        
           else
             window.router.thing thing.id        
         catch err
@@ -291,6 +320,7 @@ checkConfig = (app) ->
     location.getLocation().set 'showLocation', appconfig.showLocation
     $('#showLocation').toggleClass 'hide', appconfig.showLocation!=true
     $('#showNearby').toggleClass 'hide', appconfig.showLocation!=true
+    $('#showNavigate').toggleClass 'hide', appconfig.showLocation!=true
     loadThings app,topLevelThings
   catch err
     console.log "error initialising app with new config: #{err.message}: #{JSON.stringify appconfig} - #{err.stack}"

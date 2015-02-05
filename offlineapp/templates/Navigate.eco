@@ -1,0 +1,11 @@
+<div class="row top-item">
+  <div class="columns large-12 small-12">
+    <h4>Navigate to <%= @title %></h4>
+  </div>
+</div>
+<div class="location-alert-holder"></div>
+<div class="row top-item">
+  <div class="columns large-12 small-12">
+    <div class="nav-widget-holder"></div>
+  </div>
+</div>

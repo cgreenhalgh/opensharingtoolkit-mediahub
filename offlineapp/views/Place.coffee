@@ -65,6 +65,8 @@ module.exports = class PlaceView extends Backbone.View
       options = 
         fadeAnimation: false
         dragging: false
+        touchZoom: false
+        tap: false
         keyboard: false # buggy release focus?!
       @map = L.map(mapEl, options).setView [@model.attributes.lat, @model.attributes.lon], @model.attributes.zoom
       # E.g. OSM

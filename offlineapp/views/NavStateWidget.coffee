@@ -24,5 +24,5 @@ module.exports = class NavStateWidgetView extends Backbone.View
     ev.preventDefault()
     ev.stopPropagation()
     console.log "Click NavStateWidget #{@model.id}..."
-    # TODO
+    window.router.navigate "#navigate/#{encodeURIComponent @model.id}", trigger:true
 

@@ -1,24 +1,2 @@
-<div class="row top-item">
-  <div class="columns large-12 small-12">
-    <div data-alert class="alert-box <%= if @lastFix and not @old then 'success' else 'warning' %> clearfix">
-<% if @lastFix and not @old: %>
-  <img src="<%= window.geticonurl 'location-ok.png' %>" class="big-location-icon left"/> This is a recent location report.
-<% else if @searching: %>
-  <img src="<%= window.geticonurl 'location-searching.png' %>" class="big-location-icon left"/>
-  <% if @lastFix: %>
-    This is an old location report; waiting for an update.
-  <% else: %>
-    Waiting for first location report...
-  <% end %>
-<% else if not @lastFix: %>
-  <img src="<%= window.geticonurl 'location-off.png' %>" class="big-location-icon left"/> Location unknown; not searching (see Settings).
-<% else : %>
-  <img src="<%= window.geticonurl 'location-ok.png' %>" class="big-location-icon location-old left"/> This is an old location report; not searching (see Settings).
-<% end %>
-<% if @lastFix and @lastFix.accuracy: %>
-      <br/>(Accuracy was estimated as <%= if @lastFix.accuracy >= 1000 then Number(@lastFix.accuracy/1000).toPrecision(2)+'km' else Number(@lastFix.accuracy).toPrecision(2)+'m' %>)
-<% end %>
-    </div>
-  </div>
-</div>
+<div class="location-alert-holder"></div>
 <div class="list-holder"></div>

@@ -3,6 +3,7 @@
 templateNearby = require 'templates/Nearby'
 location = require 'location'
 PlaceListView = require 'views/PlaceList'
+LocationAlertWidgetView = require 'views/LocationAlertWidget'
 
 module.exports = class NearbyView extends Backbone.View
 
@@ -11,6 +12,7 @@ module.exports = class NearbyView extends Backbone.View
   initialize: ->
     # model is location.getLocation
     @listenTo @model, 'change', @render
+    @locationAlertWidgetView = new LocationAlertWidgetView model: @model
     @render()
 
   template: (d) =>
@@ -18,6 +20,7 @@ module.exports = class NearbyView extends Backbone.View
 
   render: =>
     @$el.html @template @model.attributes
+    $('.location-alert-holder', @$el).replaceWith @locationAlertWidgetView.el 
     if @model.attributes.places? and not @listView?
       @listView = new PlaceListView model: @model.attributes.places
       @listView.render()
@@ -26,6 +29,7 @@ module.exports = class NearbyView extends Backbone.View
     @
 
   remove: =>
+    @locationAlertWidgetView.remove()
     if @listView
       @listView.remove()
     super()
