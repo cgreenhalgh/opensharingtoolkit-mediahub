@@ -3,7 +3,7 @@
  * Plugin Name: wototo
  * Plugin URI: https://github.com/cgreenhalgh/opensharingtoolkit-mediahub/tree/master/docs/wordpress.md
  * Description: Create simple HTML5 web apps from wordpress content (pages and posts). The web apps are intended for use on recent smart phones and tablets.
- * Version: 0.3.4
+ * Version: 0.3.5
  * Author: Chris Greenhalgh
  * Author URI: http://www.cs.nott.ac.uk/~cmg/
  * Network: true
@@ -27,7 +27,7 @@ require_once( dirname(__FILE__) . '/common.php' );
 
 // wander anywhere map post  -> wototo place
 define( "DEFAULT_ZOOM", 15 );
-define( "WOTOTO_VERSION", "0.3.4-33" );
+define( "WOTOTO_VERSION", "0.3.5-4" );
 
 add_action( 'init', 'wototo_create_post_types' );
 //Register the app post type
@@ -462,6 +462,25 @@ function wototo_get_iconurl( $thumbid ) {
 		return $iconurl;
 	return null;
 }
+function handle_post_if_modified_since( $post ) {
+	$lastModified = mysql2date('U', $post->post_modified_gmt);
+	handle_if_modified_since( $lastModified );
+}
+function handle_if_modified_since( $lastModified ) {
+	if ( empty( $lastModified ) )
+		return;
+	if (isset($_SERVER['HTTP_IF_MODIFIED_SINCE']) ) {
+		$ifModifiedSince = strtotime($_SERVER['HTTP_IF_MODIFIED_SINCE']);
+		// valid? (future is also invalid!)
+		if ( $ifModifiedSince===FALSE || $ifModifiedSince > time() )
+			return;
+		if ( $lastModified <= $ifModifiedSince ) {
+			header('HTTP/1.0 304 Not Modified');
+			wp_die();
+		}
+ 	}
+	header( "Last-Modified: " . date( DATE_RFC2822, $lastModified ) );
+}
 // Ajax for get json...
 function wototo_get_json() {
 	global $wpdb;
@@ -489,6 +508,7 @@ function wototo_get_json() {
 		echo '{"error":"Not found: post '.$id.' not found"}';
 		wp_die();
 	}
+	handle_post_if_modified_since( $post );
         $res = array(
 		"_id" => $sid,
         );
@@ -585,6 +605,32 @@ function wototo_get_manifest() {
 		echo '# Invalid request: post '.$id.' is not an app ('.$post->post_type.')';
 		wp_die();
 	}
+	$lastModified = mysql2date('U', $post->post_modified_gmt);
+	// plugin change => check the rest
+	$pluginLastModified = filemtime( __FILE__ );
+        if ( $lastModified && $pluginLastModified && $pluginLastModified > $lastModified ) 
+		$lastModified = $pluginLastModified;
+	// check last modified and cache things
+	$thing_ids = wototo_get_thing_ids( $post->ID );
+	$items = array();
+	foreach( $thing_ids as $thing_id ) {
+		$ix = strpos( $thing_id, ':' );
+		$idprefix = '';
+		if ( $ix !== FALSE ) {
+			$item_id = substr( $thing_id, $ix+1 );
+			$idprefix = substr( $thing_id, 0, $ix );
+		}
+		if ( $idprefix ) {
+			$item = get_post( $item_id );
+			if ( $item ) {
+				$items[(string)$thing_id] = $item;
+				$itemLastModified = mysql2date('U', $item->post_modified_gmt);
+				if ( $lastModified && $itemLastModified && $itemLastModified > $lastModified )
+					$lastModified = $itemLastModified;
+			}
+		}
+	}
+	handle_if_modified_since( $lastModified );
 	header( "Content-Type: text/cache-manifest" );
 ?>CACHE MANIFEST
 <?php
@@ -651,17 +697,9 @@ function wototo_get_manifest() {
 	echo admin_url( 'admin-ajax.php' ).'?action=wototo_get_json&id='.rawurlencode( 'app:'.$post->ID )."\n";
 	$mediafiles = array();
 	add_mediafiles( $mediafiles, filter_content( $post->post_content ) );
-	$thing_ids = wototo_get_thing_ids( $post->ID );
 	foreach( $thing_ids as $thing_id ) {
-		$ix = strpos( $thing_id, ':' );
-		$idprefix = '';
-		if ( $ix !== FALSE ) {
-			$item_id = substr( $thing_id, $ix+1 );
-			$idprefix = substr( $thing_id, 0, $ix );
-		}
-		echo "# item $idprefix $item_id\n";
-		if ( $idprefix ) {
-			$item = get_post( $item_id );
+			echo "# item $thing_id\n";
+			$item = $items[ (string)$thing_id  ];
 			if ( $item ) {
 				if ( $idprefix == 'html' || $idprefix == 'place' ) {
 					echo "# last modified $item->post_modified_gmt\n";
@@ -688,7 +726,6 @@ function wototo_get_manifest() {
 					}
 				}
 			}
-		}
 	}
 ?># media files
 <?php
