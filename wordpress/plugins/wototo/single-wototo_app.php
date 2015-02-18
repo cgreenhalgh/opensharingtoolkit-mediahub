@@ -37,10 +37,22 @@ get_header(); ?>
 ?>
 	<div class="comments-area wototo-links">
 		<div class="">
+<script language="javascript" type="text/javascript">
+function popupqr(url) {
+	var win=window.open('http://chart.googleapis.com/chart?cht=qr&chs=300x300&choe=UTF-8&chld=H&chl='+encodeURIComponent(url),'qr','height=300,width=300,left='+(screen.width/2-150)+',top='+(screen.height/2-150)+',titlebar=no,toolbar=no,location=no,directories=no,status=no,menubar=no');
+	if (window.focus) {win.focus()}
+	return false;
+}
+</script>
 			<h2>Wototo App Links</h2>
-			<p><a href="<?php echo $view_url ?>">Open in Browser</a></p>
-			<p><a href="<?php echo $wototo_url ?>">Open in WototoPlayer via URL</a><br/><span class="wototo-warning">Experimental: Android-only, requires seperate install</span></p>
-			<p><a href="<?php echo $view_url ?>=2">Open in WototoPlayer via download</a><br/><span class="wototo-warning">Experimental: Android-only, requires seperate install</span></p>
+			<p><a class="wototo-link" href="<?php echo $view_url ?>">Open in Browser</a>
+			<a class="wototo-link-qr" onclick="return popupqr('<?php echo $view_url ?>')">QR</a></p>
+			<p><a class="wototo-link"  href="<?php echo $wototo_url ?>">Open in WototoPlayer via URL</a>
+			<a class="wototo-link-qr" onclick="return popupqr('<?php echo $wototo_url ?>')">QR</a>
+			<br/><span class="wototo-warning">Experimental: Android-only, requires seperate install</span></p>
+			<p><a class="wototo-link"  href="<?php echo $view_url ?>=2">Open in WototoPlayer via download</a>
+			<a class="wototo-link-qr" onclick="return popupqr('<?php echo $view_url ?>=2')">QR</a>
+			<br/><span class="wototo-warning">Experimental: Android-only, requires seperate install</span></p>
 		</div>
 	</div>
 <?php

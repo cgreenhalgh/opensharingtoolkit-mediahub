@@ -3,7 +3,7 @@
  * Plugin Name: wototo
  * Plugin URI: https://github.com/cgreenhalgh/opensharingtoolkit-mediahub/tree/master/docs/wordpress.md
  * Description: Create simple HTML5 web apps from wordpress content (pages and posts). The web apps are intended for use on recent smart phones and tablets.
- * Version: 0.3.5
+ * Version: 0.3.6
  * Author: Chris Greenhalgh
  * Author URI: http://www.cs.nott.ac.uk/~cmg/
  * Network: true

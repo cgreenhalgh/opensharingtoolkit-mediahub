@@ -33,11 +33,20 @@ get_header(); ?>
 				$view_url .= '&wototo';
 
 ?>
+<script language="javascript" type="text/javascript">
+function popupqr(url) {
+	var win=window.open('http://chart.googleapis.com/chart?cht=qr&chs=300x300&choe=UTF-8&chld=H&chl='+encodeURIComponent(url),'qr','height=300,width=300,left='+(screen.width/2-150)+',top='+(screen.height/2-150)+',titlebar=no,toolbar=no,location=no,directories=no,status=no,menubar=no');
+	if (window.focus) {win.focus()}
+	return false;
+}
+</script>
 	<div class="comments-area wototo-links">
 		<div class="">
 			<h2>PostSelector Interface</h2>
-			<p><a href="<?php echo $view_url ?>">Open in Browser</a></p>
-			<p><a href="<?php echo $view_url ?>&readonly">Open in Browser (readonly)</a></p>
+			<p><a class="wototo-link" href="<?php echo $view_url ?>">Open in Browser</a>
+			<a class="wototo-link-qr" onclick="return popupqr('<?php echo $view_url ?>')">QR</a></p>
+			<p><a class="wototo-link" href="<?php echo $view_url ?>&readonly">Open in Browser (readonly)</a>
+			<a class="wototo-link-qr" onclick="return popupqr('<?php echo $view_url ?>&readonly')">QR</a></p>
 		</div>
 	</div>
 <?php
