@@ -354,13 +354,13 @@ ARTCODES_EXPERIENCE = JSON.stringify({
     		"id": "org.opensharingtoolkit.aestheticodes.dynamic",
     		"version": 1,
     		"name": "Aestheticodes/Wototo",
-    		"minRegions": 5,
-    		"maxRegions": 5,
+    		"minRegions": 4,
+    		"maxRegions": 10,
     		"maxEmptyRegions": 0,
     		"maxRegionValue": 6,
-    		"validationRegions": 2,
+    		"validationRegions": 0,
     		"validationRegionValue": 1,
-    		"checksumModulo": 3,
+    		"checksumModulo": 1,
     		"thresholdBehaviour": "temporalTile",
     		"markers": [
     			{

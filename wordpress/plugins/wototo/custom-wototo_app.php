@@ -75,6 +75,7 @@ if ( !get_post_meta( $post->ID, '_wototo_disable_appcache', true ) )
     </div>
     <div id="tagModalHolder" class="reveal-modal" data-reveal></div>
     <div id="lockedModalHolder" class="reveal-modal" data-reveal></div>
+    <div class="reveal-modal-bg" style="display: none;"></div>
 
     <script src="<?php echo plugins_url( 'vendor/jquery/dist/jquery.min.js', __FILE__ ) ?>"></script>
 <?php if ( $wototo )
