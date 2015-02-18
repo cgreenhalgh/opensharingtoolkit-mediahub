@@ -1,4 +1,9 @@
 <div class="row top-item">
+  <% if @artcodeDataUrl? : %>
+  <div class="columns large-12 small-12">
+    <a class="button" href="<%= @artcodeDataUrl %>">Try Artcode Scanner</a> If that doesn't work...
+  </div>
+  <% end %>
   <div class="columns large-12 small-12">
     <form>
       <label for="unlock_code_id">Enter code:</label><br/>

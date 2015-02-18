@@ -2,6 +2,7 @@
 
 require 'version'
 appcache = require 'appcache'
+artcode = require 'artcode'
 templateApp = require 'templates/App'
 HomeView = require 'views/Home'
 CacheStateWidgetView = require 'views/CacheStateWidget'
@@ -54,6 +55,7 @@ endLoad = () ->
 appmodel = new Backbone.Model {}
 
 items = {}
+artcode.setItems items
 currentView = null
 
 topLevelThings = new Backbone.Collection()
@@ -348,28 +350,6 @@ refresh = ()->
         working.error 'Sorry, could not load initial information - please try reloading this app'
       endLoad()
 
-# default experience configuration
-ARTCODES_EXPERIENCE = JSON.stringify({
-    		"op":"temp",
-    		"id": "org.opensharingtoolkit.aestheticodes.dynamic",
-    		"version": 1,
-    		"name": "Aestheticodes/Wototo",
-    		"minRegions": 4,
-    		"maxRegions": 10,
-    		"maxEmptyRegions": 0,
-    		"maxRegionValue": 6,
-    		"validationRegions": 0,
-    		"validationRegionValue": 1,
-    		"checksumModulo": 1,
-    		"thresholdBehaviour": "temporalTile",
-    		"markers": [
-    			{
-    				"code": "1:1:1:1:2",
-    				"action": "http://www.opensharingtoolkit.org"
-    			}
-    		]
-       	});
-
 App = 
   init: ->
 
@@ -431,15 +411,8 @@ App =
           ev.preventDefault()
           return
       if url=='#unlockArtcode'
-        if aestheticodes?
-          console.log "try aestheticodes scanner..."+ARTCODES_EXPERIENCE
-          # alert "scan..."
-          aestheticodes.scan( ARTCODES_EXPERIENCE, (result) -> 
-              console.log "artcode scan "+result
-              router.navigate "#unlock/artcode/#{encodeURIComponent result}", trigger:true
-            , (error) ->
-              console.log "artcode scan error "+error
-          )
+        if artcode.canScan()
+          artcode.scan()
           ev.preventDefault()
           return
       if url.charAt(0)=='#'

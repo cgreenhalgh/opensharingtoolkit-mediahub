@@ -1,6 +1,7 @@
 # UnlockText (offline) View
 
 templateUnlockText = require 'templates/UnlockText'
+artcode = require 'artcode'
 
 module.exports = class UnlockTextView extends Backbone.View
 
@@ -14,7 +15,10 @@ module.exports = class UnlockTextView extends Backbone.View
     templateUnlockText d
 
   render: =>
-    @$el.html @template _.extend {}, @model.attributes 
+    data = _.extend {}, @model.attributes
+    if data.type=='artcode'
+      data.artcodeDataUrl = artcode.getExperienceDataUrl()
+    @$el.html @template  data
     @
 
   events: 

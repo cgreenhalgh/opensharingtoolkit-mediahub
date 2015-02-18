@@ -93,6 +93,7 @@ if ( !get_post_meta( $post->ID, '_wototo_disable_appcache', true ) )
     <script src="<?php echo plugins_url( 'vendor/backbone-indexeddb/backbone-indexeddb.js', __FILE__ ) ?>"></script>
     <script src="<?php echo plugins_url( 'vendor/filesaver/FileSaver.js', __FILE__ ) ?>"></script>
     <script src="<?php echo plugins_url( 'vendor/node-uuid/uuid.js', __FILE__ ) ?>"></script>
+    <script src="<?php echo plugins_url( 'vendor/js-base64/base64.js', __FILE__ ) ?>"></script>
     <script src="<?php echo plugins_url( 'js/offlineapp.js', __FILE__ ) ?>"></script>
     <script src="<?php echo plugins_url( 'clientid.js', __FILE__ ) ?>"></script>
     <script src="<?php echo plugins_url( 'vendor/leaflet/leaflet.js', __FILE__ ) ?>"></script>
