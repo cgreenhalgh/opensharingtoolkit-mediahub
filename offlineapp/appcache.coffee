@@ -13,6 +13,7 @@ module.exports.onUpdate = (cb)->
 
 appCache = window.applicationCache
 lastState = -1
+forceShowReload = false
 
 updateState = ()->
   newState = switch appCache.status
@@ -40,7 +41,7 @@ updateState = ()->
     else 
       alertType: 'warning'
       message: 'State unknown ('+appCache.status+')'
-  newState = _.extend {bookmark:false, alertType:'', updateReady:false, state:appCache.status}, newState 
+  newState = _.extend {bookmark:false, alertType:'', updateReady:false, state:appCache.status, showReload:forceShowReload}, newState 
   console.log "update appcache state: #{JSON.stringify newState}"
   state.set newState
 
@@ -71,4 +72,12 @@ check_for_update = () ->
 for event in "cached downloading checking error noupdate obsolete progress updateready".split(' ')
   appCache.addEventListener event, on_cache_event, false
 on_cache_event()
+
+# workaround apparent jump from loading to cached in wototoplayer/cordova
+onCordovaDeviceReady = () ->
+  console.log "cordova device ready"
+  forceShowReload = true
+  updateState()
+
+document.addEventListener 'deviceready', onCordovaDeviceReady, false
 

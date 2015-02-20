@@ -1,7 +1,7 @@
 <%# appcache status view - general widget, in row (for now); data is CacheState %>
   <div class="columns small-12 large-12">
     <div data-alert class="alert-box clearfix <%= @alertType %>">
-      <% if @updateReady: %>
+      <% if @updateReady or @showReload: %>
         <a href="#" class="button tiny right updateReady ">Reload</a>
       <% end %>
       <%= @message %>

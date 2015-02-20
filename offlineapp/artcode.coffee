@@ -46,14 +46,14 @@ module.exports.getExperienceDataUrl = () ->
   base = location.href
   if base.indexOf('#')>=0
     base = base.substring 0,base.indexOf('#')
-  for id,item of items
-    if item.attributes.unlockCodes?
-      for unlockCode in item.attributes.unlockCodes 
-        if unlockCode.type=='artcode'
-          experience.markers.push 
-            code: unlockCode.code
-            action: "#{base}#unlock/artcode/#{encodeURIComponent unlockCode.code}"
-  experience.defaultAction = "#{base}#unlock/artcode/unknown"
+  #for id,item of items
+  #  if item.attributes.unlockCodes?
+  #    for unlockCode in item.attributes.unlockCodes 
+  #      if unlockCode.type=='artcode'
+  #        experience.markers.push 
+  #          code: unlockCode.code
+  #          action: "#{base}#unlock/artcode/#{encodeURIComponent unlockCode.code}"
+  experience.defaultAction = "#{base}#unlock/artcode/$marker"
   json = JSON.stringify experience
   b64 = Base64.btoa (Base64.utob json)
   return 'x-artcode-data:'+b64
