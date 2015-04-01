@@ -54,7 +54,7 @@
 						id = id.substring(id.indexOf('-')+1);
 					var post = JSON.parse( $('input[name=artcode_marker_res_json-'+id+']').val() );
 					var artcode = post['_artcode_code'];
-					things.append('<div class="artcode submitbox">'+
+					things.append('<div class="artcode_marker submitbox">'+
 						'<input type="hidden" name="artcode_marker_id-'+(ix++)+'" value="'+id+'"/>'+
 						'<span class="artcode_marker_title">'+$('<div/>').text(post.post_title).html()+'</span> '+
 						'<span class="description">'+$('<div/>').text(artcode).html()+' '+
@@ -136,7 +136,7 @@
 					break;
 				}
 				var p = $('<p><label><input type="checkbox" name="artcode_marker_res-'+post.ID+'"/>'+
-					$('<div/>').text(post.post_title).html()+'</label>'+
+					$('<div/>').text(post.post_title+(post._artcode_code!='' ? ' ('+post._artcode_code+')':'')).html()+'</label>'+
 					'<input type="hidden" name="artcode_marker_res_json-'+post.ID+'"/>'+
 					'</p>');	
 				$('input[type=hidden]', p).val(JSON.stringify(post));

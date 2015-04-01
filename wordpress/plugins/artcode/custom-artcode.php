@@ -23,8 +23,8 @@ while ( have_posts() ) : the_post();
     		"op" => "create",
     		"id" => $url,
     		"version" => $lastModified,
-    		"name" => the_title(),
-		"description" => filter_content( $post->post_content ),
+    		"name" => $post->post_title,
+		"description" => artcode_filter_content( $post->post_content ),
     		"maxEmptyRegions" => 0,
     		"validationRegions" => 0,
     		"validationRegionValue" => 1,
@@ -61,8 +61,12 @@ while ( have_posts() ) : the_post();
 		$experience['image'] = $experience['icon'] = artcode_get_iconurl( $thumbid );
 	}
 	$markers = array();
-	$experience['markers'] = $markers;
-	$marker_ids = artcode_get_marker_ids( $post->ID );
+	$marker_ids = array();
+	$specific_ids = get_post_meta( $post->ID, '_artcode_marker_ids', true ); 
+	if ( $specific_ids ) 
+		$specific_ids = json_decode( $specific_ids, true );
+	if ( is_array( $specific_ids ) ) 
+		$marker_ids = $specific_ids;
 	foreach( $marker_ids as $item_id ) {
 		$item = get_post( $item_id );
 		if ( $item ) {
@@ -82,15 +86,15 @@ while ( have_posts() ) : the_post();
 			if ( $artcode ) { 
 			    	$showDetail = get_post_meta( $item->ID, '_artcode_show_detail', true );
 				if ( $showDetail == '')
-					$showDetail = '1';
-			    	$action = get_post_meta( $item->ID, '_artcode_actopm', true );
+					$showDetail = '0';
+			    	$action = get_post_meta( $item->ID, '_artcode_action', true );
 				if ( !$action )
 					$action = get_permalink( $item->ID );
 				$marker = array( 
 					"code" => $artcode,
 					"title" => $item->post_title,
-					"description" => filter_content( $item->post_content ),
-					"showDetail" => ($showDetail) ? true : false,
+					"description" => artcode_filter_content( $item->post_content ),
+					"showDetail" => ($showDetail=='1') ? true : false,
 					"action" => $action
 				 );
 				$thumbid = get_post_thumbnail_id($item->ID);
@@ -99,8 +103,9 @@ while ( have_posts() ) : the_post();
 				}
 				$markers[] = $marker;
 			}
-			}
+		}
 	}
+	$experience['markers'] = $markers;
 	echo json_encode( $experience );
 
 // End the loop.

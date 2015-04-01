@@ -3,7 +3,7 @@
  * Standard view of artcode experience, based on Twenty_Fifteen single
  */
 
-if ( array_key_exists('artcode', $_REQUEST ) ) {
+if ( array_key_exists('artcodeexperience', $_REQUEST ) ) {
 	require( dirname(__FILE__) . '/custom-artcode.php' );
 	return;
 }
@@ -28,9 +28,9 @@ get_header(); ?>
 
 			$artcode_url = get_permalink( $post->ID );
 			if ( strpos( $artcode_url, '?' ) === FALSE )
-				$artcode_url .= '?artcode';
+				$artcode_url .= '?artcodeexperience';
 			else
-				$artcode_url .= '&artcode';
+				$artcode_url .= '&artcodeexperience';
 
 			
 ?>

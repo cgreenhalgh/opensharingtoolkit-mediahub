@@ -17,3 +17,14 @@ wototo.zip:
 wototo.tgz: wototo.zip
 	tar zcf wototo.tgz wototo/
 
+artcode.zip: 
+	-mkdir artcode
+	cp -r plugins/artcode/* artcode/
+	-rm artcode.zip
+	zip -r artcode.zip artcode/
+
+.PHONY: artcode.zip
+
+artcode.tgz: artcode.zip
+	tar zcf artcode.tgz artcode/
+
