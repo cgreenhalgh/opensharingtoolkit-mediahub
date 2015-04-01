@@ -3,7 +3,7 @@
  * Plugin Name: artcode
  * Plugin URI: http://aestheticodes.com/
  * Description: Create ArtCode experience from wordpress content (pages and posts).
- * Version: 0.1
+ * Version: 0.1.1
  * Author: Chris Greenhalgh
  * Author URI: http://www.cs.nott.ac.uk/~cmg/
  * Network: true
@@ -370,4 +370,97 @@ function artcode_ajax_marker_search() {
 if ( is_admin() ) {
 	add_action( 'wp_ajax_artcode_marker_search', 'artcode_ajax_marker_search' );
 }
+function artcode_get_experience( $post ) {
+	$url = get_permalink( $post->ID );
+	//"http://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]";
+	$lastModified = mysql2date('U', $post->post_modified_gmt);
+	
+	$experience = array(
+    		"op" => "create",
+    		"id" => $url,
+    		"version" => $lastModified,
+    		"name" => $post->post_title,
+		"description" => artcode_filter_content( $post->post_content ),
+    		"maxEmptyRegions" => 0,
+    		"validationRegions" => 0,
+    		"validationRegionValue" => 1,
+		"embeddedChecksum" => false,
+    		"thresholdBehaviour" => "temporalTile",
+	);
+//    		"minRegions": 4,
+	$value = get_post_meta( $post->ID, '_artcode_regions_min', true );
+	if (empty($value))
+		$value = DEFAULT_REGIONS_MIN;
+	$experience["minRegions"] = intval( $value );
+//     		"maxRegions": 10,
+	$value = get_post_meta( $post->ID, '_artcode_regions_max', true );
+	if (empty($value))
+		$value = DEFAULT_REGIONS_MAX;
+	$experience["maxRegions"] = intval( $value );
 
+//    		"maxRegionValue": 6,
+	$value = get_post_meta( $post->ID, '_artcode_max_region_value', true );
+	if (empty($value))
+		$value = DEFAULT_MAX_REGION_VALUE;
+	$experience["maxRegionValue"] = intval( $value );
+//    		"checksumModulo": 1,
+	$value = get_post_meta( $post->ID, '_artcode_checksum', true );
+	if (empty($value))
+		$value = DEFAULT_CHECKSUM;
+	$value = intval( $value );
+	if ( $value < 2 )
+		$value = 1; //off
+	$experience["checksumModulo"] = $value;
+	// TODO icon separate from image
+	$thumbid = get_post_thumbnail_id($post->ID);
+	if ( $thumbid ) {
+		$experience['image'] = $experience['icon'] = artcode_get_iconurl( $thumbid );
+	}
+	$markers = array();
+	$marker_ids = array();
+	$specific_ids = get_post_meta( $post->ID, '_artcode_marker_ids', true ); 
+	if ( $specific_ids ) 
+		$specific_ids = json_decode( $specific_ids, true );
+	if ( is_array( $specific_ids ) ) 
+		$marker_ids = $specific_ids;
+	foreach( $marker_ids as $item_id ) {
+		$item = get_post( $item_id );
+		if ( $item ) {
+			$artcode = '';
+		    	$value = get_post_meta( $item->ID, '_artcode_code', true );
+			if ( $value ) {
+				$artcode = $value;
+			} else {
+			    	$value = get_post_meta( $item->ID, '_wototo_item_unlock_codes', true );
+				if ( $value ) {
+       					$unlock_codes = json_decode( $value, true );
+					if ( array_key_exists('artcode', $unlock_codes ) ) {
+						$artcode = $unlock_codes['artcode'];
+					}
+				}
+			}
+			if ( $artcode ) { 
+			    	$showDetail = get_post_meta( $item->ID, '_artcode_show_detail', true );
+				if ( $showDetail == '')
+					$showDetail = '0';
+			    	$action = get_post_meta( $item->ID, '_artcode_action', true );
+				if ( !$action )
+					$action = get_permalink( $item->ID );
+				$marker = array( 
+					"code" => $artcode,
+					"title" => $item->post_title,
+					"description" => artcode_filter_content( $item->post_content ),
+					"showDetail" => ($showDetail=='1') ? true : false,
+					"action" => $action
+				 );
+				$thumbid = get_post_thumbnail_id($item->ID);
+				if ( $thumbid ) {
+					$marker['image'] = artcode_get_iconurl( $thumbid );
+				}
+				$markers[] = $marker;
+			}
+		}
+	}
+	$experience['markers'] = $markers;
+	return json_encode( $experience );
+}

@@ -32,6 +32,7 @@ get_header(); ?>
 			else
 				$artcode_url .= '&artcodeexperience';
 
+			//$experience = artcode_get_experience( $post );
 			
 ?>
 	<div class="comments-area artcode-links">
