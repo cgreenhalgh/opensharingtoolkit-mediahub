@@ -13,7 +13,7 @@ wp_enqueue_style( 'wototo-css', plugins_url( 'wototo.css', __FILE__ ) );
 get_header(); ?>
 
 	<div id="primary" class="content-area">
-		<main id="main" class="site-main" role="main">
+		<main id="main" class="site-content" role="main">
 
 		<?php
 		// Start the loop.
@@ -26,7 +26,8 @@ get_header(); ?>
 			 */
 			get_template_part( 'content', get_post_format() );
 
-			$view_url = get_permalink( $post->ID );
+			$page_url = get_permalink( $post->ID );
+			$view_url = $page_url;
 			if ( strpos( $view_url, '?' ) === FALSE )
 				$view_url .= '?wototo';
 			else
@@ -44,15 +45,12 @@ function popupqr(url) {
 	return false;
 }
 </script>
-			<h2>Wototo App Links</h2>
-			<p><a class="wototo-link" href="<?php echo $view_url ?>">Open in Browser</a>
-			<a class="wototo-link-qr" onclick="return popupqr('<?php echo $view_url ?>')">QR</a></p>
-			<p><a class="wototo-link"  href="<?php echo $wototo_url ?>">Open in WototoPlayer via URL</a>
-			<a class="wototo-link-qr" onclick="return popupqr('<?php echo $wototo_url ?>')">QR</a>
+			<h2>Wototo App Links <a class="wototo-link-qr" onclick="return popupqr('<?php echo $page_url ?>')">QR</a></h2>
+			<p><a class="wototo-link" href="<?php echo $view_url ?>">Open in Browser</a></p>
+			<p><a class="wototo-link"  href="<?php echo $wototo_url ?>">Open in WototoPlayer</a>
 			<br/><span class="wototo-warning">Experimental: Android-only, requires seperate install</span></p>
-			<p><a class="wototo-link"  href="<?php echo $view_url ?>=2">Open in WototoPlayer via download</a>
-			<a class="wototo-link-qr" onclick="return popupqr('<?php echo $view_url ?>=2')">QR</a>
-			<br/><span class="wototo-warning">Experimental: Android-only, requires seperate install</span></p>
+			<!-- <p><a class="wototo-link"  href="<?php echo $view_url ?>=2">Open in WototoPlayer via download</a>
+			<br/><span class="wototo-warning">Experimental: Android-only, requires seperate install</span></p> -->
 		</div>
 	</div>
 <?php
@@ -80,4 +78,7 @@ function popupqr(url) {
 		</main><!-- .site-main -->
 	</div><!-- .content-area -->
 
-<?php get_footer(); ?>
+<?php 
+get_sidebar( 'content' );
+get_sidebar();
+get_footer(); ?>

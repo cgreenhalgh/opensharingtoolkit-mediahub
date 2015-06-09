@@ -3,7 +3,7 @@
  * Plugin Name: wototo
  * Plugin URI: https://github.com/cgreenhalgh/opensharingtoolkit-mediahub/tree/master/docs/wordpress.md
  * Description: Create simple HTML5 web apps from wordpress content (pages and posts). The web apps are intended for use on recent smart phones and tablets.
- * Version: 0.3.7
+ * Version: 0.3.8
  * Author: Chris Greenhalgh
  * Author URI: http://www.cs.nott.ac.uk/~cmg/
  * Network: true
@@ -27,7 +27,7 @@ require_once( dirname(__FILE__) . '/common.php' );
 
 // wander anywhere map post  -> wototo place
 define( "DEFAULT_ZOOM", 15 );
-define( "WOTOTO_VERSION", "0.3.7" );
+define( "WOTOTO_VERSION", "0.3.8e" );
 
 add_action( 'init', 'wototo_create_post_types' );
 //Register the app post type
@@ -131,11 +131,12 @@ function wototo_app_custom_box( $post ) {
 			$post = get_post( $id );
 			$unlock_codes = get_post_meta( $post->ID, '_wototo_item_unlock_codes', true );
 			$unlock_codes = $unlock_codes ? json_decode( $unlock_codes, TRUE ) : array();
-			$artcode = $unlock_codes['artcode'] ? ' ('.$unlock_codes['artcode'].')': '';
+			$artcode = array_key_exists( 'artcode', $unlock_codes ) ? ' ('.$unlock_codes['artcode'].')': '';
 			$current_user_can_edit = current_user_can ( 'edit_post', $post->ID );
 			// NB links have & escaped already
 ?>	<div class="wototo_thing submitbox">
-		<input type="hidden" name="wototo_thing_id-<?php echo $i ?>" value="<?php echo $id ?>"/>
+		<input type="hidden" name="wototo_thing_id-<?php echo $i ?>" va
+lue="<?php echo $id ?>"/>
 		<span class="wototo_item_title"><?php echo esc_html( $post->post_title) ?></span>
 		<span class="description"><?php echo esc_html( $artcode ) ?>
 		<a href="<?php echo get_edit_post_link( $post->ID ) ?>" target="_blank" class="<?php echo !$current_user_can_edit ? 'hide' : '' ?>">Edit</a>
@@ -284,7 +285,7 @@ function wototo_save_postdata( $post_id ) {
            '_wototo_item_locked',
             $_POST['wototo_item_locked']
         );
-        $lock_id = get_post_meta( $post->ID, '_wototo_item_lock_id', true );
+        $lock_id = get_post_meta( $post_id, '_wototo_item_lock_id', true );
         // clear if unlocked; generate if locked     
         if( $_POST['wototo_item_locked'] && !$lock_id ) 
             update_post_meta( $post_id,
@@ -299,7 +300,7 @@ function wototo_save_postdata( $post_id ) {
             $_POST['wototo_item_locked_show']
         );
     }
-    $value = get_post_meta( $post->ID, '_wototo_item_unlock_codes', true );
+    $value = get_post_meta( $post_id, '_wototo_item_unlock_codes', true );
     $unlock_codes = $value ? json_decode( $value, true ) : array();
     $changed = FALSE;
     foreach ( wototo_code_types() as $code_type ) {
@@ -487,7 +488,7 @@ function wototo_get_json() {
 	header( "Content-Type: application/json" );
 	// TODO more specific?
 	header( "Access-Control-Allow-Origin: *" );
-	$sid = $_POST['id'] ? $_POST['id'] : $_GET['id'];
+	$sid = array_key_exists( 'id', $_POST ) ? $_POST['id'] : (array_key_exists( 'id', $_GET ) ? $_GET['id'] : '');
 	if ( !$sid ) {
 		echo '{"error":"Invalid request: id not specified"}';
 		wp_die();
@@ -587,7 +588,7 @@ function wototo_get_json() {
 // Ajax for get manifest...
 function wototo_get_manifest() {
 	global $wpdb;
-	$id = intval( $_POST['id'] ? $_POST['id'] : $_GET['id'] );
+	$id = intval( array_key_exists( 'id', $_POST ) ? $_POST['id'] : (array_key_exists( 'id', $_GET ) ? $_GET['id'] : '' ) );
 	if ( !$id ) {
 		echo '# Invalid request: id not specified';
 		wp_die();
@@ -606,7 +607,7 @@ function wototo_get_manifest() {
 		wp_die();
 	}
 	$lastModified = mysql2date('U', $post->post_modified_gmt);
-	// plugin change => check the rest
+	// plugiN change => check the rest
 	$pluginLastModified = filemtime( __FILE__ );
         if ( $lastModified && $pluginLastModified && $pluginLastModified > $lastModified ) 
 		$lastModified = $pluginLastModified;
@@ -684,7 +685,7 @@ function wototo_get_manifest() {
 		'clientid.js', 
 		'vendor/leaflet/leaflet.js', 
 		), "javascript from index");
-	$wototo = $_POST['wototo'] ? $_POST['wototo'] : $_GET['wototo'];
+	$wototo = array_key_exists( 'wototo', $_POST ) ? $_POST['wototo'] : ( array_key_exists( 'wototo', $_GET ) ? $_GET['wototo'] : 0 );
 	if ( $wototo ) 
 		output_plugin_files( array( 
 			'vendor/cordova/cordova.js', 
@@ -733,6 +734,9 @@ function wototo_get_manifest() {
 	foreach ( $mediafiles as $mediafile ) {
 		echo $mediafile."\n";
 	}
+?># artcode experience hook
+<?php 
+	echo '#'.admin_url( 'admin-ajax.php' ).'?action=wototo_get_artcode&id='.rawurlencode( $id )."\n";
 ?># general network access
 NETWORK:
 #*
@@ -765,9 +769,9 @@ function add_mediafiles ( &$mediafiles, $content ) {
 		}
 	}
 }
-define( MAX_ZOOM, 19 ); // max on OSM??
-define( MAX_ZOOM_IN, 1 );
-define( MAX_ZOOM_OUT, 1 );
+define( "MAX_ZOOM", 19 ); // max on OSM??
+define( "MAX_ZOOM_IN", 1 );
+define( "MAX_ZOOM_OUT", 1 );
 // http://wiki.openstreetmap.org/wiki/Slippy_map_tilenames
 // Math.floor...
 function lon2tile ( $lon, $zoom) { 
@@ -781,7 +785,7 @@ function add_maptiles( &$mediafiles, $lat, $lon, $zoom ) {
 	if ( $zoom> MAX_ZOOM )
 		$zoom = MAX_ZOOM;
 	// OSM: http://{s}.tile.osm.org/{z}/{x}/{y}.png
-	$mapUrl = 'http://{s}.tile.osm.org/{z}/{x}/{y}.png';
+	$mapUrl = 'http://{s}.tiLe.osm.org/{z}/{x}/{y}.png';
 	// see https://github.com/Leaflet/Leaflet/blob/master/src/layer/tile/TileLayer.js
 	$subdomains = array( 'a','b','c' );
 	$latTile0 = lat2tile( $lat, 0 );
@@ -868,11 +872,79 @@ function wototo_ajax_thing_search() {
 	echo json_encode( $res );
 	wp_die();
 }
+function wototo_get_artcode() {
+        global $wpdb;
+        $id = array_key_exists( 'id', $_POST ) ? $_POST['id'] : (array_key_exists( 'id', $_GET ) ? $_GET['id'] : '' );
+        if ( !$id ) {
+                echo '# Invalid request: id not specified';
+                wp_die();
+        }
+        $post = get_post($id);
+        if ( $post === null ) {
+                echo '# Not found: post '.$id.' not found';
+                wp_die();
+        }
+ 	header( 'Content-Type: application/x-artcode' );
+	header( 'Content-Disposition: attachment; filename=scan'.$id.'.artcode' );
+	$lastModified = mysql2date('U', $post->post_modified_gmt);
+	$res = array(
+    		"op" => "temp",
+    		"id" => "org.opensharingtoolkit.aestheticodes.dynamic",
+    		"version" => 1,
+    		"name" => "Scan for Wototo App",
+    		"minRegions" => 4,
+    		"maxRegions" => 10,
+    		"maxEmptyRegions" => 0,
+    		"maxRegionValue" => 6,
+    		"validationRegions" => 0,
+    		"validationRegionValue" => 1,
+    		"checksumModulo" => 1,
+    		"thresholdBehaviour" => "temporalTile",
+		"embeddedChecksum" => false,
+	);
+	$res['markers'] = array();
+	$view_url = get_permalink( $post->ID );
+	if ( strpos( $view_url, '?' ) === FALSE )
+		$view_url .= '?wototo';
+	else
+		$view_url .= '&wototo';
+	$res['callback'] = $view_url.'#unlock/artcode/{marker}';
+	/* workaround callback not working... */
+	$thing_ids = wototo_get_thing_ids( $post->ID );
+	foreach( $thing_ids as $thing_id ) {
+		$ix = strpos( $thing_id, ':' );
+		$idprefix = '';
+		if ( $ix !== FALSE ) {
+			$item_id = substr( $thing_id, $ix+1 );
+			$idprefix = substr( $thing_id, 0, $ix );
+		}
+		if ( $idprefix ) {
+			$item = get_post( $item_id );
+			if ( $item ) {
+				$value = get_post_meta( $item->ID, '_wototo_item_unlock_codes', true );
+				if ( $value ) {
+					$unlock_codes = json_decode( $value, true );
+					if ( array_key_exists( 'artcode', $unlock_codes ) ) {
+						$marker = array(
+							'code' => $unlock_codes['artcode'],
+							'action' => $view_url.'#unlock/artcode/'.urlencode($unlock_codes['artcode']),
+						);
+						$res['markers'][] = $marker;
+					}
+				}
+			}
+		}
+	}
+	echo json_encode( $res );
+	wp_die();
+}
 if ( is_admin() ) {
 	add_action( 'wp_ajax_wototo_get_json', 'wototo_get_json' );
 	add_action( 'wp_ajax_nopriv_wototo_get_json', 'wototo_get_json' );
 	add_action( 'wp_ajax_wototo_get_manifest', 'wototo_get_manifest' );
 	add_action( 'wp_ajax_nopriv_wototo_get_manifest', 'wototo_get_manifest' );
 	add_action( 'wp_ajax_wototo_thing_search', 'wototo_ajax_thing_search' );
+	add_action( 'wp_ajax_wototo_get_artcode', 'wototo_get_artcode' );
+	add_action( 'wp_ajax_nopriv_wototo_get_artcode', 'wototo_get_artcode' );
 }
 
