@@ -41,11 +41,19 @@ module.exports.setItems = (i) ->
   items = i
 
 module.exports.getExperienceDataUrl = () ->
-  experience = _.extend {}, ARTCODES_SETTINGS
-  experience.markers = []
   base = location.href
   if base.indexOf('#')>=0
     base = base.substring 0,base.indexOf('#')
+  appid = $('meta[name="mediahub-appid"]').attr('content')
+  wordpressajax = $('meta[name="wototo-wordpress-ajax"]').attr('content')
+  if wordpressajax? and appid?
+    ix = appid.indexOf ':'
+    if ix>=0
+      appid = appid.substring ix+1
+    return wordpressajax+'?action=wototo_get_artcode&id='+appid
+    
+  experience = _.extend {}, ARTCODES_SETTINGS
+  experience.markers = []
   #for id,item of items
   #  if item.attributes.unlockCodes?
   #    for unlockCode in item.attributes.unlockCodes 
@@ -56,5 +64,5 @@ module.exports.getExperienceDataUrl = () ->
   experience.defaultAction = "#{base}#unlock/artcode/$marker"
   json = JSON.stringify experience
   b64 = Base64.btoa (Base64.utob json)
-  return 'x-artcode-data:'+b64
+  return 'data:application/x-artcode,'+b64
 
